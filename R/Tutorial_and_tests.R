@@ -68,3 +68,5 @@ p3 <- p3 +  geom_polygon( data=MainStates, aes(x=long, y=lat, group=group),
   labs(title="State Population in the Mainland United States")
 
 p3
+
+

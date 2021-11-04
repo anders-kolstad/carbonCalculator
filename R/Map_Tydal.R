@@ -33,6 +33,8 @@ shp_stasjon<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data",
 shp_myrtyper<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data", layer="naturtyper_Setermyra")
 sp_data<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data", layer="dybdepunkter_Tydal2")
 
+
+
 #Import med st_read gir vanlig dataframe
 shp_myrtyper_2<-st_read("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/naturtyper_Setermyra.shp")
 shp_stasjon_2<-st_read("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/stasjon_Setermyra.shp")
@@ -212,7 +214,7 @@ ggplot()+
 #Kriging is a little more involved than IDW as it requires the construction of a semivariogram model to describe 
 #the spatial autocorrelation pattern for your particular variable. We’ll start with a variogram cloud
 variogcloud<-variogram(Peat_depth~1, locations=sp_data, data=sp_data, cloud=TRUE)
-#plot(variogcloud)
+plot(variogcloud)
 
 #Hurra! Da har jeg laga min første variogram-sky ;)!
 
@@ -302,3 +304,8 @@ summary(crop_krig_mask@data@values)
 #Grovestimat karbon
 77697.63*0.1*0.5*1000
 #3884882 kg = 3884.882 tonn karbon
+
+#Grovestimat CO2
+3884882*3.67
+#14257517 kg = 14257.517 tonn CO2
+
