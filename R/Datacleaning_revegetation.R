@@ -10,8 +10,10 @@ library(magrittr)
 
 #Importing data for 2020 and 2021 ####
 VSM_ruter <- read_excel("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Reveg_2021.xlsx",sheet = "VSM_ruter", na = "0")
-
 #Added extra line above date, but date is still converted to unreadable numbers.
+
+VSM_ruter_s <- read_excel("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Reveg_2021.xlsx",sheet = "VSM_ruter_snudd", na = "0")
+
 
 #Create wide format and clean up data types ####
 VSM_ruter_t <-t(VSM_ruter) #creates wide format
@@ -41,3 +43,8 @@ VSM_2 <-VSM
 #Melt to long format ####
 VSM_m1 = melt(VSM_2, id.vars = c("Dato", "Lokalitet", "Sublokalitet", "Blokk", "Behandling"),
              measure.vars = c(6:33))
+#This runs with warnings of being outdated
+
+VSM_m2 = pivot_longer(VSM_2, cols=6:33, names_to="variable", values_to="value", 
+                      values_drop_na = FALSE )
+#This runs smoothly, and is easier to get a grasp on than the melt-function

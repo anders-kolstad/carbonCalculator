@@ -264,5 +264,51 @@ ggplot(data=dat_VSM[dat_VSM$variable=="Sphagnum",], aes(x=Behandling, y=value, f
   geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
   facet_wrap(~Sublokalitet)
 ```
+Boxplot bar torv
+```{r}
+#boxplot bare peat
+ggplot(data=dat[dat$variable=="Bar_torv",], aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
+  facet_wrap(~Lokalitet)
+```
+Boxplot bar torv for enkeltlokaliteter
+```{r}
+#boxplot bare peat
+ggplot(data=dat_HM[dat_HM$variable=="Bar_torv",], aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
+  facet_wrap(~Sublokalitet)
+```
+
+```{r}
+#boxplot bare peat
+ggplot(data=dat_VSM[dat_VSM$variable=="Bar_torv",], aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
+  facet_wrap(~Sublokalitet)
+```
+Aggregere til annen vegetasjon enn Sphagnum
+```{r}
+dat_av <- subset(dat, variable!="Sphagnum" & variable!="Bar_torv" & variable!="Død_torvmose" & variable!="Strø" & variable!="Annet" & variable!="Halm" & variable!="Død_ved" & variable!="Mid_vann" & variable!="Død ved" & variable!="Sphagnum_strø")
+
+
+table(dat_av$variable)
+
+aggregate(dat_av$value, by=list(Behandling=dat_av$Behandling), FUN=sum)
+aggregate(value ~ Behandling, dat_av, sum)
+
+agg_dat_av <-aggregate(value ~ Behandling + Blokk + Sublokalitet + Lokalitet + År, FUN = sum, data=dat_av)
+
+```
+
+```{r}
+#boxplot vegetasjon
+ggplot(data=agg_dat_av, aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
+  facet_wrap(~Lokalitet)
+```
+Oversikt tall annen vegetasjon
+```{r}
+
+
+```
 
 ...

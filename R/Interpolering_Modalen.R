@@ -14,24 +14,37 @@ library(dplyr)
 library(spatialEco)
 library(stars)
 library(automap)
+library(RStoolbox)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(rasterVis)
 
 #Importer data ------------
-modalen_punkter<-readOGR(dsn="C:/Users/martef/DokumenterIntern/PhD prosjekter/WP3_NINA_GRAN/Modalen", layer="modalen_punkter")
-shp_modalen<-readOGR(dsn="C:/Users/martef/DokumenterIntern/PhD prosjekter/WP3_NINA_GRAN/Modalen", layer="modalen_shp")
-shp_myr<- readOGR(dsn="C:/Users/martef/DokumenterIntern/PhD prosjekter/WP3_NINA_GRAN/Modalen", layer="Modalen_myrareal")
+modalen_punkter<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Modalen", layer="modalen_punkter")
+shp_modalen<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Modalen", layer="modalen_shp")
+shp_myr<- readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Modalen", layer="Modalen_myrareal")
 #Visualisere dataene ------------
 plot(shp_modalen)
+plot(shp_myr)
 points(modalen_punkter, pch=1, col='red', cex=1)
 
-df_modalen<-fortify(shp_modalen)
+df_modalen<-broom::tidy(shp_modalen)
 df_modalen_punkter <- data.frame(modalen_punkter)
+df_myr <- broom::tidy(shp_myr)
 
 p_modalen <- ggplot()
 p_modalen <- p_modalen + geom_polygon( data=df_modalen, aes(x=long, y=lat, group=group),
-                                           color="black", fill="lightblue", size = .1 ) +
+                                           color="grey10", fill="grey40", size = .1, alpha=1 ) +
+  geom_polygon(data=df_myr,
+               aes(x=long, y=lat,  group=group),
+               color="black", fill="grey20", size = .1) +
   geom_point(data=df_modalen_punkter,
              aes(x=coords.x1,
-                 y=coords.x2), pch=20, cex=1.2, col="red")
+                 y=coords.x2), pch=20, cex=1.2, size=2, col="lightblue") +
+  coord_equal(ratio=1)
+
+p_modalen <-p_modalen + theme_map()
 p_modalen
 
 st_crs(modalen_punkter) 
@@ -43,7 +56,6 @@ res(grid) <- 1
 
 proj4string(grid)<-proj4string(modalen_punkter)
 gridpolygon <- rasterToPolygons(grid)
-plot(gridpolygon)
 
 plot(gridpolygon, cex=1.5)
 points(modalen_punkter, pch=1, col='red', cex=1)
@@ -77,6 +89,7 @@ summary(crop_IDW)
 
 raster_IDW_modalen<-raster(nn)
 raster_modalen<-raster(crop_IDW)
+
 idw.output=as.data.frame(nn)
 
 IDW.output_crop <- na.omit(idw.output, col.name = "var1.pred") 
@@ -89,27 +102,44 @@ sum(IDW.output_crop)
 #29776.18
 
 
-#Visualere med interpolering --------
-plot(crop_IDW)
-plot(shp_myr)
-points(modalen_punkter, pch=1, col='red', cex=1)
+#Visualisere med interpolering --------
 
-df_modalen<-fortify(shp_modalen)
-df_modalen_punkter <- data.frame(modalen_punkter)
-df_myr <- fortify (shp_myr)
-df_IDW <- fortify(crop_IDW)
+df_IDW <- raster::as.data.frame(crop_IDW,xy=TRUE)
+df_IDW_noNA <- na.omit(df_IDW, col.name = "var1.pred") 
+raster_IDW_modalen_df <-raster::as.data.frame(nn, xy=TRUE)
+raster_IDW_modalen_df_noNA <- na.omit(raster_IDW_modalen_df, col.name = "layer") 
 
-p_modalen <- ggplot()
-p_modalen <- p_modalen + geom_raster(data=raster_IDW_modalen)+ 
-  geom_polygon( data=df_modalen, aes(x=long, y=lat),
-                                       color="black", fill="lightblue", size = .1 ) +
+#Bare outline av området og myrene
+Borders <- ggplot()
+Borders <- Borders +
+  geom_polygon( data=df_modalen, aes(x=long, y=lat, group=group),
+                                       color="grey10", fill=NA, size = .1, alpha=1 ) +
   geom_polygon(data=df_myr,
-               aes(x=long, y=lat),
-               color="black", size = .1 ) +
+               aes(x=long, y=lat,  group=group),
+               color="black", fill=NA, size = .1) +
   geom_point(data=df_modalen_punkter,
              aes(x=coords.x1,
-                 y=coords.x2), pch=20, cex=1.2, col="red")
-p_modalen
+                 y=coords.x2), pch=20, cex=1.2, size=2, col="lightblue") +
+  coord_equal(ratio=1)
+
+Borders <-Borders + theme_map()
+Borders
+
+#Kart med interpoleringa inkludert innenfor stasjonsområdet
+full_map <- ggplot() + geom_raster(data=df_IDW_noNA, aes(x=x, y=y, fill=var1.pred), alpha=0.8)+
+  scale_fill_viridis(direction = -1) +
+  geom_polygon( data=df_modalen, aes(x=long, y=lat, group=group),
+                color="grey10", fill=NA, size = .1, alpha=1 ) +
+  geom_polygon(data=df_myr,
+               aes(x=long, y=lat,  group=group),
+               color="black", fill=NA, size = .1) +
+  geom_point(data=df_modalen_punkter,
+             aes(x=coords.x1,
+                 y=coords.x2), pch=20, cex=1.2, size=2, col="lightblue") +
+  coord_fixed()
+  
+full_map
+
 
 #Beregning karbon------------
 #Grovestimat karbon

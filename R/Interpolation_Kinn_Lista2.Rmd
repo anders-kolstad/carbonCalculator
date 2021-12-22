@@ -1,0 +1,204 @@
+---
+title: "Interpolation_Kinn_Lista2"
+author: "MarteFandrem"
+date: "14 12 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(rgdal) #unsure if I use this
+library(raster)
+library(ggplot2)
+library(gstat)
+library(rgeos) #unsure if I use this
+library(plyr) #unsure if I use this
+library(dplyr) #unsure if I use this
+library(sf)
+library(maps) #unsure if I use this
+library(maptools) #unsure if I use this
+library(dplyr) #unsure if I use this
+library(spatialEco) #unsure if I use this
+library(stars) #unsure if I use this
+library(automap) #unsure if I use this
+library(RStoolbox) #unsure if I use this
+library(broom)
+library(ggthemes)
+library(viridis)
+library(rasterVis) #unsure if I use this
+
+```
+
+#Import data
+```{r}
+GIS_points<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Kinn", layer="lista2_punkter")
+shp<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Kinn", layer="lista2_avgrensing")
+
+peat_depths_data <- read.csv("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Kinn/data_lista2_torvdybder.csv", sep=";")
+
+```
+
+# Data cleaning
+Merge peat depth info with shapefile.
+Transform depths to numeric.
+```{r}
+
+GIS_points@data$name <- as.numeric(GIS_points@data$name)
+points <- merge(GIS_points,peat_depths_data,by="name")
+
+points@data$Dybde <- as.numeric(points@data$Dybde) 
+
+```
+
+#Visualizing imported data
+
+```{r}
+plot(shp)
+points(points, pch=1, col='red', cex=1)
+```
+
+# Spatial files to dataframes
+```{r}
+
+df_shp<-tidy(shp)
+df_points <- data.frame(points)
+
+```
+
+#Visualize with ggplot
+```{r}
+p1<- ggplot()
+p1 <- p1 + geom_polygon(data=df_shp, aes(x=long, y=lat, group=group),
+      color="grey10", fill=NA, size = .1, alpha=1 ) +
+  geom_point(data=df_points,
+             aes(x=coords.x1,
+                 y=coords.x2), pch=20, cex=1.2, col="lightblue") +
+    coord_fixed()
+p1
+
+```
+
+#Check coordinate-system
+
+```{r}
+st_crs(points) 
+st_crs(shp)
+```
+
+#Has to be converted from WGS84 to UTM, to get metres as unit
+
+```{r}
+shp_EPSG25833 <- spTransform(shp, CRS("+init=epsg:25833")) 
+points_EPSG25833 <- spTransform(points, CRS("+init=epsg:25833")) 
+
+```
+
+#Create grid
+
+```{r}
+grid <- raster(extent(shp_EPSG25833))
+res(grid) <- 1
+
+
+proj4string(grid)<-crs(points_EPSG25833)
+gridpolygon <- rasterToPolygons(grid)
+
+#plot(gridpolygon_maroy, cex=1.5)
+#points(maroy_kartpunkter_UTM33, pch=1, col='red', cex=1)
+
+
+```
+
+#Change df according to changes in projection
+```{r}
+df_shp<-tidy(shp_EPSG25833)
+df_points <- data.frame(points_EPSG25833)
+
+```
+#Inverse Distance Weighting (IDW) for Marøy
+
+```{r}
+gs<- gstat(formula=Dybde~1, locations=points_EPSG25833, nmax=5, set=list(idp = 0))
+nn <- interpolate(grid, gs)
+## [inverse distance weighted interpolation]
+crop_IDW <- mask(nn, shp_EPSG25833)
+plot(crop_IDW)
+
+```
+Summary of results
+
+```{r}
+
+print(summary(crop_IDW))
+
+
+```
+#Prepare output data
+```{r}
+idw.output=as.data.frame(crop_IDW, xy=TRUE)
+IDW.output_noNA <- na.omit(idw.output, col.name = "var1.pred") 
+print(sum(IDW.output_noNA$var1.pred))
+
+```
+
+#Print output data
+
+```{r, echo=FALSE}
+write.csv(IDW.output_noNA,"IDW.output.maroy.csv", row.names = FALSE)
+writeRaster(nn,'IDW_maroy_grid.tif', overwrite=TRUE)
+writeRaster(crop_IDW,'IDW_maroy_crop.tif', overwrite=TRUE)
+
+```
+
+#Visulize with ggplot
+
+```{r}
+
+full_map <- ggplot() + geom_raster(data=IDW.output_noNA, aes(x=x, y=y, fill=var1.pred), alpha=0.8)+
+  scale_fill_viridis(direction = -1) +
+  geom_polygon( data=df_shp, aes(x=long, y=lat, group=group),
+                color="grey10", fill=NA, size = .1, alpha=1 ) +
+   geom_point(data=df_points,
+             aes(x=coords.x1,
+                 y=coords.x2), pch=20, cex=1.2, size=2, col="lightblue") +
+  coord_fixed()
+  
+full_map
+```
+
+
+#Grouping depths according to peat sampling
+
+```{r}
+IDW.output_crop_maroy$Dybde_gruppe <- cut(IDW.output_crop_maroy$var1.pred,c(0,10,60,110,Inf))
+head(IDW.output_crop_maroy)
+
+
+IDW.output_crop_maroy %>%
+  group_by(Dybde_gruppe) %>%
+  summarize(volum= sum(var1.pred, na.rm = TRUE), n=n())
+```
+# Visualize interpolation with ggplot
+
+```{r}
+
+raster_IDW_maroy_df <-rasterToPoints(raster_IDW_maroy)
+raster_IDW_maroy_df <-data.frame(raster_IDW_maroy_df)
+p_maroy <- 
+  
+ggplot() + 
+  geom_raster(data=raster_IDW_maroy_df, aes(x=x, y=y))+ 
+  geom_polygon( data=df_maroy, aes(x=long, y=lat),
+     color="black", size = .1 ) +
+  geom_point(data=df_maroy_punkter,
+             aes(x=coords.x1,
+                 y=coords.x2), pch=20, cex=1.2, col="red")
+p_maroy
+```
+
