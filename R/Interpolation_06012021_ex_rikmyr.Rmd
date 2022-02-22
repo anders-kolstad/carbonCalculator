@@ -1,0 +1,604 @@
+---
+title: "Interpolation_06012021_ex_rikmyr"
+author: "MarteFandrem"
+date: "6 1 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+---
+
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf) #Not sure if I use this
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+```
+
+#Import and clean up data
+
+```{r}
+
+shp<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Kinn", layer="rikmyr_avgrensing")
+points<-readOGR(dsn="C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Kinn", layer="rikmyr_punkter")
+
+peat_depths_data <- read.csv("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN/Data/Kinn/data_rikmyr_torvdybder.csv", sep=";")
+
+#Transform to EPSG:25833 (Euref89 , UTM33N)
+shp <- spTransform(shp, CRS("+init=epsg:25833")) 
+points <- spTransform(points, CRS("+init=epsg:25833")) 
+
+
+```
+Merge peat depth info with GIS-file for points.
+Transform depths to numeric (in case it isn't).
+Remove NA's from the depth dataset
+
+Ideally we import only one dataset of peat depths as a csv with the columns ID,x,y, and depths only (in ETRF89:UTM33, i.e. EPSG:25833), THEN set crs and create a SpatialPointsDataFrame. But in this case we have an imported points-dataset from ArcGIS and another dataset including the depths, so extra steps have to be taken.
+```{r}
+
+points@data$name <- as.numeric(points@data$name) 
+points <- merge(points,peat_depths_data,by="name") #
+
+points@data$Dybde <- as.numeric(points@data$Dybde) 
+
+points_noNA <- sp.na.omit(points, col.name = "Dybde", margin=1)
+dfs<- points_noNA
+
+
+Write csv with points
+df <- as.data.frame(dfs)
+setwd('..')
+write.csv(df, "Data/Kinn/torvdybder_rikmyr.csv")
+
+```
+
+#Checking that the projections now are correct
+```{r, echo=FALSE}
+st_crs(points) 
+st_crs(shp)
+```
+
+#Checking data for normality
+I'm not really sure if it's trully needed to have normal distributed data, but I've seen others square-root transform data to get normality in skewed data.
+```{r}
+hist(points@data$Dybde, breaks=20)
+```
+
+#Create grid and adjust to extent of peatland
+
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(points) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_sp@grid@cellsize       #check that cell size is 1x1
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+plot(grid_crop)
+```
+
+#Assessing fit of model(s)
+
+Jackknifing or leave-one-out cross-validation:
+Remove one data point from the dataset and interpolate with all other points with constant parameters.
+Assess the performance by the root-mean of squared residuals of the errors (RMSE).
+Create a scatterplot of the predicted vs. expected depth values from our dataset.
+We can extend our exploration of the interpolator’s accuracy by creating a map of the confidence intervals. 
+This involves layering all n interpolated surfaces from the aforementioned jackknife technique, then computing the confidence interval for each location ( pixel) in the output map (raster).
+If the range of interpolated values from the jackknife technique for an unsampled location i is high, then this implies that this location is highly sensitive to the presence or absence of a single point from the sample point locations thus producing a large confidence interval (i.e. we can’t be very confident of the predicted value). Conversely, if the range of values estimated for location i is low, then a small confidence interval is computed (providing us with greater confidence in the interpolated value). 
+
+#Test the best fit of nmax and power in IDW.
+First interpolate all the various models and get the volume
+```{r, echo=FALSE}
+neighbors = length(points_noNA)
+power = seq(from = 0, to = 8, by = 1)
+neigh = seq(from = 2, to = neighbors, by = 2)
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- idw(Dybde ~ 1, points_noNA, grid_crop, nmax=i, idp=j)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume <- tidyr::separate(volume, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume$power <- as.numeric(volume$power)
+volume$nn <- as.numeric(volume$nn)
+volume$volume <- as.numeric(volume$volume)
+```
+
+
+Then run jackknifing (leave-one-out) cross-validation
+```{r}
+neighbors = length(points_noNA)
+power = seq(from = 0, to = 8, by = 1)
+neigh = seq(from = 2, to = neighbors, by = 2)
+
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <-  krige.cv(Dybde ~ 1, points_noNA, nmax=j, set = list(idp=i))
+    temp3 <- as.data.frame(temp2@data)
+    temp3 <- cbind(run, temp3)
+    
+    temp4 <- as.data.frame(temp2@coords)
+    temp4 <- temp4[,1:2]
+    temp3 <- cbind(temp3, temp4)
+    
+    temp <- rbind(temp, temp3)
+  }
+} 
+
+
+```
+
+```{r}
+df_results <- temp
+```
+
+We can then evaluate fit with various parameters.
+- mean error (ME), ideally 0
+- correlation observed and predicted, ideally 1
+- Root Mean Square Error (RMSE), ideally low
+- Mean Absolute Error (MAE), ideally low
+
+
+We extract all diagnostics from the CV (RMSE, MAE, correlation, ME)
+```{r}
+RMSE <- function(observed, predicted) {
+  sqrt(mean((predicted - observed)^2, na.rm=TRUE))
+  }
+
+df_agg <- data.frame()
+
+
+
+for(i in unique(df_results$run)){
+  
+  temp  <- NULL
+  myRMSE <- NULL
+  myCor <- NULL
+  myME <- NULL
+  myMAE <- NULL
+  temp2 <- NULL
+
+  
+  temp <- df_results[df_results$run==i,]
+  myRMSE <- RMSE(temp$observed, temp$var1.pred)
+  myCor <- cor(temp$observed, temp$observed - temp$residual)
+  myME <- mean(temp$residual)
+  myMAE <- mae(temp$observed,temp$var1.pred)
+  temp2 <- c(i, myRMSE, myCor, myME, myMAE)
+  
+  df_agg <- rbind(df_agg, temp2)
+}
+
+names(df_agg) <- c("run", "RMSE", "cor", "ME", "MAE")
+df_agg$RMSE <- as.numeric(df_agg$RMSE)
+df_agg$cor <- as.numeric(df_agg$cor)
+df_agg$ME <- as.numeric(df_agg$ME)
+df_agg$MAE <- as.numeric(df_agg$MAE)
+df_agg$run2 <- as.numeric(row.names(df_agg))
+
+```
+
+```{r}
+df_agg <- tidyr::separate(df_agg, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+df_agg$power <- as.numeric(df_agg$power)
+df_agg$nn <- as.numeric(df_agg$nn)
+
+```
+
+#Then plot the diagnostics over the parameters power and nn, to find the best fitted model
+First plot: RMSE
+
+```{r}
+
+ggplot(data = df_agg,
+       aes(x = nn, y = RMSE))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+  theme_bw(base_size = 20)+
+  facet_wrap(.~factor(power))
+```
+Second plot: MAE
+```{r}
+ggplot(data = df_agg,
+       aes(x = nn, y = MAE))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+  theme_bw(base_size = 20)+
+  facet_wrap(.~factor(power))
+```
+
+Third plot: Volume
+```{r}
+ggplot(data = volume,
+       aes(x = nn, y = volume))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+   theme_bw(base_size = 20)+
+  facet_wrap(.~factor(power))
+```
+
+```{r}
+sumvol <-as.data.frame(do.call(cbind, lapply(volume, summary)))
+sumvol$power <- as.numeric(sumvol$power)
+sumvol$nn <- as.numeric(sumvol$nn)
+sumvol$volume <- as.numeric(sumvol$volume)
+print(sumvol)
+```
+The span of max/min centered around the mean (+/-) in percentage
+```{r}
+(sumvol$volume[6]-sumvol$volume[1])/2/sumvol$volume[4]*100
+```
+#Conclusions: 
+The variation in total volume does not differ substantially based on various input of power or maximum neighbours (2,1%).
+The highest volume occurs with low nmax, etc. nmax 2.
+The best overall results for RMSE, cor, ME, and MAE seems to be with low power and nmax 4?
+The nmax is very low though, as I have seen very many tutorials use nmax=nrow or Inf (meaning the same)
+
+#Compare the run 2_4 and 2_inf
+
+```{r}
+idw_cv_2_4 <- gstat::krige.cv(Dybde~1, points_noNA, nmax=4, set = list(idp = 2))
+df_idw_cv_2_4 <-data.frame(idw_cv_2_4)
+
+plot(df_idw_cv_2_4$var1.pred, df_idw_cv_2_4$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_2_4$var1.pred ~ df_idw_cv_2_4$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_2_4$var1.pred ~ df_idw_cv_2_4$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+```{r}
+bubble(idw_cv_2_4, "residual")
+```
+```{r}
+idw_cv_2_inf <- gstat::krige.cv(Dybde~1, points_noNA, nmax=neighbors, set = list(idp = 2))
+df_idw_cv_2_inf <-data.frame(idw_cv_2_inf)
+
+plot(df_idw_cv_2_inf$var1.pred, df_idw_cv_2_inf$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_2_inf$var1.pred ~ df_idw_cv_2_inf$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_2_inf$var1.pred ~ df_idw_cv_2_inf$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+
+```{r}
+bubble(idw_cv_2_inf, "residual")
+```
+Can't decide which one of these looks the best. The predictions of the Inf become more blunt and smooth, lacking the precision of the depths, but looks otherwise very similar.
+The various parameters for assessing fit suggests that low nmax is better.
+
+#95% confidence interval map of the interpolation model
+The smaller the variance, the better (the variance values are in squared units (m?)).
+
+```{r}
+myBreaks = c(seq(0,1,0.1),7)
+```
+
+```{r}
+# Create the interpolated surface
+img2_4 = gstat::idw(formula=Dybde ~ 1, locations=points_noNA, newdata=grid_crop,  idp = 2, nmax = 4)
+n   <- length(points_noNA)
+Zi  <- matrix(nrow = length(img2_4$var1.pred), ncol = n)
+
+# Remove a point then interpolate (do this n times for each point)
+st <- stack()
+for (i in 1:n){
+  Z1 <- gstat::idw(Dybde~1, points_noNA[-i,], newdata=grid_crop, idp = 2, nmax = 4)
+  st <- addLayer(st,raster(Z1,layer=1))
+  # Calculated pseudo-value Z at j
+  Zi[,i] <- n * img2_4$var1.pred - (n-1) * Z1$var1.pred
+}
+
+# Jackknife estimator of parameter Z at location j
+Zj <- as.matrix(apply(Zi, 1, sum, na.rm=T) / n )
+
+# Compute (Zi* - Zj)^2
+c1 <- apply(Zi,2,'-',Zj)            # Compute the difference
+c1 <- apply(c1^2, 1, sum, na.rm=T ) # Sum the square of the difference
+
+# Compute the confidence interval
+CI <- sqrt( 1/(n*(n-1)) * c1)
+
+# Create (CI / interpolated value) raster
+img.sig_2_4   <- img2_4
+img.sig_2_4$v <- CI /img2_4$var1.pred 
+
+# Create rasterfile
+r_2_4 <- raster(img.sig_2_4, layer="v")
+
+# Plot the map
+tm_shape(r_2_4) + tm_raster(style="fixed", breaks=myBreaks,title="95% confidence interval \n") +
+  tm_shape(points_noNA) + tm_dots(size=0.2) +
+  tm_legend(legend.outside=TRUE)
+
+```
+
+
+```{r}
+# Create the interpolated surface
+img2_inf = gstat::idw(formula=Dybde ~ 1, locations=points_noNA, newdata=grid_crop,  idp = 2, nmax = neighbors)
+n   <- length(points_noNA)
+Zi  <- matrix(nrow = length(img2_inf$var1.pred), ncol = n)
+
+# Remove a point then interpolate (do this n times for each point)
+st <- stack()
+for (i in 1:n){
+  Z1 <- gstat::idw(Dybde~1, points_noNA[-i,], newdata=grid_crop, idp = 2, nmax = neighbors)
+  st <- addLayer(st,raster(Z1,layer=1))
+  # Calculated pseudo-value Z at j
+  Zi[,i] <- n * img2_inf$var1.pred - (n-1) * Z1$var1.pred
+}
+
+# Jackknife estimator of parameter Z at location j
+Zj <- as.matrix(apply(Zi, 1, sum, na.rm=T) / n )
+
+# Compute (Zi* - Zj)^2
+c1 <- apply(Zi,2,'-',Zj)            # Compute the difference
+c1 <- apply(c1^2, 1, sum, na.rm=T ) # Sum the square of the difference
+
+# Compute the confidence interval
+CI <- sqrt( 1/(n*(n-1)) * c1)
+
+# Create (CI / interpolated value) raster
+img.sig_2_inf   <- img2_inf
+img.sig_2_inf$v <- CI /img2_inf$var1.pred 
+
+# Create rasterfile
+r_2_inf <- raster(img.sig_2_inf, layer="v")
+
+# Plot the map
+tm_shape(r_2_inf) + tm_raster(style="fixed", breaks=myBreaks,title="95% confidence interval \n") +
+  tm_shape(points_noNA) + tm_dots(size=0.2) +
+  tm_legend(legend.outside=TRUE)
+
+```
+
+
+
+run jackknifing (leave-one-out) cross-validation again, with only changes to power
+```{r}
+neighbors = length(points_noNA)
+power = seq(from = 0, to = 8, by = 0.5)
+
+
+temp <- data.frame()
+
+for (i in power) {
+   
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+
+    print(i)
+    temp2 <-  krige.cv(Dybde ~ 1, points_noNA, nmax=neighbors, set = list(idp=i))
+    temp3 <- as.data.frame(temp2@data)
+    temp3 <- cbind(i, temp3)
+    
+    temp4 <- as.data.frame(temp2@coords)
+    temp4 <- temp4[,1:2]
+    temp3 <- cbind(temp3, temp4)
+    
+    temp <- rbind(temp, temp3)
+  }
+ 
+
+
+```
+
+```{r}
+df_results_power <- temp
+```
+
+We extract all diagnostics from the CV (RMSE, MAE, correlation, ME)
+```{r}
+RMSE <- function(observed, predicted) {
+  sqrt(mean((predicted - observed)^2, na.rm=TRUE))
+  }
+
+df_agg_power <- data.frame()
+
+
+
+for(i in unique(df_results_power$i)){
+  
+  temp  <- NULL
+  myRMSE <- NULL
+  myCor <- NULL
+  myME <- NULL
+  myMAE <- NULL
+  temp2 <- NULL
+
+  
+  temp <- df_results_power[df_results_power$i==i,]
+  myRMSE <- RMSE(temp$observed, temp$var1.pred)
+  myCor <- cor(temp$observed, temp$observed - temp$residual)
+  myME <- mean(temp$residual)
+  myMAE <- mae(temp$observed,temp$var1.pred)
+  temp2 <- c(i, myRMSE, myCor, myME, myMAE)
+  
+  df_agg_power <- rbind(df_agg_power, temp2)
+}
+
+names(df_agg_power) <- c("run", "RMSE", "cor", "ME", "MAE")
+df_agg_power$RMSE <- as.numeric(df_agg_power$RMSE)
+df_agg_power$cor <- as.numeric(df_agg_power$cor)
+df_agg_power$ME <- as.numeric(df_agg_power$ME)
+df_agg_power$MAE <- as.numeric(df_agg_power$MAE)
+df_agg_power$run2 <- as.numeric(row.names(df_agg_power))
+
+```
+
+
+#Then plot the diagnostics over the parameters power, to find the best fitted model
+First plot: RMSE
+
+```{r}
+
+ggplot(data = df_agg_power,
+       aes(x = run, y = RMSE))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+  theme_bw(base_size = 20)
+```
+
+Second plot: MAE
+```{r}
+ggplot(data = df_agg_power,
+       aes(x = run, y = MAE))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+  theme_bw(base_size = 20)
+
+```
+
+Third plot: Volume
+```{r}
+power = seq(from = 0, to = 8, by = 0.5)
+
+temp <- data.frame()
+
+for (j in power) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+
+    print(j)
+    temp2 <- idw(Dybde ~ 1, points_noNA, grid_crop, nmax=neighbors, idp=j)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(j, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume$power <- as.numeric(volume$j)
+volume$volume <- as.numeric(volume$volume)
+```
+
+```{r}
+ggplot(data = volume,
+       aes(x = power, y = volume))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+   theme_bw(base_size = 20)
+```
+#Final conclusions:
+Think it may be safest to use inf neighbors as various peat models will have various input data and resolution. Then inf neighbors will probably adapt better to that.
+Power 4 or 5 comes out as the best fit models in this test.
+
+```{r}
+#Visualize with ggplot
+
+#Create df's
+df_shp<-tidy(shp)
+df_points <- data.frame(points_noNA)
+p.idw <-idw(Dybde ~ 1, points_noNA, grid_crop, nmax=neighbors, idp=4)
+df_p.idw <-data.frame(p.idw) 
+
+#Create plot
+full_map <- ggplot() + geom_raster(data=df_p.idw, aes(x=x, y=y, fill=var1.pred), alpha=0.8)+
+  scale_fill_viridis(direction = -1) +
+  geom_polygon( data=df_shp, aes(x=long, y=lat, group=group),
+                color="grey10", fill=NA, size = .1, alpha=1 ) +
+   geom_point(data=df_points,
+             aes(x=coords.x1,
+                 y=coords.x2), pch=20, cex=1.2, size=3, col="red") +
+  labs(title = "Interpolation of peat depths",
+       fill = "Peat depths (cm)")
+  coord_fixed()
+  
+full_map
+```
+```
+#Final code block for the chosen interpolation:
+
+Calculating volume
+```{r}
+
+```
+

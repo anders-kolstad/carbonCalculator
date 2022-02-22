@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Compile datasets for GRAN revegetation project
 
-```{r}
+```{r, }
 
 library(readxl)
 library(data.table)
@@ -193,13 +193,14 @@ table(dat$Lokalitet, dat$Behandling)
 
 Fikse dato - eksempler
 ```{r}
-temp <- format(dat$Dato, "%Y")
-temp <- format(dat$Dato, "%m")
-temp <- format(dat$Dato, "%d")
-temp <- format(dat$Dato, "%Y-%m-%d")
+#temp <- format(dat$Dato, "%Y")
+#temp <- format(dat$Dato, "%m")
+#temp <- format(dat$Dato, "%d")
+#temp <- format(dat$Dato, "%Y-%m-%d")
 
 ```
 
+Den jeg vil bruke
 ```{r}
 dat$Dato <- format(dat$Dato, "%Y-%m-%d")
 ```
@@ -245,6 +246,23 @@ ggplot(data=dat[dat$variable=="Sphagnum",], aes(x=Behandling, y=value, fill=År)
   geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
   facet_wrap(~Lokalitet)
 ```
+
+```{r}
+#boxplot Sphagnum
+ggplot(data=dat[dat$variable=="Sphagnum",], aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot()+
+  facet_wrap(~Lokalitet)
+```
+```{r}
+#boxplot Sphagnum
+ggplot(data=dat[dat$variable=="Sphagnum",], aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot()+
+  xlab("Behandling")+
+  ylab("Prosent dekke")+
+  ggtitle("Dekning torvmoser")
+```
+
+
 
 Subsetting til en lokalitet
 ```{r}
@@ -305,6 +323,18 @@ ggplot(data=agg_dat_av, aes(x=Behandling, y=value, fill=År))+
   geom_boxplot() + geom_jitter(width=0.1,alpha=0.2)+
   facet_wrap(~Lokalitet)
 ```
+
+
+```{r}
+
+ggplot(data=agg_dat_av, aes(x=Behandling, y=value, fill=År))+
+  geom_boxplot() +
+    xlab("Behandling")+
+  ylab("Prosent dekke")+
+  ggtitle("Dekning annen vegetasjon")
+```
+
+
 Oversikt tall annen vegetasjon
 ```{r}
 

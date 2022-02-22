@@ -1,0 +1,184 @@
+---
+title: "Interpolation_Tydal_20220122"
+author: "MarteFandrem"
+date: "20 1 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+```
+
+#Import and clean up data
+
+```{r}
+
+shp<-readOGR(dsn="C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Tydal", layer="stasjon_Setermyra")
+
+df <- read.csv("C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Tydal/Torvdybder_Tydal.csv", sep=";")
+
+# Make spatial dataframe of the peat depths points
+
+dfs <- st_as_sf(x = df, 
+                        coords = c("x", "y"),
+                        crs = "+init=epsg:25833")
+#GDAL Message 1: +init=epsg:XXXX syntax is deprecated. It might return a CRS with a non-EPSG compliant axis order.
+#Don't know how to write it otherwise. Seems to work properly though.
+
+sf_shp <- st_as_sf(shp)
+
+sf::st_crs(shp)
+sf::st_crs(dfs)
+
+proj4string(shp)<-crs(dfs)
+
+dfsp <- as(dfs, Class="Spatial")
+
+#Crop dfsp to the extent of the station area
+dfsp_station <- dfsp[shp,]
+```
+
+#Visualisere dataene
+
+```{r}
+tmap_mode("view")
+  tm_shape(sf_shp)+
+  tm_polygons() +
+  tm_shape(dfs)+
+  tm_dots(col="black", size=0.01, alpha=0.5, )
+
+```
+
+#Create grid and adjust to extent of peatland
+
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_sp@grid@cellsize       #check that cell size is 1x1
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+plot(grid_crop)
+
+
+```
+
+Setup functions for running LOOCV and interpolations
+
+```{r}
+cv.IDW  <- function(dfsp_station, stat.formula = NULL,
+                    seqNeighbors = NULL, seqBeta = NULL,
+                    evalGridSize = NULL, 
+                    evalRaster = NULL, 
+                    verbose = TRUE){}
+
+
+```
+
+```{r}
+RMSE <- function(residuals){
+  sqrt(sum((residuals)^2)/length(residuals))
+}
+```
+
+
+Provide default values for function arguments
+```{r}
+
+  if (is.null(seqNeighbors)){
+    seqNeighbors <- round(seq(2, length(dfsp_station), by = 2))
+  }
+  if (is.null(seqBeta)){
+    seqBeta <- c(0.1, seq(0.5, 6, 0.5))
+  }
+  if (is.null(evalGridSize)){
+    x.interval <- extent(shp)@xmax - extent(shp)@xmin
+    y.interval <- extent(shp)@ymax - extent(shp)@ymin
+    evalGridSize <- round(min(x.interval, y.interval) *0.005)
+  }
+  if (is.null(stat.formula)){
+    stat.formula=Dybde~1
+    
+  }
+  if (is.null(evalRaster)){
+    extent.evalGrid <- extent(shp)
+  }else{
+    extent.evalGrid <- extent(evalRaster)
+  }
+  
+  
+```
+
+Build a grid for parameter combinations
+```{r}
+  cv.Grid <- expand.grid(Beta = seqBeta,
+                         Neighbors = seqNeighbors)
+  cv.Grid$RMSE <- NA
+```
+
+Perform IDW and LOOCV
+```{r}
+ for (i in 1:nrow(cv.Grid)){
+    ### BUILD IDW MODEL ###
+    idw <- gstat(formula = Dybde~1,
+                data = dfsp_station, 
+                nmax = cv.Grid[i, 'Neighbors'], 
+                set = list(idp = cv.Grid[i, 'Beta']))
+    ### PERFORM LOOCV ###
+    crossval <- gstat.cv(idw, 
+                         nmax = cv.Grid[i, 'Neighbors'],
+                         beta = v.Grid[i, 'Beta'],
+                         debug.level = 0)
+    cv.Grid[i, 'RMSE'] <- RMSE(crossval$residual)
+    if (verbose){
+      print(paste('Function call', i, 'out of',  nrow(cv.Grid)))
+      print(paste('Evaluating beta =', 
+                  cv.Grid[i, 'Beta'], 
+                  'and neighbors =',  
+                  cv.Grid[i, 'Neighbors']))
+      print(paste('RMSE=', RMSE(crossval$residual)))
+    }
+  }
+
+```
+```{r}
+ggplot(cv.Grid, aes(Neighbors, Beta)) + 
+  geom_tile(aes(fill = RMSE), colour = "black") + 
+  scale_fill_gradient(low = "steelblue", high = "orange") + 
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+
+
+
+### LOOP THROUGH ALL PARAMETER COMBINATIONS ###
+  for (i in 1:nrow(cv.Grid)){
+    ### BUILD IDW MODEL ###
+    idw <- gstat(formula = stat.formula,
+                data = spatialDF, 
+                nmax = cv.Grid[i, 'Neighbors'], 
+                set = list(idp = cv.Grid[i, 'Beta']))

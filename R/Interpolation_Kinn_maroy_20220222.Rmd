@@ -1,0 +1,427 @@
+---
+title: "Interpolation_Kinn_Marøy_202220222"
+author: "MarteFandrem"
+date: "22 2 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+title: "Interpolation_Kinn"
+author: "MarteFandrem"
+date: "21 2 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+library(tmaptools)
+library(shinyjs)
+library(rgeos)
+library(automap)
+library(ggbreak)
+```
+
+#Import and clean up data
+
+```{r}
+shp<-readOGR(dsn="C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Kinn", layer="maroy_avgrensing")
+
+df <- read.csv("C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Kinn/torvdybder_maroy.csv", sep=";")
+
+#Clean up data
+
+df <- df %>% 
+   mutate(Dybde_m = Dybde / 100)
+# Make spatial dataframe of the peat depths points
+
+dfs <- st_as_sf(x = df, 
+                        coords = c("x", "y"),
+                        crs = "+init=epsg:4326")
+
+#Check projections
+sf::st_crs(shp)
+sf::st_crs(dfs)
+
+shp <- spTransform(shp, CRS("+init=epsg:25833"))
+dfs <- st_transform(dfs, crs="+init=epsg:25833")
+
+# Make sf file from sp shapefile
+sf_shp <- st_as_sf(shp)
+#sf_shp <-st_transform(sf_shp, crs = st_crs(dfs))
+st_crs(sf_shp)
+
+#make spatial file from data frame file
+dfsp <- as(dfs, Class="Spatial")
+
+
+#Repair geometry
+#sf_shp <- st_make_valid(sf_shp)
+#sf_shp_myr <- st_make_valid(sf_shp_myr)
+
+```
+
+
+```{r}
+tmap_mode("view")
+  tm_shape(sf_shp)+
+  tm_polygons() +
+  tm_shape(dfs)+
+  tm_dots(col="black", size=0.01, alpha=0.5, )
+
+```
+
+
+
+```{r}
+data_Kinnm <- tmap_mode("plot")+
+                tm_shape(sf_shp)+
+                 tm_polygons() +   
+              tm_shape(dfs)+
+              tm_dots(col="Dybde_m", alpha=1, palette="-viridis", size=0.1 ) +
+              tm_layout(legend.outside = TRUE)
+
+setwd('..')
+tmap_save(data_Kinnm, "Output/Kinn/data_maroy.png")
+data_Kinnm
+
+```
+
+#Create grid and adjust to extent of peatland
+
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_sp@grid@cellsize       #check that cell size is 1x1
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+plot(grid_crop)
+```
+
+
+#Interpolate all the various models and get the volume
+```{r, echo=FALSE}
+neighbors = length(dfs$Dybde_m)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(from=2,to=30,by = 2), c(length=(neighbors)))
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- idw(Dybde_m ~ 1, dfsp, grid_crop, nmax=j, idp=i)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume <- tidyr::separate(volume, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume$power <- as.numeric(volume$power)
+volume$nn <- as.numeric(volume$nn)
+volume$volume <- as.numeric(volume$volume)
+
+setwd('..')
+write.csv(volume, "Output/volume_Kinnm_20220221.csv")
+```
+
+#Values for printing (mean, min, max, SD)
+```{r}
+max <- max(volume$volume)
+min <- min(volume$volume)
+mean <- mean(volume$volume)
+sd <- sd(volume$volume)
+
+
+Description <- c("mean", "min", "max", "SD")
+Results_volume <- data.frame(Description, Results = c(mean, min, max, sd)) 
+Results_volume
+```
+
+Get area
+```{r}
+  st_area(sf_shp)
+```
+
+```{r}
+mean(dfs$Dybde_m)
+```
+
+#Subset to remove not peat
+```{r}
+dfs_peat <- subset(dfs, dfs$Dybde_m>0)
+
+dfsp_peat <- as(dfs_peat, Class="Spatial")
+```
+
+#Interpolate all the various models again and get the volume
+```{r, echo=FALSE}
+neighbors = length(dfs_peat$Dybde_m)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(from=2,to=30,by = 2), c(length=(neighbors)))
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- idw(Dybde_m ~ 1, dfsp_peat, grid_crop, nmax=j, idp=i)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume_peat <- temp
+volume_peat <-dplyr::rename(volume_peat, volume=temp4)
+volume_peat <- tidyr::separate(volume_peat, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume_peat$power <- as.numeric(volume_peat$power)
+volume_peat$nn <- as.numeric(volume_peat$nn)
+volume_peat$volume <- as.numeric(volume_peat$volume)
+
+setwd('..')
+write.csv(volume_peat, "Output/volume_peat_Kinnm_20220221.csv")
+```
+
+#Values for printing (mean, min, max, SD)
+```{r}
+max <- max(volume_peat$volume)
+min <- min(volume_peat$volume)
+mean <- mean(volume_peat$volume)
+sd <- sd(volume_peat$volume)
+
+
+Description <- c("mean", "min", "max", "SD")
+Results_volume_peat <- data.frame(Description, Results = c(mean, min, max, sd)) 
+Results_volume_peat
+```
+
+Get area
+```{r}
+  st_area(sf_shp)
+```
+
+```{r}
+mean(dfs_peat$Dybde_m)
+```
+
+
+#Then run jackknifing (leave-one-out) cross-validation
+```{r}
+
+#Then run for-loop for the LOOCV
+neighbors = length(dfsp_peat)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(2,30,by = 2), c(length=(neighbors)))
+
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- krige.cv(Dybde_m ~ 1, dfsp_peat, nmax=j, set = list(idp=i))
+    temp3 <- as.data.frame(temp2@data)
+    temp3 <- cbind(run, temp3)
+    
+    temp4 <- as.data.frame(temp2@coords)
+    temp4 <- temp4[,1:2]
+    temp3 <- cbind(temp3, temp4)
+    
+    temp <- rbind(temp, temp3)
+  }
+} 
+
+
+```
+
+```{r}
+df_results <- temp
+setwd('..')
+write.csv(df_results, "Output/LOOCV_results_Kinnm_peat_20220221.csv")
+```
+
+We extract all diagnostics from the CV (RMSE, MAE, correlation, ME)
+```{r}
+RMSE <- function(observed, predicted) {
+  sqrt(mean((predicted - observed)^2, na.rm=TRUE))
+  }
+
+df_agg <- data.frame()
+
+
+
+for(i in unique(df_results$run)){
+  
+  temp  <- NULL
+  myRMSE <- NULL
+  myCor <- NULL
+  myME <- NULL
+  myMAE <- NULL
+  temp2 <- NULL
+
+  
+  temp <- df_results[df_results$run==i,]
+  myRMSE <- RMSE(temp$observed, temp$var1.pred)
+  myCor <- cor(temp$observed, temp$observed - temp$residual)
+  myME <- mean(temp$residual)
+  myMAE <- mae(temp$observed,temp$var1.pred)
+  temp2 <- c(i, myRMSE, myCor, myME, myMAE)
+  
+  df_agg <- rbind(df_agg, temp2)
+}
+
+names(df_agg) <- c("run", "RMSE", "cor", "ME", "MAE")
+df_agg$RMSE <- as.numeric(df_agg$RMSE)
+df_agg$cor <- as.numeric(df_agg$cor)
+df_agg$ME <- as.numeric(df_agg$ME)
+df_agg$MAE <- as.numeric(df_agg$MAE)
+df_agg$run2 <- as.numeric(row.names(df_agg))
+
+```
+
+```{r}
+df_agg <- tidyr::separate(df_agg, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+df_agg$power <- as.numeric(df_agg$power)
+df_agg$nn <- as.numeric(df_agg$nn)
+
+setwd('..')
+write.csv(df_agg, "Output/LOOCV_parameters_Kinnm_peat_20220221.csv")
+```
+
+```{r}
+idw.best <- idw(Dybde_m ~ 1, dfsp, grid_crop, nmax=10, idp=2)
+#
+
+map_bestfit <- tmap_mode("plot") +
+ tm_shape(idw.best)+
+  tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis",breaks=seq(from = 0, to = 5, by = 0.5)) +
+  tm_layout(legend.outside = TRUE)+
+tm_shape(sf_shp)+
+  tm_borders()   +
+  tm_shape(dfsp)+
+  tm_dots(col="black", size=0.05, alpha=0.5, ) +
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+     tm_layout(title="idp: 2, nn:10", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(map_bestfit, "Output/Kinn/bestfit.2_10_Kinnm.png")
+map_bestfit
+```
+```{r}
+idw.best2 <- idw(Dybde_m ~ 1, dfsp_peat, grid_crop, nmax=10, idp=2)
+#
+
+map_bestfit2 <- tmap_mode("plot") +
+ tm_shape(idw.best2)+
+  tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis",breaks=seq(from = 0, to = 5, by = 0.5)) +
+  tm_layout(legend.outside = TRUE)+
+tm_shape(sf_shp)+
+  tm_borders()   +
+  tm_shape(dfsp_peat)+
+  tm_dots(col="black", size=0.05, alpha=0.5, ) +
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+     tm_layout(title="idp: 2, nn:10", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(map_bestfit2, "Output/Kinn/bestfit2.2_10_Kinnm.png")
+map_bestfit2
+```
+
+```{r}
+idw.secondbest <- idw(Dybde_m ~ 1, dfsp, grid_crop, nmax=4, idp=2)
+#
+
+map_secondbest <- tmap_mode("plot") +
+ tm_shape(idw.secondbest)+
+  tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis",breaks=seq(from = 0, to = 5, by = 0.5)) +
+  tm_layout(legend.outside = TRUE)+
+tm_shape(sf_shp)+
+  tm_borders()   +
+  tm_shape(dfsp)+
+  tm_dots(col="black", size=0.05, alpha=0.5, ) +
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+     tm_layout(title="idp: 2, nn:4", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(map_secondbest, "Output/Kinn/2_4_Kinnm.png")
+map_secondbest
+```
+

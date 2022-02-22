@@ -1,0 +1,970 @@
+---
+title: "Interpolation_Modalen"
+author: "MarteFandrem"
+date: "2 2 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+library(tmaptools)
+library(shinyjs)
+library(rgeos)
+library(automap)
+
+```
+
+#Import and clean up data
+
+```{r}
+
+setwd("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN")
+shp <- readOGR(dsn="Data/Modalen", layer="modalen_shp")
+shp_myr <- readOGR(dsn="Data/Modalen", layer="Modalen_myrareal")
+dfs <- readOGR(dsn="Data/Modalen", layer="modalen_punkter")
+
+#Check projections
+sf::st_crs(shp)
+sf::st_crs(shp_myr)
+sf::st_crs(dfs)
+
+#set same projection on all files
+proj4string(shp)<-crs(dfs)
+proj4string(shp_myr)<-crs(dfs)
+#Shouldn't need this here
+
+#Crop shp_myr to the extent of the station area
+shp_myr_clipped <- intersect(shp_myr, shp)
+plot(shp_myr_clipped)
+
+# Make sf file from sp shapefile
+sf_shp <- st_as_sf(shp)
+sf_shp_myr <- st_as_sf(shp_myr_clipped)
+dfsp <- st_as_sf (dfs)
+
+#make spatial file from data frame file
+#dfsp <- as(dfs, Class="Spatial")
+#Shouldn't need this here
+
+
+#Repair geometry
+sf_shp <- st_make_valid(sf_shp)
+sf_shp_myr <- st_make_valid(sf_shp_myr)
+
+
+#shp_myr2 <- shp_myr[shp, ]
+#plot(shp)
+#plot(shp_myr2)
+#This one seems to only work with limiting point dataset or grid to the extent of a shapefile
+#It's not cutting the overlaying shapefile-objects as long as they are partly within
+
+#shp_myr_clipped <- gIntersection(shp_myr, shp)
+#Some of the geometry seems invalid, and this function terminates R Studio every time I try to run it!
+
+
+```
+
+#Visualize the data
+
+```{r}
+tmap_mode("view")
+  tm_shape(sf_shp)+
+  tm_polygons() +   
+    tm_shape(sf_shp_myr)+
+    tm_polygons(col="blue", alpha=0.5)+
+  tm_shape(dfs)+
+  tm_dots(col="black", size=0.01, alpha=0.5, )+
+    tmap_options(check.and.fix = TRUE)
+
+```
+
+Everything looks fine here now
+
+```{r}
+data_Modalen <- tmap_mode("plot")+
+                tm_shape(sf_shp)+
+                 tm_polygons() +   
+                tm_shape(sf_shp_myr)+
+                tm_polygons(col="blue", alpha=0.5)+
+              tm_shape(dfs)+
+              tm_dots(col="Dybde", alpha=1, palette="-viridis", size=1.5 ) +
+              tm_layout(legend.outside = TRUE)
+
+  
+#tmap::tmap_save(data_Modalen, "data_Modalen.png")
+data_Modalen
+```
+
+#Create grid and adjust to extent of peatland
+
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_sp@grid@cellsize       #check that cell size is 1x1
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+plot(grid_crop)
+```
+Crop once more to the extent of assumed peatlands
+```{r}
+
+grid_myr <- grid_crop[shp_myr_clipped,]  #crop the grid to only include the peatland
+plot(grid_myr)
+```
+#Test the best fit of nmax and power in IDW.
+First interpolate all the various models and get the volume
+```{r, echo=FALSE}
+neighbors = length(dfs$Dybde)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1),seq(2,neighbors,by = 2), c(length=(neighbors)))
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=i, idp=j)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume <- tidyr::separate(volume, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume$power <- as.numeric(volume$power)
+volume$nn <- as.numeric(volume$nn)
+volume$volume <- as.numeric(volume$volume)
+
+setwd('..')
+write.csv(volume, "Output/volume_Modalen_hele_20220221.csv")
+```
+#Values for printing (mean, min, max, SD)
+```{r}
+max <- max(volume$volume)
+min <- min(volume$volume)
+mean <- mean(volume$volume)
+sd <- sd(volume$volume)
+
+
+Description <- c("mean", "min", "max", "SD")
+Results_volume <- data.frame(Description, Results = c(mean, min, max, sd)) 
+Results_volume
+```
+
+
+Do the same with the restricted peatland area
+```{r, echo=FALSE}
+neighbors = length(dfs$Dybde)
+power = c((0.5), seq(from = 1, to = 4, by = 1))
+neigh = c(seq(2,14,by = 2), seq(15, neighbors, by=5))
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- idw(Dybde ~ 1, dfs, grid_myr, nmax=i, idp=j)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume <- tidyr::separate(volume, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume$power <- as.numeric(volume$power)
+volume$nn <- as.numeric(volume$nn)
+volume$volume <- as.numeric(volume$volume)
+
+setwd('..')
+write.csv(volume, "Output/volume_Modalen_restricted.csv")
+```
+```{r}
+vol.mean <- which.min(abs(volume$volume - mean(volume$volume)))
+  power.vol.mean <- volume$power[vol.mean]
+  nn.vol.mean <- volume$nn[vol.mean]
+  vol.mean <- volume$volume[vol.mean]
+
+parameters.vol.mean <- cbind(power.vol.mean, nn.vol.mean, vol.mean)
+print(parameters.vol.mean) 
+```
+```{r}
+(max(volume$volume)-min(volume$volume))/2
+```
+
+```{r}
+((max(volume$volume)-min(volume$volume))/2)/mean(volume$volume)*100
+```
+Get area
+```{r}
+  st_area(sf_shp)
+```
+```{r}
+  st_area(sf_shp_myr)
+```
+```{r}
+ggplot(data = volume,
+       aes(x = nn, y = volume))+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+   theme_bw(base_size = 20)+
+  facet_wrap(.~factor(power))
+```
+
+#Then run jackknifing (leave-one-out) cross-validation
+```{r}
+
+#Then run for-loop for the LOOCV
+neighbors = length(dfs)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(2,neighbors,by = 2), c(length=(neighbors)))
+
+
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- krige.cv(Dybde ~ 1, dfs, nmax=j, set = list(idp=i))
+    temp3 <- as.data.frame(temp2@data)
+    temp3 <- cbind(run, temp3)
+    
+    temp4 <- as.data.frame(temp2@coords)
+    temp4 <- temp4[,1:2]
+    temp3 <- cbind(temp3, temp4)
+    
+    temp <- rbind(temp, temp3)
+  }
+} 
+
+
+```
+
+```{r}
+df_results <- temp
+setwd('..')
+write.csv(df_results, "Output/LOOCV_results_Modalen_20220221.csv")
+```
+We can then evaluate fit with various parameters.
+- mean error (ME), ideally 0
+- correlation observed and predicted, ideally 1
+- Root Mean Square Error (RMSE), ideally low
+- Mean Absolute Error (MAE), ideally low
+
+
+We extract all diagnostics from the CV (RMSE, MAE, correlation, ME)
+```{r}
+RMSE <- function(observed, predicted) {
+  sqrt(mean((predicted - observed)^2, na.rm=TRUE))
+  }
+
+df_agg <- data.frame()
+
+
+
+for(i in unique(df_results$run)){
+  
+  temp  <- NULL
+  myRMSE <- NULL
+  myCor <- NULL
+  myME <- NULL
+  myMAE <- NULL
+  temp2 <- NULL
+
+  
+  temp <- df_results[df_results$run==i,]
+  myRMSE <- RMSE(temp$observed, temp$var1.pred)
+  myCor <- cor(temp$observed, temp$observed - temp$residual)
+  myME <- mean(temp$residual)
+  myMAE <- mae(temp$observed,temp$var1.pred)
+  temp2 <- c(i, myRMSE, myCor, myME, myMAE)
+  
+  df_agg <- rbind(df_agg, temp2)
+}
+
+names(df_agg) <- c("run", "RMSE", "cor", "ME", "MAE")
+df_agg$RMSE <- as.numeric(df_agg$RMSE)
+df_agg$cor <- as.numeric(df_agg$cor)
+df_agg$ME <- as.numeric(df_agg$ME)
+df_agg$MAE <- as.numeric(df_agg$MAE)
+df_agg$run2 <- as.numeric(row.names(df_agg))
+
+```
+
+```{r}
+df_agg <- tidyr::separate(df_agg, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+df_agg$power <- as.numeric(df_agg$power)
+df_agg$nn <- as.numeric(df_agg$nn)
+
+setwd('..')
+write.csv(df_agg, "Output/LOOCV_parameters_Modalen_20220221.csv")
+```
+#Then plot the diagnostics over the parameters power and nn, to find the best fitted model
+First plot: RMSE
+
+```{r}
+ggplot(df_agg, aes(nn, power)) + 
+  geom_tile(aes(fill = RMSE), colour = "black") + 
+  scale_fill_gradient(low = "steelblue", high = "orange") + 
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+
+Second plot: MAE
+```{r}
+ggplot(df_agg, aes(nn, power)) + 
+  geom_tile(aes(fill = MAE), colour = "black") + 
+  scale_fill_gradient(low = "steelblue", high = "orange") + 
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+```{r}
+ggplot(df_agg, aes(nn, power)) + 
+  geom_tile(aes(fill = cor), colour = "black") + 
+  scale_fill_gradient(low ="steelblue", high =  "orange") + 
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+#Get best parameter values
+
+```{r}
+idx.min <- which.min(df_agg$RMSE)
+  best.power <- df_agg$power[idx.min]
+  best.Neighbors <- df_agg$nn[idx.min]
+  min.RMSE <- df_agg$RMSE[idx.min]
+
+best.parameters <- cbind(best.power, best.Neighbors, min.RMSE)
+print(best.parameters)  
+```
+# Build IDW model based on best parameter values
+```{r}
+
+
+idw.best <- idw(Dybde ~ 1, dfs, grid_crop, nmax=25, idp=0.5)
+idw.alt2 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=12, idp=0.5)
+idw.alt3 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=12, idp=1)
+idw.alt4 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=neighbors, idp=1)
+idw.alt5 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=neighbors, idp=2)
+idw.alt6 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=neighbors, idp=4)
+idw.alt7 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=6, idp=2)
+idw.alt8 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=6, idp=0.5)
+idw.alt9 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=12, idp=2)
+idw.alt10 <- idw(Dybde ~ 1, dfs, grid_crop, nmax=12, idp=4)
+```
+#Visualize the interpolations
+```{r}
+map_bestfit <- tmap_mode("plot") +
+ tm_shape(idw.best)+
+  tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis",breaks=seq(from = 0, to = 3, by = 0.5)) +
+  tm_layout(legend.outside = TRUE)+
+tm_shape(sf_shp)+
+  tm_borders()   +
+  tm_shape(sf_shp_myr) +
+  tm_borders(col="black", alpha=0.7) +
+  tm_shape(dfsp)+
+  tm_dots(col="black", size=0.05, alpha=0.5, ) +
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+     tm_layout(title="idp: 0.5, nn:25", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(map_bestfit, "Output/Modalen/bestfit.0.5_Inf_Modalen.png")
+map_bestfit
+```
+ 
+```{r}
+idw.0.5_12 <-        map_0.5_12 <- tmap_mode("plot") +
+         tm_shape(idw.alt2)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:0.5, nn:12", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.0.5_12, "Output/Modalen/idw.0.5_12_Modalen.png")
+idw.0.5_12
+```
+ 
+ 
+```{r}
+idw.1_12 <- tmap_mode("plot") +
+         tm_shape(idw.alt3)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:1, nn:12", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.1_12, "Output/Modalen/idw.1_12_Modalen.png")
+idw.1_12
+```
+
+```{r}
+idw.1_Inf <- tmap_mode("plot") +
+         tm_shape(idw.alt4)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:1, nn:Inf", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.1_Inf, "Output/Modalen/idw.1_Inf_Modalen.png")
+idw.1_Inf
+```
+
+```{r}
+idw.2_Inf <- tmap_mode("plot") +
+         tm_shape(idw.alt5)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:2, nn:Inf", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.2_Inf, "Output/Modalen/idw.2_Inf_Modalen.png")
+idw.2_Inf
+```
+
+```{r}
+idw.4_Inf <- tmap_mode("plot") +
+         tm_shape(idw.alt6)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:4, nn:Inf", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.4_Inf, "Output/Modalen/idw.4_Inf_Modalen.png")
+idw.4_Inf
+```
+
+
+```{r}
+idw.2_6 <- tmap_mode("plot") +
+         tm_shape(idw.alt7)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:2, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.2_6, "Output/Modalen/idw.2_6_Modalen.png")
+idw.2_6
+```
+
+```{r}
+idw.0.5_6 <- tmap_mode("plot") +
+         tm_shape(idw.alt8)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:0.5, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.0.5_6, "Output/Modalen/idw.0.5_6_Modalen.png")
+idw.0.5_6
+```
+```{r}
+idw.2_12 <- tmap_mode("plot") +
+         tm_shape(idw.alt9)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:2, nn:12", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.2_12, "Output/Modalen/idw.2_12_Modalen.png")
+idw.2_12
+```
+
+```{r}
+idw.4_12 <- tmap_mode("plot") +
+         tm_shape(idw.alt10)+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:4, nn:12", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.4_12, "Output/Modalen/idw.4_12_Modalen.png")
+idw.4_12
+```
+
+```{r}
+idw.4_6 <- tmap_mode("plot") +
+         tm_shape(idw(Dybde ~ 1, dfs, grid_crop, nmax=6, idp=4))+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:4, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.4_6, "Output/Modalen/idw.4_6_Modalen.png")
+idw.4_6
+```
+
+```{r}
+idw.3_6 <- tmap_mode("plot") +
+         tm_shape(idw(Dybde ~ 1, dfs, grid_crop, nmax=6, idp=3))+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:3, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.3_6, "Output/Modalen/idw.3_6_Modalen.png")
+idw.3_6
+```
+```{r}
+idw.3_12 <- tmap_mode("plot") +
+         tm_shape(idw(Dybde ~ 1, dfs, grid_crop, nmax=12, idp=3))+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:3, nn:12", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.3_12, "Output/Modalen/idw.3_12_Modalen.png")
+idw.3_12
+```
+```{r}
+idw.1_6 <- tmap_mode("plot") +
+         tm_shape(idw(Dybde ~ 1, dfs, grid_crop, nmax=6, idp=1))+
+          tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+          tm_layout(legend.outside = TRUE)+
+        tm_shape(sf_shp)+
+          tm_borders()   +
+          tm_shape(sf_shp_myr) +
+          tm_borders(col="black", alpha=0.7) +
+          tm_shape(dfs)+
+          tm_dots(col="black", size=0.05, alpha=0.5, ) +
+          tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+          tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+             tm_layout(title= "idp:1, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left", "top"))
+
+setwd('..')
+tmap_save(idw.1_6, "Output/Modalen/idw.1_6_Modalen.png")
+idw.1_6
+```
+
+Compare some of the interpolations
+
+```{r}
+idw_cv_2_6 <- gstat::krige.cv(Dybde~1, dfs, nmax=6, set = list(idp = 2))
+df_idw_cv_2_6 <-data.frame(idw_cv_2_6)
+
+plot(df_idw_cv_2_6$var1.pred, df_idw_cv_2_6$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_2_6$var1.pred ~ df_idw_cv_2_6$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_2_6$var1.pred ~ df_idw_cv_2_6$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+```{r}
+idw_cv_0.5_6 <- gstat::krige.cv(Dybde~1, dfs, nmax=6, set = list(idp = 0.5))
+df_idw_cv_0.5_6 <-data.frame(idw_cv_0.5_6)
+
+plot(df_idw_cv_0.5_6$var1.pred, df_idw_cv_0.5_6$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_0.5_6$var1.pred ~ df_idw_cv_0.5_6$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_0.5_6$var1.pred ~ df_idw_cv_0.5_6$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+```{r}
+idw_cv_0.5_Inf <- gstat::krige.cv(Dybde~1, dfs, nmax=neighbors, set = list(idp = 0.5))
+df_idw_cv_0.5_Inf <-data.frame(idw_cv_0.5_Inf)
+
+plot(df_idw_cv_0.5_Inf$var1.pred, df_idw_cv_0.5_Inf$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_0.5_Inf$var1.pred ~ df_idw_cv_0.5_Inf$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_0.5_Inf$var1.pred ~ df_idw_cv_0.5_Inf$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+```{r}
+idw_cv_0.5_12 <- gstat::krige.cv(Dybde~1, dfs, nmax=12, set = list(idp = 0.5))
+df_idw_cv_0.5_12 <-data.frame(idw_cv_0.5_12)
+
+plot(df_idw_cv_0.5_12$var1.pred, df_idw_cv_0.5_12$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_0.5_12$var1.pred ~ df_idw_cv_0.5_12$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_0.5_12$var1.pred ~ df_idw_cv_0.5_12$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+
+```{r}
+idw_cv_2_Inf <- gstat::krige.cv(Dybde~1, dfs, nmax=neighbors, set = list(idp = 2))
+df_idw_cv_2_Inf <-data.frame(idw_cv_2_Inf)
+
+plot(df_idw_cv_2_Inf$var1.pred, df_idw_cv_2_Inf$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_2_Inf$var1.pred ~ df_idw_cv_2_Inf$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_2_Inf$var1.pred ~ df_idw_cv_2_Inf$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+
+```{r}
+idw_cv_4_Inf <- gstat::krige.cv(Dybde~1, dfs, nmax=neighbors, set = list(idp = 4))
+df_idw_cv_4_Inf <-data.frame(idw_cv_4_Inf)
+
+plot(df_idw_cv_4_Inf$var1.pred, df_idw_cv_4_Inf$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_4_Inf$var1.pred ~ df_idw_cv_4_Inf$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_4_Inf$var1.pred ~ df_idw_cv_4_Inf$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+```{r}
+idw_cv_4_6 <- gstat::krige.cv(Dybde~1, dfs, nmax=6, set = list(idp = 4))
+df_idw_cv_4_6 <-data.frame(idw_cv_4_6)
+
+plot(df_idw_cv_4_6$var1.pred, df_idw_cv_4_6$observed)
+
+OP <- par(pty="s", mar=c(4,3,0,0))
+  plot(df_idw_cv_4_6$var1.pred ~ df_idw_cv_4_6$observed, asp=1, xlab="Observed", ylab="Predicted", pch=16,
+       col=rgb(0,0,0,0.5))
+  abline(lm(df_idw_cv_4_6$var1.pred ~ df_idw_cv_4_6$observed), col="red", lw=2,lty=2)
+  abline(0,1)
+par(OP)
+```
+None seem to predict nearly close to accurate for the points, especially the deepest ones.
+Then, the interpolation that even outs all points closest to the mean becomes the best option.
+
+```{r}
+# Create the interpolated surface
+img0.5_Inf = gstat::idw(formula=Dybde ~ 1, locations=dfs, newdata=grid_crop,  idp = 0.5, nmax = neighbors)
+n   <- length(dfs)
+Zi  <- matrix(nrow = length(img0.5_Inf$var1.pred), ncol = n)
+
+# Remove a point then interpolate (do this n times for each point)
+st <- stack()
+for (i in 1:n){
+  Z1 <- gstat::idw(Dybde~1, dfs[-i,], newdata=grid_crop, idp = 0.5, nmax = neighbors)
+  st <- addLayer(st,raster(Z1,layer=1))
+  # Calculated pseudo-value Z at j
+  Zi[,i] <- n * img0.5_Inf$var1.pred - (n-1) * Z1$var1.pred
+}
+
+# Jackknife estimator of parameter Z at location j
+Zj <- as.matrix(apply(Zi, 1, sum, na.rm=T) / n )
+
+# Compute (Zi* - Zj)^2
+c1 <- apply(Zi,2,'-',Zj)            # Compute the difference
+c1 <- apply(c1^2, 1, sum, na.rm=T ) # Sum the square of the difference
+
+# Compute the confidence interval
+CI <- sqrt( 1/(n*(n-1)) * c1)
+
+# Create (CI / interpolated value) raster
+img.sig_0.5_Inf   <- img0.5_Inf
+img.sig_0.5_Inf$v <- CI /img0.5_Inf$var1.pred 
+
+# Create rasterfile
+r_0.5_Inf <- raster(img.sig_0.5_Inf, layer="v")
+
+# Plot the map
+myBreaks = c(seq(0,1,0.1),7)
+tm_shape(r_0.5_Inf) + tm_raster(style="fixed", breaks=myBreaks,title="95% confidence interval \n") +
+  tm_shape(dfs) + tm_dots(size=0.2) +
+  tm_legend(legend.outside=TRUE)
+
+```
+```{r}
+# Create the interpolated surface
+img0.5_6 = gstat::idw(formula=Dybde ~ 1, locations=dfs, newdata=grid_crop,  idp = 0.5, nmax = 6)
+n   <- length(dfs)
+Zi  <- matrix(nrow = length(img0.5_6$var1.pred), ncol = n)
+
+# Remove a point then interpolate (do this n times for each point)
+st <- stack()
+for (i in 1:n){
+  Z1 <- gstat::idw(Dybde~1, dfs[-i,], newdata=grid_crop, idp = 0.5, nmax = 6)
+  st <- addLayer(st,raster(Z1,layer=1))
+  # Calculated pseudo-value Z at j
+  Zi[,i] <- n * img0.5_6$var1.pred - (n-1) * Z1$var1.pred
+}
+
+# Jackknife estimator of parameter Z at location j
+Zj <- as.matrix(apply(Zi, 1, sum, na.rm=T) / n )
+
+# Compute (Zi* - Zj)^2
+c1 <- apply(Zi,2,'-',Zj)            # Compute the difference
+c1 <- apply(c1^2, 1, sum, na.rm=T ) # Sum the square of the difference
+
+# Compute the confidence interval
+CI <- sqrt( 1/(n*(n-1)) * c1)
+
+# Create (CI / interpolated value) raster
+img.sig_0.5_6   <- img0.5_6
+img.sig_0.5_6$v <- CI /img0.5_6$var1.pred 
+
+# Create rasterfile
+r_0.5_6 <- raster(img.sig_0.5_6, layer="v")
+
+# Plot the map
+myBreaks = c(seq(0,1,0.1),7)
+tm_shape(r_0.5_6) + tm_raster(style="fixed", breaks=myBreaks,title="95% confidence interval \n") +
+  tm_shape(dfs) + tm_dots(size=0.2) +
+  tm_legend(legend.outside=TRUE)
+
+```
+```{r}
+# Create the interpolated surface
+img2_6 = gstat::idw(formula=Dybde ~ 1, locations=dfs, newdata=grid_crop,  idp = 2, nmax = 6)
+n   <- length(dfs)
+Zi  <- matrix(nrow = length(img2_6$var1.pred), ncol = n)
+
+# Remove a point then interpolate (do this n times for each point)
+st <- stack()
+for (i in 1:n){
+  Z1 <- gstat::idw(Dybde~1, dfs[-i,], newdata=grid_crop, idp = 2, nmax = 6)
+  st <- addLayer(st,raster(Z1,layer=1))
+  # Calculated pseudo-value Z at j
+  Zi[,i] <- n * img2_6$var1.pred - (n-1) * Z1$var1.pred
+}
+
+# Jackknife estimator of parameter Z at location j
+Zj <- as.matrix(apply(Zi, 1, sum, na.rm=T) / n )
+
+# Compute (Zi* - Zj)^2
+c1 <- apply(Zi,2,'-',Zj)            # Compute the difference
+c1 <- apply(c1^2, 1, sum, na.rm=T ) # Sum the square of the difference
+
+# Compute the confidence interval
+CI <- sqrt( 1/(n*(n-1)) * c1)
+
+# Create (CI / interpolated value) raster
+img.sig_2_6   <- img2_6
+img.sig_2_6$v <- CI /img2_6$var1.pred 
+
+# Create rasterfile
+r_2_6 <- raster(img.sig_2_6, layer="v")
+
+# Plot the map
+myBreaks = c(seq(0,1,0.1),7)
+tm_shape(r_2_6) + tm_raster(style="fixed", breaks=myBreaks,title="95% confidence interval \n") +
+  tm_shape(dfs) + tm_dots(size=0.2) +
+  tm_legend(legend.outside=TRUE)
+
+```
+```{r}
+# Create the interpolated surface
+img4_Inf = gstat::idw(formula=Dybde ~ 1, locations=dfs, newdata=grid_crop,  idp = 4, nmax = neighbors)
+n   <- length(dfs)
+Zi  <- matrix(nrow = length(img4_Inf$var1.pred), ncol = n)
+
+# Remove a point then interpolate (do this n times for each point)
+st <- stack()
+for (i in 1:n){
+  Z1 <- gstat::idw(Dybde~1, dfs[-i,], newdata=grid_crop, idp = 4, nmax = neighbors)
+  st <- addLayer(st,raster(Z1,layer=1))
+  # Calculated pseudo-value Z at j
+  Zi[,i] <- n * img4_Inf$var1.pred - (n-1) * Z1$var1.pred
+}
+
+# Jackknife estimator of parameter Z at location j
+Zj <- as.matrix(apply(Zi, 1, sum, na.rm=T) / n )
+
+# Compute (Zi* - Zj)^2
+c1 <- apply(Zi,2,'-',Zj)            # Compute the difference
+c1 <- apply(c1^2, 1, sum, na.rm=T ) # Sum the square of the difference
+
+# Compute the confidence interval
+CI <- sqrt( 1/(n*(n-1)) * c1)
+
+# Create (CI / interpolated value) raster
+img.sig_4_Inf   <- img4_Inf
+img.sig_4_Inf$v <- CI /img4_Inf$var1.pred 
+
+# Create rasterfile
+r_4_Inf <- raster(img.sig_4_Inf, layer="v")
+
+# Plot the map
+myBreaks = c(seq(0,1,0.1),7)
+tm_shape(r_4_Inf) + tm_raster(style="fixed", breaks=myBreaks,title="95% confidence interval \n") +
+  tm_shape(dfs) + tm_dots(size=0.2) +
+  tm_legend(legend.outside=TRUE)
+
+```
+
+The various tests are very confusing.
+If I only compare the interpolated maps with the real measured depths, then idp=4,nn=Inf,and idp=0.5,nn=6 clearly looks the most reasonable.
+They manage to keep mostly 
+But this is not reflected in the test parameters.
+idp=0.5,nn=6 falls a little above the median for the test parameters, while idp=4,nn=Inf is about 2/3 down the list.
+The volume for the various interpolations varies very little, but idp=4,nn=Inf,and idp=0.5,nn=6 falls at each end (idp=0.5 lower volume,
+while idp=4 higher volume)
+
+
+

@@ -1,0 +1,169 @@
+---
+title: "Interpolation_peatlands"
+author: "MarteFandrem"
+date: "8 2 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages needed
+```{r} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+library(tmaptools)
+library(shinyjs)
+library(rgeos)
+library(automap)
+library(ggbreak)
+```
+
+#Import and clean up data
+
+```{r}
+#Import
+setwd("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN")
+shp <- readOGR(dsn="Data/Geilo", layer="geilo-dybdef")
+df <- read.csv("Data/Geilo/torvdybder.csv", sep=";")
+
+#Make spatial
+dfs <- st_as_sf(x = df, 
+                        coords = c("x", "y"),
+                        crs = "+init=epsg:25832")
+
+#Check projections
+sf::st_crs(shp)
+sf::st_crs(dfs)
+
+#Set same projection on all files
+#crs(shp) <- CRS('+init=EPSG:32632') #Use either this or next one
+
+proj4string(shp)<-crs(dfs)
+
+
+# Make sf file from sp shapefile
+sf_shp <- st_as_sf(shp)
+
+#make spatial file from data frame file
+dfsp <- as(dfs, Class="Spatial")
+
+
+#Repair geometry if needed
+#sf_shp <- st_make_valid(sf_shp)
+#sf_shp_myr <- st_make_valid(sf_shp_myr)
+
+```
+
+#Visualize the data
+```{r}
+tmap_mode("view")
+   tm_shape(sf_shp)+
+     tm_fill(alpha=0.5) +
+     tm_polygons() +   
+   tm_shape(dfsp)+
+     tm_dots(col="Dybde", alpha=0.5, palette="-viridis", size=0.05 )
+     
+
+```
+
+#Create grid and adjust to extent of peatland
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+```
+
+#Interpolate volume
+Run several interpolations to find mean and range of volume of peat
+```{r}
+neighbors = length(dfsp$Dybde)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(from=2,to=30,by = 2), c(length=(neighbors)))
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    temp2 <- idw(Dybde ~ 1, dfsp, grid_crop, nmax=j, idp=i)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume <- tidyr::separate(volume, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume$power <- as.numeric(volume$power)
+volume$nn <- as.numeric(volume$nn)
+volume$volume <- as.numeric(volume$volume)
+```
+
+#Values for printing (mean, min, max, SD)
+```{r}
+max <- max(volume$volume)
+min <- min(volume$volume)
+mean <- mean(volume$volume)
+sd <- sd(volume$volume)
+
+
+Description <- c("mean", "min", "max", "SD")
+Results_volume <- data.frame(Description, Results = c(mean, min, max, sd)) 
+
+```
+
+
+
+#Visualize the interpolation
+```{r}
+
+idw_map <- tmap_mode("plot") +
+             tm_shape(idw(Dybde ~ 1, dfsp, grid_crop, nmax=8, idp=3))+
+              tm_raster(title= "Torvdybde (m)", col="var1.pred", palette="-viridis") +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+              tm_scale_bar(position = c("right", "bottom"), width = 0.3) +
+                 tm_layout(inner.margins = c(0.2, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("left","top"), legend.outside=TRUE, legend.title.size = 1, legend.text.size = 0.65, legend.frame = TRUE)
+
+idw_map
+
+
+```

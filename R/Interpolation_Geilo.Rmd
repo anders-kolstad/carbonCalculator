@@ -1,0 +1,415 @@
+---
+title: "Interpolation_Geilo"
+author: "MarteFandrem"
+date: "3 2 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+library(tmaptools)
+library(shinyjs)
+library(rgeos)
+library(automap)
+library(ggbreak)
+```
+
+#Import and clean up data
+
+```{r}
+
+setwd("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN")
+shp <- readOGR(dsn="Data/Geilo", layer="geilo-dybdef")
+dfs <- readOGR(dsn="Data/Geilo", layer="geilo-torvp")
+
+
+#Check projections
+sf::st_crs(shp)
+sf::st_crs(dfs)
+
+crs(shp) <- CRS('+init=EPSG:32632')
+
+#set same projection on all files
+proj4string(dfs)<-crs(shp)
+
+
+# Make sf file from sp shapefile
+sf_shp <- st_as_sf(shp)
+dfsp <- st_as_sf (dfs)
+
+dfsp <- rename(dfsp, "Dybde" = "DJUPN")
+
+#make spatial file from data frame file
+#dfsp <- as(dfs, Class="Spatial")
+#Shouldn't need this here
+
+
+#Write csv with points
+#df <- as.data.frame(dfs)
+#write.csv(df, "Data/Geilo/torvdybder.csv")
+
+#Repair geometry
+#sf_shp <- st_make_valid(sf_shp)
+#sf_shp_myr <- st_make_valid(sf_shp_myr)
+
+```
+
+```{r}
+tmap_mode("view")
+  tm_shape(sf_shp)+
+  tm_polygons() +
+  tm_shape(dfs)+
+  tm_dots(col="black", size=0.01, alpha=0.5, )
+
+```
+
+```{r}
+data_Geilo <- tmap_mode("plot")+
+                tm_shape(sf_shp)+
+                 tm_polygons() +   
+              tm_shape(dfsp)+
+              tm_dots(col="Dybde", alpha=1, palette="-viridis", size=0.05 ) +
+              tm_layout(legend.outside = TRUE)
+
+setwd("C:/Users/martef/DokumenterIntern/GitHub/PhDGRAN")
+#tmap_save(data_Geilo, "Output/Geilo/data_Geilo.png")
+data_Geilo
+
+```
+#Create grid and adjust to extent of peatland
+
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_sp@grid@cellsize       #check that cell size is 1x1
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+plot(grid_crop)
+```
+#Test the best fit of nmax and power in IDW.
+First interpolate all the various models and get the volume
+```{r, echo=FALSE}
+neighbors = length(dfsp$Dybde)
+power = c(seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(from=2,to=30,by = 2), c(length=(neighbors)))
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=j, idp=i)
+    temp3 <- as.data.frame(temp2@data)
+    temp4 <- sum(temp3$var1.pred)
+    temp5 <- cbind(run, temp4)
+    temp  <- rbind(temp, temp5)
+  }
+} 
+
+
+```
+
+```{r}
+volume <- temp
+volume <-dplyr::rename(volume, volume=temp4)
+volume <- tidyr::separate(volume, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+volume$power <- as.numeric(volume$power)
+volume$nn <- as.numeric(volume$nn)
+volume$volume <- as.numeric(volume$volume)
+
+setwd('..')
+write.csv(volume, "Output/volume_Geilo.csv")
+```
+#Then run jackknifing (leave-one-out) cross-validation
+```{r}
+
+#Then run for-loop for the LOOCV
+power = c((0.5), seq(from = 1, to = 4, by = 1))
+neigh = c((1), seq(from=2,to=30,by = 2), c(length=(neighbors)))
+
+
+
+temp <- data.frame()
+
+for (i in power) {
+  for (j in neigh) {
+    
+    temp2 <- NULL
+    temp3 <- NULL
+    temp4 <- NULL
+
+    run = paste(i, j, sep="_")
+
+    print(run)
+    temp2 <- krige.cv(DJUPN ~ 1, dfs, nmax=j, set = list(idp=i))
+    temp3 <- as.data.frame(temp2@data)
+    temp3 <- cbind(run, temp3)
+    
+    temp4 <- as.data.frame(temp2@coords)
+    temp4 <- temp4[,1:2]
+    temp3 <- cbind(temp3, temp4)
+    
+    temp <- rbind(temp, temp3)
+  }
+} 
+
+
+```
+
+```{r}
+df_results <- temp
+setwd('..')
+write.csv(df_results, "Output/LOOCV_results_Geilo.csv")
+```
+We can then evaluate fit with various parameters.
+- mean error (ME), ideally 0
+- correlation observed and predicted, ideally 1
+- Root Mean Square Error (RMSE), ideally low
+- Mean Absolute Error (MAE), ideally low
+
+
+We extract all diagnostics from the CV (RMSE, MAE, correlation, ME)
+```{r}
+RMSE <- function(observed, predicted) {
+  sqrt(mean((predicted - observed)^2, na.rm=TRUE))
+  }
+
+df_agg <- data.frame()
+
+
+
+for(i in unique(df_results$run)){
+  
+  temp  <- NULL
+  myRMSE <- NULL
+  myCor <- NULL
+  myME <- NULL
+  myMAE <- NULL
+  temp2 <- NULL
+
+  
+  temp <- df_results[df_results$run==i,]
+  myRMSE <- RMSE(temp$observed, temp$var1.pred)
+  myCor <- cor(temp$observed, temp$observed - temp$residual)
+  myME <- mean(temp$residual)
+  myMAE <- mae(temp$observed,temp$var1.pred)
+  temp2 <- c(i, myRMSE, myCor, myME, myMAE)
+  
+  df_agg <- rbind(df_agg, temp2)
+}
+
+names(df_agg) <- c("run", "RMSE", "cor", "ME", "MAE")
+df_agg$RMSE <- as.numeric(df_agg$RMSE)
+df_agg$cor <- as.numeric(df_agg$cor)
+df_agg$ME <- as.numeric(df_agg$ME)
+df_agg$MAE <- as.numeric(df_agg$MAE)
+df_agg$run2 <- as.numeric(row.names(df_agg))
+
+```
+
+```{r}
+df_agg <- tidyr::separate(df_agg, 
+                        run, 
+                        into = c("power", "nn"),
+                        sep = "_",
+                        remove=F)
+df_agg$power <- as.numeric(df_agg$power)
+df_agg$nn <- as.numeric(df_agg$nn)
+
+setwd('..')
+write.csv(df_agg, "Output/LOOCV_parameters_Geilo.csv")
+```
+#Then plot the diagnostics over the parameters power and nn, to find the best fitted model
+First plot: RMSE
+
+```{r}
+ggplot(df_agg, aes(nn, power)) + 
+  geom_tile(aes(fill = RMSE), colour = "black") + 
+  scale_fill_gradient(low = "steelblue", high = "orange") + 
+  scale_x_break(c(30, 1130)) + 
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+Second plot: MAE
+```{r}
+ggplot(df_agg, aes(nn, power)) + 
+  geom_tile(aes(fill = MAE), colour = "black") + 
+  scale_fill_gradient(low = "steelblue", high = "orange") +
+  scale_x_break(c(30, 1130)) +
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+```{r}
+ggplot(df_agg, aes(nn, power)) + 
+  geom_tile(aes(fill = cor), colour = "black") + 
+  scale_fill_gradient(low = "steelblue", high = "orange") + 
+   scale_x_break(c(30, 1130)) +
+  theme_bw() +
+  ggtitle('Parameter values')
+```
+#Get best parameter values
+```{r}
+idx.min <- which.min(df_agg$RMSE)
+  best.power <- df_agg$power[idx.min]
+  best.Neighbors <- df_agg$nn[idx.min]
+  min.RMSE <- df_agg$RMSE[idx.min]
+
+best.parameters <- cbind(best.power, best.Neighbors, min.RMSE)
+print(best.parameters)  
+```
+# Build IDW model based on best parameter values and compare
+```{r}
+
+idw.best <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=best.Neighbors, idp=best.power)
+#idw.best <- idw(Dybde ~1, dfs, grid_crop, nmax=6, idp=0.5)
+idw.alt2 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=6, idp=1)
+idw.alt3 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=6, idp=2)
+idw.alt4 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=6, idp=3)
+idw.alt5 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=8, idp=1)
+idw.alt6 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=8, idp=2)
+idw.alt7 <- idw(DJUPN ~ 1, dfs, grid_crop, nmax=8, idp=3)
+```
+
+#Visualize the interpolations
+```{r}
+
+idw.best_map <- tmap_mode("plot") +
+             tm_shape(idw.best)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 0.5, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.best_map, "Output/Geilo/idw.best.0.5_6.png")
+idw.best_map
+```
+
+```{r}
+
+idw.1_6_map <- tmap_mode("plot") +
+             tm_shape(idw.alt2)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 1, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.1_6_map, "Output/Geilo/idw.1_6.png")
+idw.1_6_map
+```
+```{r}
+
+idw.2_6_map <- tmap_mode("plot") +
+             tm_shape(idw.alt3)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 2, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.2_6_map, "Output/Geilo/idw.2_6.png")
+idw.2_6_map
+```
+```{r}
+
+idw.3_6_map <- tmap_mode("plot") +
+             tm_shape(idw.alt4)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 3, nn:6", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.3_6_map, "Output/Geilo/idw.3_6.png")
+idw.3_6_map
+```
+```{r}
+
+idw.1_8_map <- tmap_mode("plot") +
+             tm_shape(idw.alt5)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 1, nn:8", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.1_8_map, "Output/Geilo/idw.1_8.png")
+idw.1_8_map
+```
+```{r}
+
+idw.2_8_map <- tmap_mode("plot") +
+             tm_shape(idw.alt6)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 2, nn:8", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.2_8_map, "Output/Geilo/idw.2_8.png")
+idw.2_8_map
+```
+```{r}
+
+idw.3_8_map <- tmap_mode("plot") +
+             tm_shape(idw.alt7)+
+              tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", breaks=seq(from = 0, to = 3, by = 0.5)) +
+            tm_shape(sf_shp)+
+              tm_borders()   +
+              tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+              tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                 tm_layout(title="idp: 3, nn:8", inner.margins = c(0.25, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right","bottom"))
+
+setwd('..')
+tmap_save(idw.3_8_map, "Output/Geilo/idw.3_8.png")
+idw.3_8_map
+```

@@ -1,0 +1,157 @@
+---
+title: "Kriging_Opelandsmarka"
+author: "MarteFandrem"
+date: "3 2 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Packages needed
+```{r, echo=FALSE} 
+library(readxl)
+library(writexl)
+library(rgdal)
+library(raster)
+library(ggplot2)
+library(gstat)
+library(sf)
+library(broom)
+library(ggthemes)
+library(viridis)
+library(sp)
+library(spatialEco)
+library(spm)
+library(tmap)
+library(Metrics)
+library(rlist)
+library(dplyr)
+library(tmaptools)
+library(shinyjs)
+library(rgeos)
+library(automap)
+
+```
+
+#Import and clean up data
+
+```{r}
+
+shp<-readOGR(dsn="C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Opelandsmarka", layer="Opelandsmarka")
+
+df <- read.csv("C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Opelandsmarka/Torvdybder_Opelandsmarka.csv", sep=";")
+
+
+#Clean up data
+
+df <- na.omit(df, col.name = "Dybde", margin=1)
+df <- df %>% 
+   mutate(Dybde_m = Dybde / 100)
+# Make spatial dataframe of the peat depths points
+
+dfs <- st_as_sf(x = df, 
+                        coords = c("x", "y"),
+                        crs = "+init=epsg:25832")
+#GDAL Message 1: +init=epsg:XXXX syntax is deprecated. It might return a CRS with a non-EPSG compliant axis order.
+#Don't know how to write it otherwise. Seems to work properly though.
+
+# Make sf file from sp shapefile
+sf_shp <- st_as_sf(shp)
+
+#Check projections
+sf::st_crs(shp)
+sf::st_crs(dfs)
+
+#set same projection on all files
+proj4string(shp)<-crs(dfs)
+
+#make spatial file from data frame file
+dfsp <- as(dfs, Class="Spatial")
+
+#Crop dfsp to the extent of the station area
+#dfsp_shp <- dfsp[shp,]
+
+
+```
+
+#Visualize data
+```{r}
+data_Opelandsmarka <- tmap_mode("plot")+
+                tm_shape(sf_shp)+
+                 tm_polygons() +   
+              tm_shape(dfs)+
+              tm_dots(col="Dybde_m", alpha=1, palette="-viridis", size=1 ) +
+              tm_layout(legend.outside = TRUE)
+
+
+
+data_Opelandsmarka
+```
+
+#Create grid and adjust to extent of peatland
+
+```{r}
+grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
+res(grid) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
+
+grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
+
+grid_sp@grid@cellsize       #check that cell size is 1x1
+
+grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
+plot(grid_crop)
+```
+
+
+#Kriging
+```{r}
+kriging_result <- autoKrige(Dybde~1, dfsp, grid_crop)
+plot(kriging_result)
+```
+```{r}
+prediction_spdf = kriging_result$krige_output
+sample_variogram = kriging_result$exp_var
+variogram_model = kriging_result$var_model
+```
+
+```{r}
+kriging_map <- tmap_mode("plot") +
+                    tm_shape(prediction_spdf)+
+                     tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", alpha=0.8) +
+                    tm_layout(legend.outside = TRUE) +
+                    tm_shape(sf_shp)+
+                     tm_borders()   +
+                    tm_shape(dfsp)+
+                     tm_dots(col="black", size=0.05, alpha=0.5, ) +
+                    tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+                    tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                        tm_layout(inner.margins = c(0.1, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right", "top"))
+
+kriging_map
+setwd('..')
+tmap::tmap_save(kriging_map, "Output/kriging_Opelandsmarka.png")
+```
+```{r}
+kriging_map_2 <- tmap_mode("plot") +
+                    tm_shape(prediction_spdf)+
+                     tm_raster(title= "Peat depth (m)", col="var1.pred", palette="-viridis", alpha=0.8, breaks=seq(from = 0, to = 300, by = 50)) +
+                    tm_layout(legend.outside = TRUE) +
+                    tm_shape(sf_shp)+
+                     tm_borders()   +
+                    tm_shape(dfsp)+
+                     tm_dots(col="black", size=0.05, alpha=0.5, ) +
+                    tm_compass(type="8star", position = c("left", "bottom"), size = 2) +
+                    tm_scale_bar(position = c("left", "bottom"), width = 0.3) +
+                        tm_layout(inner.margins = c(0.1, 0.1, 0.1, 0.1), legend.show = TRUE, legend.position = c("right", "top"))
+
+kriging_map_2
+setwd('..')
+tmap::tmap_save(kriging_map_2, "Output/kriging_2_Opelandsmarka.png")
+```
+#Kriging seems to be working well enough, but as with the best fitted models of IDW, the results are "flattened" a lot, losing much of the range.
+The extremes are mostly lost.
+
+
