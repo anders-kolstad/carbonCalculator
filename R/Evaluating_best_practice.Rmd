@@ -262,3 +262,97 @@ This figure tells us that the median (black) and the mean (grey) distance to nea
 
 It also tells us that roughly 75% of the 
 
+```{r}
+(estPlot <- ggplot(data = summaryTable[summaryTable$medianDist<50,],
+       aes(x = medianDist, y = estimatedPeatVolume_m3))+
+  geom_point(pch=21, fill="grey"
+             )+
+  theme_bw(base_size = 16)+
+  geom_smooth(method = "loess", span=0.5, colour="grey30")+
+  ylab(expression("Est. peat volume (m"^3*")"))+
+  xlab("Median distance to\nnearest neighbour (m)")
+)
+```
+
+With distances above 25-30 m we start to se a systematic underestimation of volume. THe variation seems to be stable to about 30 m.
+
+Sort data frame and group into classes
+```{r}
+dat <- summaryTable[order(summaryTable$medianDist),]
+dat$group <- rep(c(1:10), each=11, length.out=nrow(dat))
+```
+
+```{r}
+theMax <- as.data.frame(tapply(dat$medianDist, dat$group, max))
+theMin <- as.data.frame(tapply(dat$medianDist, dat$group, min))
+
+theMax$group <- row.names(theMax)
+names(theMax)[1] <- "maxValue"
+theMax$minValue <- theMin$`tapply(dat$medianDist, dat$group, min)`
+theMax$label <- paste(
+  round(theMax$minValue, 1), 
+  " - ",
+  round(theMax$maxValue, 1))
+```
+
+```{r}
+dat$label <- theMax$label[match(dat$group, theMax$group)]
+
+```
+
+
+We can alternatively create groupes with similar ranges instead of similar n
+```{r}
+#summaryTable$group <- ifelse(
+#  summaryTable$medianDist<20, "<20 m", ifelse(
+#    summaryTable$medianDist<25, "20-25 m", ifelse(
+#      summaryTable$medianDist<30, "25-30 m", ">30 m")))
+#table(summaryTable$group)
+```
+
+cv function
+```{r}
+cv <- function(x){sd(x)/mean(x)}
+```
+
+```{r}
+cvTable <- tapply(dat$estimatedPeatVolume_m3, dat$group, cv)
+cvTable <- data.frame(cv = cvTable,
+                      label = theMax$label,
+                      order = as.numeric(rownames(cvTable)))
+```
+
+```{r}
+(cvPlot <- ggplot(data = cvTable, aes(x = order, y = cv))+
+  geom_line(lty = 2)+
+  geom_point(pch=21, fill="grey",
+             size=3, stroke=1.5)+
+  
+  theme_bw(base_size = 16)+
+  scale_x_continuous(breaks = cvTable$order,
+                     labels = cvTable$label)+
+  theme(axis.text.x = element_text(angle = 90))+
+  xlab("")
+)
+```
+```{r}
+#library(gridExtra)
+#grid.arrange(cvPlot, estPlot,
+#             ncol=2)
+library(gtable)
+library(grid)
+g1 <- ggplotGrob(cvPlot)
+g2 <- ggplotGrob(estPlot)
+g <- cbind(g2, g1, size = "first")
+g$heights <- unit.pmax(g1$heights, g2$heights)
+grid.newpage()
+grid.draw(g)
+```
+
+```{r, eval=F}
+png("../Output/Effect of sampling distance.png")
+grid.newpage()
+grid.draw(g)
+dev.off()
+```
+
