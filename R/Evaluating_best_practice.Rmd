@@ -35,7 +35,7 @@ library(tmap)
 library(dplyr)
 library(rasterVis)
 library(readr)
-
+library(ggplot2)
 ```
 
 
@@ -184,29 +184,23 @@ Get the summed volume
 ```{r}
 (est <- sum(int@data$var1.pred))
 ```
-Get the median distance to the closest neighougbour
+Get the median, mean and skewness of the distances to the closest neighougbour
 ```{r}
-(medianDist <- median(dist2))
+medianDist <- median(dist2)
+meanDist <- mean(dist2)
+skewDist <- e1071::skewness(dist2)
 ```
-... and the mean distance
 
-```{r}
-(meanDist <- mean(dist2))
-```
-... and the skewness
-```{r}
-(skewDist <- e1071::skewness(dist2))
-```
 A negative skewness means the mean is smaller than the median (i.e. a right skew)
 
 Put it into a dataframe
 ```{r}
 (summaryTable <- data.frame(
-  medianDistanceBetweenPoints        = medianDist,
-  meanDistanceBetweenPoints          = meanDist,
-  skewness                           = skewDist,
-  totalNumberOfDepthMeasurements     = length(dist2),
-  estimatedPeatVolume_m3                 = est
+  medianDist,
+  meanDist,
+  skewness               = skewDist,
+  n                      = length(dist2),
+  estimatedPeatVolume_m3 = est
 ))
 ```
 
@@ -236,10 +230,10 @@ for(i in 1:c(nrow(dfs)-1)){
   est <- sum(int@data$var1.pred)
   
  # paste into the summary table
- summaryTable[1+i,"medianDistanceBetweenPoints"]      <- medianDist
- summaryTable[1+i,"meanDistanceBetweenPoints"]        <- medianDist
+ summaryTable[1+i,"medianDist"]      <- medianDist
+ summaryTable[1+i,"meanDist"]        <- meanDist
  summaryTable[1+i,"skewness"]                         <- skewDist
- summaryTable[1+i,"totalNumberOfDepthMeasurements"]   <- length(dist2)-1
+ summaryTable[1+i,"n"]   <- length(dist2)-1
  summaryTable[1+i,"estimatedPeatVolume_m3"]           <- est
 
  
@@ -251,8 +245,20 @@ for(i in 1:c(nrow(dfs)-1)){
  
 }
 
-
 ```
 
 
+# Explore results
+
+```{r}
+ggplot(data = summaryTable, )+
+  geom_point(aes(x = n, y = medianDist))+
+  geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
+  theme_bw()+
+  ylab("Distance to nearest neighbour")
+```
+
+This figure tells us that the median (black) and the mean (grey) distance to nearest neighbour are very similar, meaning there is little skew, meaning again that the n reduction proccess has retained the systematic sampling design.
+
+It also tells us that roughly 75% of the 
 
