@@ -26,6 +26,8 @@ library(writexl)
 library(rgdal)
 library(raster)
 library(gstat)
+library(matrixStats)
+library(units)
 library(sf)
 library(sp)
 library(tmap)
@@ -114,40 +116,76 @@ Calculate distance between one point and all other points
 Create 3Dplot
 Does not work.
 ```{r}
-idw <- idw(Dybde ~ 1, dfsp_station, grid_crop, nmax=8, idp=3)
-idw_df <-as.data.frame(idw)
-x <- idw_df$x
-x1 <- sort.list(x)
-x2 <- idw_df$x[x1]
-y <- idw_df$y
-y1 <- sort.list(y)
-y2 <- idw_df$y[y1]
-z <- idw_df$var1.pred
-z <- as.matrix(data.frame(x=x,y=y))
-z <- matrix(idw_df$var1.pred)
-persp(x2, y2, z,
-      theta = 135, phi = 30,
-      col = "brown", scale = FALSE,
-    ltheta = -120, shade = 0.75,
-      border = NA, box = FALSE)
+#idw <- idw(Dybde ~ 1, dfsp_station, grid_crop, nmax=8, #idp=3)
+#idw_df <-as.data.frame(idw)
+#x <- idw_df$x
+#x1 <- sort.list(x)
+#x2 <- idw_df$x[x1]
+#y <- idw_df$y
+#y1 <- sort.list(y)
+#y2 <- idw_df$y[y1]
+#z <- idw_df$var1.pred
+#z <- as.matrix(data.frame(x=x,y=y))
+#z <- matrix(idw_df$var1.pred)
+#persp(x2, y2, z,
+#      theta = 135, phi = 30,
+#      col = "brown", scale = FALSE,
+#    ltheta = -120, shade = 0.75,
+#      border = NA, box = FALSE)
 ```
 Create 3D-plot 2.
 Trouble with packages
 ```{r}
-idw_r <- raster(idw)
-plot3D(idw_r)
+#idw_r <- raster(idw)
+#plot3D(idw_r)
 ```
 
 
+# Boostrapping for CV estimation
+
 What do I want to do?
--Randomly resample the dataset with 90%, 80%, 70%, 60%, 50%, 40%, 30% 20%, 10%, 5% of the points.
-- Get mean volume and max + min, and/or coefficient of variance
-- Run this 10 times per decrease in n
-- Resample the dataset with increased distance between the points. How do I do this?
+- Resample the dataset with increasing distance between points.
+- Interpolate to get volume 
+- Run this 100 - 1000 times per step and calculate the coefficient of variance CV for each step
 
 
+# Subset data 
+by gradually removing the closest point 
 
-#Create random subsets
+
+```{r}
+euclidDist <- sf::st_distance(dfs) 
+euclidDist <- units::drop_units(euclidDist)
+euclidDist[euclidDist == 0] <- NA
+dist <- rowMins(euclidDist, na.rm=T)
+```
+
+```{r}
+dist2 <- dist
+tempDF <- dfs
+
+for(i in 1:nrow(dfs)-5){
+  
+  print(paste("run number = ", i))
+  
+ toRemove <- which(dist2 == min(dist2))[1]
+ print(paste("Removing row number ", toRemove))
+ dist2 <- dist2[-toRemove]
+ 
+ tempDF <- tempDF[-toRemove,]
+ 
+ # perform interpolation on tempDF
+ 
+ euclidDist <- sf::st_distance(tempDF) 
+ euclidDist <- units::drop_units(euclidDist)
+ euclidDist[euclidDist == 0] <- NA
+ dist2 <- rowMins(euclidDist, na.rm=T)
+ 
+ print(paste("length dist2 =", length(dist2)))
+}
+
+
+```
 
 ```{r}
 
