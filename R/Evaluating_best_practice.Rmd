@@ -23,6 +23,7 @@ summary(p)
 ```{r, echo=FALSE} 
 library(readxl)
 library(writexl)
+library(e1071)
 library(rgdal)
 library(raster)
 library(gstat)
@@ -77,7 +78,7 @@ rm(df)
 
 #Visualisere dataene
 
-```{r, message=F, warning=F}
+```{r, message=F, warning=F, out.width = '80%'}
 tmap_mode("view")
   tm_shape(sf_shp)+
   tm_polygons() +
@@ -160,124 +161,98 @@ euclidDist[euclidDist == 0] <- NA
 dist <- rowMins(euclidDist, na.rm=T)
 ```
 
+
+Set power function and the number of nearest neighbours to consider in the inerpolation
+```{r}
+power <- 3
+neigh <- 8 # all the closest point in a systematic grid
+```
+
+Create temperarary working files
 ```{r}
 dist2 <- dist
 tempDF <- dfs
+tempDF2 <- as(tempDF, Class="Spatial")
+```
 
-for(i in 1:nrow(dfs)-5){
+Perform the first interpolation using all the points
+```{r}
+int <- gstat::idw(Dybde ~ 1, tempDF2, grid_crop, nmax=neigh, idp=power)
+```
+
+Get the summed volume
+```{r}
+(est <- sum(int@data$var1.pred))
+```
+Get the median distance to the closest neighougbour
+```{r}
+(medianDist <- median(dist2))
+```
+... and the mean distance
+
+```{r}
+(meanDist <- mean(dist2))
+```
+... and the skewness
+```{r}
+(skewDist <- e1071::skewness(dist2))
+```
+A negative skewness means the mean is smaller than the median (i.e. a right skew)
+
+Put it into a dataframe
+```{r}
+(summaryTable <- data.frame(
+  medianDistanceBetweenPoints        = medianDist,
+  meanDistanceBetweenPoints          = meanDist,
+  skewness                           = skewDist,
+  totalNumberOfDepthMeasurements     = length(dist2),
+  estimatedPeatVolume_m3                 = est
+))
+```
+
+
+Perform a for-loop to gradually remove points based on how close they are to other points. This will retain most of the systematic design of the points (avoiding clumping of points)
+```{r}
+for(i in 1:c(nrow(dfs)-1)){
   
-  print(paste("run number = ", i))
+ print(paste("run number = ", i))
   
  toRemove <- which(dist2 == min(dist2))[1]
  print(paste("Removing row number ", toRemove))
- dist2 <- dist2[-toRemove]
+ 
+ # get some stats distance between neighbours
+ medianDist <- median(dist2)
+ meanDist   <- mean(dist2)
+ skewDist   <- e1071::skewness(dist2)
+
+ #dist2 <- dist2[-toRemove]
  
  tempDF <- tempDF[-toRemove,]
+ tempDF2 <- as(tempDF, Class="Spatial")
  
+
  # perform interpolation on tempDF
+  int <- gstat::idw(Dybde ~ 1, tempDF2, grid_crop, nmax=neigh, idp=power)
+  est <- sum(int@data$var1.pred)
+  
+ # paste into the summary table
+ summaryTable[1+i,"medianDistanceBetweenPoints"]      <- medianDist
+ summaryTable[1+i,"meanDistanceBetweenPoints"]        <- medianDist
+ summaryTable[1+i,"skewness"]                         <- skewDist
+ summaryTable[1+i,"totalNumberOfDepthMeasurements"]   <- length(dist2)-1
+ summaryTable[1+i,"estimatedPeatVolume_m3"]           <- est
+
  
+  # prepare dataset for next loop
  euclidDist <- sf::st_distance(tempDF) 
  euclidDist <- units::drop_units(euclidDist)
  euclidDist[euclidDist == 0] <- NA
  dist2 <- rowMins(euclidDist, na.rm=T)
  
- print(paste("length dist2 =", length(dist2)))
 }
 
 
 ```
 
-```{r}
 
-
-
-for(i in 1:nrow(mtcars)) ifelse(i==7,break(),mc[[i]]<-mtcars[-(1:i),])
-
-dataList = list()
-for (i in seq(1, 10)){
-    dataList[[i]] = mtcars[i:nrow(mtcars),]
-}
-```
-
-
-
-#Interpolate all the various models and get the volume
-```{r, echo=FALSE}
-neighbors = length(dfsp_station$Dybde)
-power = c(seq(from = 1, to = 4, by = 1))
-neigh = c((1), seq(2,30,by = 2), c(length=(neighbors)))
-
-temp <- data.frame()
-
-for (i in power) {
-  for (j in neigh) {
-    
-    temp2 <- NULL
-    temp3 <- NULL
-    temp4 <- NULL
-
-    run = paste(i, j, sep="_")
-
-    print(run)
-    temp2 <- idw(Dybde ~ 1, dfsp_station, grid_crop, nmax=j, idp=i)
-    temp3 <- as.data.frame(temp2@data)
-    temp4 <- sum(temp3$var1.pred)
-    temp5 <- cbind(run, temp4)
-    temp  <- rbind(temp, temp5)
-  }
-} 
-
-max <- max(volume$volume)
-min <- min(volume$volume)
-mean <- mean(volume$volume)
-sd <- sd(volume$volume)
-
-
-Description <- c("mean", "min", "max", "SD")
-Results_volume <- data.frame(Description, Results = c(mean, min, max, sd)) 
-
-```
-
-```{r}
-volume <- temp
-volume <-dplyr::rename(volume, volume=temp4)
-volume <- tidyr::separate(volume, 
-                        run, 
-                        into = c("power", "nn"),
-                        sep = "_",
-                        remove=F)
-volume$power <- as.numeric(volume$power)
-volume$nn <- as.numeric(volume$nn)
-volume$volume <- as.numeric(volume$volume)
-
-```
-
-#Values for printing (mean, min, max, SD)
-```{r}
-max <- max(volume$volume)
-min <- min(volume$volume)
-mean <- mean(volume$volume)
-sd <- sd(volume$volume)
-
-
-Description <- c("mean", "min", "max", "SD")
-Results_volume <- data.frame(Description, Results = c(mean, min, max, sd)) 
-
-Results_volume
-```
-
-#Volume from area and mean
-```{r}
-area <- st_area(sf_shp)
-```
-
-```{r}
-mean <- mean(dfsp_station$Dybde)
-```
-
-```{r}
-roughvol <- mean*area
-roughvol
-
-```
 
