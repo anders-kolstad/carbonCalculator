@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r, eval=F}
 
 knitr::purl("Evaluating_best_practice.Rmd")
 
@@ -31,9 +31,8 @@ library(sp)
 library(tmap)
 library(dplyr)
 library(rasterVis)
-remove.packages(rgl)
-install.packages("rgl")
-library("rgl")
+library(readr)
+
 ```
 
 
@@ -41,14 +40,14 @@ library("rgl")
 
 ```{r}
 
-shp<-readOGR(dsn="C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Tydal", layer="stasjon_Setermyra")
+shp<-readOGR(dsn="../Data/Tydal", layer="stasjon_Setermyra")
 
-df <- read.csv("C:/Users/martef/OneDrive - NTNU/Documents/Jobb-pc/PhD prosjekter/WP3 NINA GRAN/Data/Rydda datasett for kalkulator/Tydal/Torvdybder_Tydal.csv", sep=";")
+df <- read_csv("../Data/Tydal/Torvdybder_Tydal_stasjon.csv")
 
 # Make spatial dataframe of the peat depths points
 
 dfs <- st_as_sf(x = df, 
-                        coords = c("x", "y"),
+                        coords = c("coords.x1", "coords.x2"),
                         crs = "+init=epsg:25833")
 
 # Make sf file from sp shapefile
@@ -62,41 +61,32 @@ sf::st_crs(dfs)
 proj4string(shp)<-crs(dfs)
 
 #make spatial file from data frame file
+# the inerpolation requires spatial object, and cannot work with sf objects
 dfsp <- as(dfs, Class="Spatial")
 
-#Crop dfsp to the extent of the station area
-dfsp_station <- dfsp[shp,]
-
-#Create sf of point data
-sf_station <- st_as_sf(dfsp_station)
 
 
+```
+
+Cleaning the environment
+```{r}
+rm(df)
 ```
 
 #Visualisere dataene
 
-```{r}
+```{r, message=F, warning=F}
 tmap_mode("view")
   tm_shape(sf_shp)+
   tm_polygons() +
   tm_shape(dfs)+
-  tm_dots(col="black", size=0.01, alpha=0.5, )
-
-```
-
-
-```{r}
-data_Tydal <- tmap_mode("plot")+
-                tm_shape(sf_shp)+
-                 tm_polygons() +   
-              tm_shape(dfsp_station)+
-              tm_dots(col="Dybde", alpha=1, palette="-viridis", size=1 ) +
+  tm_dots(col="Dybde", alpha=1, palette="-viridis", size=0.1 ) +
               tm_layout(legend.outside = TRUE)
 
-data_Tydal
 ```
 
-#Create grid and adjust to extent of peatland
+
+Create grid and adjust to extent of peatland
 
 ```{r}
 grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
@@ -106,16 +96,22 @@ proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapo
 grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
 
 grid_sp@grid@cellsize       #check that cell size is 1x1
+```
+Resolution is OK, 1x1 m
 
+Now we are cropping the extent of the raster grid
+```{r}
 grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
 plot(grid_crop)
 ```
-#Calculate distance between points
+
+
+Calculate distance between one point and all other points
 ```{r}
-euclidDist <- sp::spDists(dfsp_station,longlat = FALSE)
+#euclidDist <- sp::spDists(dfsp,longlat = FALSE)
 ```
 
-#Create 3Dplot
+Create 3Dplot
 Does not work.
 ```{r}
 idw <- idw(Dybde ~ 1, dfsp_station, grid_crop, nmax=8, idp=3)
