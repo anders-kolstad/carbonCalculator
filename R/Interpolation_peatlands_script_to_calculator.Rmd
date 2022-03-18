@@ -73,7 +73,7 @@ dfsp <- as(dfs, Class="Spatial")
 
 #Visualize the data
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
    tm_shape(sf_shp)+
      tm_fill(alpha=0.5) +
      tm_polygons() +   
