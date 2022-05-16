@@ -36,10 +36,12 @@ library(dplyr)
 library(rasterVis)
 library(readr)
 library(ggplot2)
+library(ggpubr)
 ```
 
 
 #Import and clean up data
+## *Tydal
 
 ```{r}
 
@@ -67,17 +69,68 @@ proj4string(shp)<-crs(dfs)
 # the inerpolation requires spatial object, and cannot work with sf objects
 dfsp <- as(dfs, Class="Spatial")
 
+```
 
+
+## *Geilo
+
+```{r}
+#get polygons
+shp2<-readOGR(dsn="../Data/Geilo", layer="geilo-dybdef")
+
+# sf option
+      #shp2 <- sf::read_sf("../Data/Geilo/geilo-dybdef.shp")
+      # check crs for polygons
+      #sf::st_crs(shp2) # missing
+      
+      # test geo overlap
+       #plot(shp2$geometry)
+       #plot(dfs2, add=T)
+      # ok
+      
+      # set crs as equal
+      #sf::st_crs(shp2) <- 25833
+
+
+# get point measurements of peat depth
+df2 <- read.csv("../Data/Geilo/torvdybder.csv", sep=";")
+
+# Make spatial dataframe of the peat depths points
+dfs2 <- st_as_sf(x = df2, 
+                        coords = c("x", "y"),
+                        crs = "+init=epsg:25833")
+
+
+
+
+
+
+
+
+#Check projections
+sf::st_crs(shp2)
+sf::st_crs(dfs2)
+
+#set same projection on all files
+proj4string(shp2)<-crs(dfs2)
+
+
+# Make sf file from sp shapefile
+sf_shp2 <- st_as_sf(shp2)
+
+#make spatial file from data frame file
+# the inerpolation requires spatial object, and cannot work with sf objects
+dfsp2 <- as(dfs2, Class="Spatial")
 
 ```
+
 
 Cleaning the environment
 ```{r}
-rm(df)
+rm(df2, df)
 ```
 
 #Visualisere dataene
-
 ```{r, message=F, warning=F, out.width = '80%'}
 tmap_mode("view")
   tm_shape(sf_shp)+
@@ -89,18 +142,37 @@ tmap_mode("view")
 ```
 
 
+```{r, message=F, warning=F, out.width = '80%'}
+tmap_mode("view")
+  tm_shape(sf_shp2)+
+  tm_polygons() +
+  tm_shape(dfs2)+
+  tm_dots(col="Dybde", alpha=1, palette="-viridis", size=0.1 ) +
+              tm_layout(legend.outside = TRUE)
+
+```
+
+
 Create grid and adjust to extent of peatland
 
+Tydal first
 ```{r}
 grid <- raster(extent(shp)) #create a raster grid from the extent of the peatland
 res(grid) <- 1              #set resolution of the grid to 1x1m
 proj4string(grid)<-crs(dfs) #set similar projection to the grid as to the datapoints
-
 grid_sp <-as(grid, "SpatialPixels") #convert the grid from raster to spatialpixels
-
 grid_sp@grid@cellsize       #check that cell size is 1x1
 ```
 Resolution is OK, 1x1 m
+
+Then Geilo
+```{r}
+grid2 <- raster(extent(shp2)) #create a raster grid from the extent of the peatland
+res(grid2) <- 1              #set resolution of the grid to 1x1m
+proj4string(grid2)<-crs(dfs2) #set similar projection to the grid as to the datapoints
+grid_sp2 <-as(grid2, "SpatialPixels") #convert the grid from raster to spatialpixels
+grid_sp2@grid@cellsize       #check that cell size is 1x1
+```
 
 Now we are cropping the extent of the raster grid
 ```{r}
@@ -108,6 +180,10 @@ grid_crop <- grid_sp[shp,]  #crop the grid to only include the peatland
 plot(grid_crop)
 ```
 
+```{r}
+grid_crop2 <- grid_sp2[shp2,]  #crop the grid to only include the peatland
+plot(grid_crop2)
+```
 
 Calculate distance between one point and all other points
 ```{r}
@@ -153,7 +229,7 @@ What do I want to do?
 # Subset data 
 by gradually removing the closest point 
 
-
+Tydal:
 ```{r}
 euclidDist <- sf::st_distance(dfs) 
 euclidDist <- units::drop_units(euclidDist)
@@ -161,6 +237,13 @@ euclidDist[euclidDist == 0] <- NA
 dist <- rowMins(euclidDist, na.rm=T)
 ```
 
+Geilo:
+```{r}
+euclidDist2 <- sf::st_distance(dfs2) 
+euclidDist2 <- units::drop_units(euclidDist2)
+euclidDist2[euclidDist2 == 0] <- NA
+distG <- rowMins(euclidDist2, na.rm=T)
+```
 
 Set power function and the number of nearest neighbours to consider in the inerpolation
 ```{r}
@@ -173,27 +256,50 @@ Create temperarary working files
 dist2 <- dist
 tempDF <- dfs
 tempDF2 <- as(tempDF, Class="Spatial")
+
+distG2 <- distG
+tempDF_G <- dfs2
+tempDF_G2 <- as(tempDF_G, Class="Spatial")
 ```
+
+
 
 Perform the first interpolation using all the points
 ```{r}
 int <- gstat::idw(Dybde ~ 1, tempDF2, grid_crop, nmax=neigh, idp=power)
+
+intG <- gstat::idw(Dybde ~ 1, tempDF_G2, grid_crop2, nmax=neigh, idp=power)
+
 ```
 
 Get the summed volume
+
+tydal:
 ```{r}
 (est <- sum(int@data$var1.pred))
 ```
+Geilo:
+```{r}
+(estG <- sum(intG@data$var1.pred))
+```
+
+
 Get the median, mean and skewness of the distances to the closest neighougbour
 ```{r}
 medianDist <- median(dist2)
 meanDist <- mean(dist2)
 skewDist <- e1071::skewness(dist2)
+
+
+medianDistG <- median(distG2)
+meanDistG <- mean(distG2)
+skewDistG <- e1071::skewness(distG2)
 ```
 
 A negative skewness means the mean is smaller than the median (i.e. a right skew)
 
 Put it into a dataframe
+Tydal:
 ```{r}
 (summaryTable <- data.frame(
   medianDist,
@@ -204,9 +310,21 @@ Put it into a dataframe
 ))
 ```
 
-
-Perform a for-loop to gradually remove points based on how close they are to other points. This will retain most of the systematic design of the points (avoiding clumping of points)
+Geilo:
 ```{r}
+(summaryTableG <- data.frame(
+  medianDist             = medianDistG,
+  meanDist               =meanDistG,
+  skewness               = skewDistG,
+  n                      = length(distG2),
+  estimatedPeatVolume_m3 = estG
+))
+```
+
+Perform a for-loop to gradually remove points based on how close they are to other points. This will retain most of the systematic design of the points (avoiding clumping of points).
+
+Tydal:
+```{r, eval=F}
 for(i in 1:c(nrow(dfs)-1)){
   
  print(paste("run number = ", i))
@@ -244,44 +362,123 @@ for(i in 1:c(nrow(dfs)-1)){
  dist2 <- rowMins(euclidDist, na.rm=T)
  
 }
-
+saveRDS(summaryTable, "../data/Tydal/tydal_cvAnalysisData.rds")
 ```
 
+Geilo:
+```{r, eval=F}
+for(i in 1:c(nrow(dfs2)-1)){
+  
+ print(paste("run number = ", i))
+  
+ toRemove <- which(distG2 == min(distG2))[1]
+ print(paste("Removing row number ", toRemove))
+ 
+ # get some stats distance between neighbours
+ medianDist <- median(distG2)
+ meanDist   <- mean(distG2)
+ skewDist   <- e1071::skewness(distG2)
+
+ #dist2 <- dist2[-toRemove]
+ 
+ tempDF_G <- tempDF_G[-toRemove,]
+ tempDF_G2 <- as(tempDF_G, Class="Spatial")
+ 
+
+ # perform interpolation on tempDF
+  int <- gstat::idw(Dybde ~ 1, tempDF_G2, grid_crop2, nmax=neigh, idp=power)
+  est <- sum(int@data$var1.pred)
+  
+ # paste into the summary table
+ summaryTableG[1+i,"medianDist"]      <- medianDist
+ summaryTableG[1+i,"meanDist"]        <- meanDist
+ summaryTableG[1+i,"skewness"]        <- skewDist
+ summaryTableG[1+i,"n"]               <- length(distG2)-1
+ summaryTableG[1+i,"estimatedPeatVolume_m3"]           <- est
+
+ 
+  # prepare dataset for next loop
+ euclidDist2 <- sf::st_distance(tempDF_G) 
+ euclidDist2 <- units::drop_units(euclidDist2)
+ euclidDist2[euclidDist2 == 0] <- NA
+ distG2 <- rowMins(euclidDist2, na.rm=T)
+ 
+}
+
+saveRDS(summaryTableG, "../data/Geilo/geilo_cvAnalysisData.rds")
+```
+
+```{r}
+summaryTable <- readRDS("../data/Tydal/tydal_cvAnalysisData.rds")
+summaryTableG <- readRDS("../data/Geilo/geilo_cvAnalysisData.rds")
+
+```
 
 # Explore results
 
 ```{r}
-ggplot(data = summaryTable, )+
-  geom_point(aes(x = n, y = medianDist))+
-  geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
-  theme_bw()+
-  ylab("Distance to nearest neighbour")
+ggarrange(
+   ggplot(data = summaryTable)+
+     geom_point(aes(x = n, y = medianDist))+
+     geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
+     theme_bw()+
+     ylab("Distance to nearest neighbour")+
+     ggtitle("Tydal")+
+     ylim(0,100),
+   ggplot(data = summaryTableG)+
+     geom_point(aes(x = n, y = medianDist))+
+     geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
+     theme_bw()+
+     ylab("Distance to nearest neighbour")+
+     ggtitle("Geilo")+
+     ylim(0,100)
+)
 ```
 
-This figure tells us that the median (black) and the mean (grey) distance to nearest neighbour are very similar, meaning there is little skew, meaning again that the n reduction proccess has retained the systematic sampling design.
+This figure tells us that the median (black) and the mean (grey) distance to nearest neighbor are very similar, meaning there is little skew, meaning again that the n reduction process has retained the systematic sampling design.
 
 It also tells us that roughly 75% of the 
 
 ```{r}
-(estPlot <- ggplot(data = summaryTable[summaryTable$medianDist<50,],
+estPlot <- ggplot(data = summaryTable[summaryTable$medianDist<50,],
        aes(x = medianDist, y = estimatedPeatVolume_m3))+
   geom_point(pch=21, fill="grey"
              )+
   theme_bw(base_size = 16)+
   geom_smooth(method = "loess", span=0.5, colour="grey30")+
   ylab(expression("Est. peat volume (m"^3*")"))+
-  xlab("Median distance to\nnearest neighbour (m)")
-)
+  xlab("Median distance to\nnearest neighbour (m)")+
+  ggtitle("Tydal")
+
+
+estPlotG <- ggplot(data = summaryTableG[summaryTableG$medianDist<50,],
+       aes(x = medianDist, y = estimatedPeatVolume_m3))+
+  geom_point(pch=21, fill="grey"
+             )+
+  theme_bw(base_size = 16)+
+  geom_smooth(method = "loess", span=0.5, colour="grey30")+
+  ylab(expression("Est. peat volume (m"^3*")"))+
+  xlab("Median distance to\nnearest neighbour (m)")+
+  ggtitle("Geilo")
 ```
 
-With distances above 25-30 m we start to se a systematic underestimation of volume. THe variation seems to be stable to about 30 m.
+```{r}
+ggarrange(estPlot, estPlotG)
+```
+
+In Tydal, with distances above 25-30 m we start to se a systematic underestimation of volume. The variation seems to be stable to about 30 m.
+In Geilo there is systematic variation to the left, probably due to variable point densities across peatlands with varying depths. Gerneal variation increases from about 20-30 m distance between points.  
 
 Sort data frame and group into classes
 ```{r}
 dat <- summaryTable[order(summaryTable$medianDist),]
 dat$group <- rep(c(1:10), each=11, length.out=nrow(dat))
+
+datG <- summaryTableG[order(summaryTableG$medianDist),]
+datG$group <- rep(c(1:10), each=114, length.out=nrow(datG))
 ```
 
+Tydal:
 ```{r}
 theMax <- as.data.frame(tapply(dat$medianDist, dat$group, max))
 theMin <- as.data.frame(tapply(dat$medianDist, dat$group, min))
@@ -295,19 +492,49 @@ theMax$label <- paste(
   round(theMax$maxValue, 1))
 ```
 
+Geilo:
+```{r}
+theMaxG <- as.data.frame(tapply(datG$medianDist, datG$group, max))
+theMinG <- as.data.frame(tapply(datG$medianDist, datG$group, min))
+
+theMaxG$group <- row.names(theMaxG)
+names(theMaxG)[1] <- "maxValue"
+theMaxG$minValue <- theMinG$`tapply(datG$medianDist, datG$group, min)`
+theMaxG$label <- paste(
+  round(theMaxG$minValue, 1), 
+  " - ",
+  round(theMaxG$maxValue, 1))
+```
+
 ```{r}
 dat$label <- theMax$label[match(dat$group, theMax$group)]
+datG$label <- theMaxG$label[match(datG$group, theMaxG$group)]
 
 ```
 
 
-We can alternatively create groupes with similar ranges instead of similar n
+We can alternatively create groups with similar ranges instead of similar n
 ```{r}
-#summaryTable$group <- ifelse(
-#  summaryTable$medianDist<20, "<20 m", ifelse(
-#    summaryTable$medianDist<25, "20-25 m", ifelse(
-#      summaryTable$medianDist<30, "25-30 m", ">30 m")))
-#table(summaryTable$group)
+tydal <- summaryTable
+summaryTable$group <- ifelse(
+  summaryTable$medianDist<10, "<10 m", ifelse(
+    summaryTable$medianDist<15, "10-15 m", ifelse(
+     summaryTable$medianDist<20, "15-20 m", ifelse(
+       summaryTable$medianDist<25, "20-25 m", ifelse(
+         summaryTable$medianDist<30, "25-30 m", ifelse(
+           summaryTable$medianDist<35, "30-35 m", ">35 m"))))))
+(tydalN <- table(summaryTable$group))
+```
+```{r}
+geilo <- summaryTableG
+summaryTableG$group <- ifelse(
+  summaryTableG$medianDist<10, "<10 m", ifelse(
+    summaryTableG$medianDist<15, "10-15 m", ifelse(
+     summaryTableG$medianDist<20, "15-20 m", ifelse(
+       summaryTableG$medianDist<25, "20-25 m", ifelse(
+         summaryTableG$medianDist<30, "25-30 m", ifelse(
+           summaryTableG$medianDist<35, "30-35 m", ">35 m"))))))
+(geiloN <- table(summaryTableG$group))
 ```
 
 cv function
@@ -315,38 +542,87 @@ cv function
 cv <- function(x){sd(x)/mean(x)}
 ```
 
+Tydal:
 ```{r}
-cvTable <- tapply(dat$estimatedPeatVolume_m3, dat$group, cv)
+#cvTable <- tapply(dat$estimatedPeatVolume_m3, dat$group, cv)
+#cvTable <- data.frame(cv = cvTable,
+#                      label = theMax$label,
+#                      order = as.numeric(rownames(cvTable)))
+#
+cvTable <- tapply(summaryTable$estimatedPeatVolume_m3, summaryTable$group, cv)
 cvTable <- data.frame(cv = cvTable,
-                      label = theMax$label,
-                      order = as.numeric(rownames(cvTable)))
+                      label = names(cvTable),
+                      order = c(7,3,4,5,6))
+cvTable <- cvTable[order(cvTable$order),]
+cvTable$n <- tydalN
+```
+
+
+Geilo:
+```{r}
+#cvTableG <- tapply(datG$estimatedPeatVolume_m3, datG$group, cv)
+#cvTableG <- data.frame(cv = cvTableG,
+#                      label = theMaxG$label,
+#                      order = as.numeric(rownames(cvTableG)))
+
+cvTableG <- tapply(summaryTableG$estimatedPeatVolume_m3, summaryTableG$group, cv)
+cvTableG <- data.frame(cv = cvTableG,
+                      label = names(cvTableG),
+                      order = c(1,7,2,3,4,5,6))
+cvTableG <- cvTableG[order(cvTableG$order),]
+cvTableG$n <- geiloN
+```
+Join tables
+```{r}
+cvTable$site = "Tydal"
+cvTableG$site = "Geilo"
+cvTab <- rbind(cvTable,
+               cvTableG)
 ```
 
 ```{r}
-(cvPlot <- ggplot(data = cvTable, aes(x = order, y = cv))+
+cvPlot <- ggplot(data = cvTab, 
+                 aes(x = order, y = cv,
+                     group=site,
+                     fill=site))+
   geom_line(lty = 2)+
-  geom_point(pch=21, fill="grey",
-             size=3, stroke=1.5)+
-  
+  geom_point(pch=21,
+             size=3, 
+             stroke=1.5,
+             position = position_dodge(width=0.1))+
   theme_bw(base_size = 16)+
-  scale_x_continuous(breaks = cvTable$order,
-                     labels = cvTable$label)+
+  scale_x_continuous(breaks = cvTab$order,
+                     labels = cvTab$label)+
   theme(axis.text.x = element_text(angle = 90))+
   xlab("")
-)
+
+#cvPlotG <- ggplot(data = cvTableG, aes(x = order, y = cv))+
+#  geom_line(lty = 2)+
+#  geom_point(pch=21, fill="grey",
+#             size=3, stroke=1.5)+
+#  theme_bw(base_size = 16)+
+#  scale_x_continuous(breaks = cvTableG$order,
+#                     labels = cvTableG$label)+
+#  theme(axis.text.x = element_text(angle = 90))+
+#  xlab("")+
+#  ggtitle("Geilo")
 ```
-```{r}
+
+
+
+
+```{r, eval=F}
 #library(gridExtra)
 #grid.arrange(cvPlot, estPlot,
 #             ncol=2)
-library(gtable)
-library(grid)
-g1 <- ggplotGrob(cvPlot)
-g2 <- ggplotGrob(estPlot)
-g <- cbind(g2, g1, size = "first")
-g$heights <- unit.pmax(g1$heights, g2$heights)
-grid.newpage()
-grid.draw(g)
+#library(gtable)
+#library(grid)
+#g1 <- ggplotGrob(cvPlot)
+#g2 <- ggplotGrob(estPlot)
+#g <- cbind(g2, g1, size = "first")
+#g$heights <- unit.pmax(g1$heights, g2$heights)
+#grid.newpage()
+#grid.draw(g)
 ```
 
 ```{r, eval=F}
