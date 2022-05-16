@@ -424,20 +424,37 @@ ggarrange(
      theme_bw()+
      ylab("Distance to nearest neighbour")+
      ggtitle("Tydal")+
-     ylim(0,100),
+     ylim(0,200),
    ggplot(data = summaryTableG)+
      geom_point(aes(x = n, y = medianDist))+
      geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
      theme_bw()+
      ylab("Distance to nearest neighbour")+
      ggtitle("Geilo")+
-     ylim(0,100)
+     ylim(0,200)
 )
 ```
 
 This figure tells us that the median (black) and the mean (grey) distance to nearest neighbor are very similar, meaning there is little skew, meaning again that the n reduction process has retained the systematic sampling design.
 
-It also tells us that roughly 75% of the 
+```{r}
+ggarrange(
+   ggplot(data = summaryTable)+
+     geom_point(aes(x = n, y = estimatedPeatVolume_m3))+
+     #geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
+     theme_bw()+
+     ylab("Est. peat volume")+
+     ggtitle("Tydal"),
+   ggplot(data = summaryTableG)+
+     geom_point(aes(x = n, y = estimatedPeatVolume_m3))+
+    # geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
+     theme_bw()+
+     ylab("Est. peat volume")+
+     ggtitle("Geilo")+
+     xlim(0,200)
+)
+```
+
 
 ```{r}
 estPlot <- ggplot(data = summaryTable[summaryTable$medianDist<50,],
@@ -448,18 +465,20 @@ estPlot <- ggplot(data = summaryTable[summaryTable$medianDist<50,],
   geom_smooth(method = "loess", span=0.5, colour="grey30")+
   ylab(expression("Est. peat volume (m"^3*")"))+
   xlab("Median distance to\nnearest neighbour (m)")+
-  ggtitle("Tydal")
+  ggtitle("Tydal")+
+  xlim(0,100)
 
 
-estPlotG <- ggplot(data = summaryTableG[summaryTableG$medianDist<50,],
+estPlotG <- ggplot(data = summaryTableG[summaryTableG$medianDist<100,],
        aes(x = medianDist, y = estimatedPeatVolume_m3))+
   geom_point(pch=21, fill="grey"
              )+
   theme_bw(base_size = 16)+
-  geom_smooth(method = "loess", span=0.5, colour="grey30")+
+  geom_smooth(method = "loess", span=0.1, colour="grey30")+
   ylab(expression("Est. peat volume (m"^3*")"))+
   xlab("Median distance to\nnearest neighbour (m)")+
-  ggtitle("Geilo")
+  ggtitle("Geilo")+
+  xlim(0,100)
 ```
 
 ```{r}
@@ -522,9 +541,13 @@ summaryTable$group <- ifelse(
      summaryTable$medianDist<20, "15-20 m", ifelse(
        summaryTable$medianDist<25, "20-25 m", ifelse(
          summaryTable$medianDist<30, "25-30 m", ifelse(
-           summaryTable$medianDist<35, "30-35 m", ">35 m"))))))
+           summaryTable$medianDist<35, "30-35 m", ifelse(
+             summaryTable$medianDist<40, "35-40 m", "40-100 m")))))))
+summaryTable <- summaryTable[summaryTable$medianDist<100,]
 (tydalN <- table(summaryTable$group))
+
 ```
+
 ```{r}
 geilo <- summaryTableG
 summaryTableG$group <- ifelse(
@@ -533,7 +556,10 @@ summaryTableG$group <- ifelse(
      summaryTableG$medianDist<20, "15-20 m", ifelse(
        summaryTableG$medianDist<25, "20-25 m", ifelse(
          summaryTableG$medianDist<30, "25-30 m", ifelse(
-           summaryTableG$medianDist<35, "30-35 m", ">35 m"))))))
+           summaryTableG$medianDist<35, "30-35 m", ifelse(
+             summaryTableG$medianDist<40, "35-40 m", "40-100 m")))))))
+summaryTableG <- summaryTableG[summaryTableG$medianDist<100,]
+
 (geiloN <- table(summaryTableG$group))
 ```
 
@@ -552,7 +578,7 @@ Tydal:
 cvTable <- tapply(summaryTable$estimatedPeatVolume_m3, summaryTable$group, cv)
 cvTable <- data.frame(cv = cvTable,
                       label = names(cvTable),
-                      order = c(7,3,4,5,6))
+                      order = c(3,4,5,6, 7,8))
 cvTable <- cvTable[order(cvTable$order),]
 cvTable$n <- tydalN
 ```
@@ -568,7 +594,7 @@ Geilo:
 cvTableG <- tapply(summaryTableG$estimatedPeatVolume_m3, summaryTableG$group, cv)
 cvTableG <- data.frame(cv = cvTableG,
                       label = names(cvTableG),
-                      order = c(1,7,2,3,4,5,6))
+                      order = c(1,2,3,4,5,6,7,8))
 cvTableG <- cvTableG[order(cvTableG$order),]
 cvTableG$n <- geiloN
 ```
@@ -584,18 +610,19 @@ cvTab <- rbind(cvTable,
 cvPlot <- ggplot(data = cvTab, 
                  aes(x = order, y = cv,
                      group=site,
-                     fill=site))+
+                     fill=site
+                     ))+
   geom_line(lty = 2)+
   geom_point(pch=21,
              size=3, 
              stroke=1.5,
-             position = position_dodge(width=0.1))+
+             position = position_dodge(width=0.2))+
   theme_bw(base_size = 16)+
   scale_x_continuous(breaks = cvTab$order,
                      labels = cvTab$label)+
   theme(axis.text.x = element_text(angle = 90))+
   xlab("")
-
+cvPlot
 #cvPlotG <- ggplot(data = cvTableG, aes(x = order, y = cv))+
 #  geom_line(lty = 2)+
 #  geom_point(pch=21, fill="grey",
@@ -607,7 +634,6 @@ cvPlot <- ggplot(data = cvTab,
 #  xlab("")+
 #  ggtitle("Geilo")
 ```
-
 
 
 
