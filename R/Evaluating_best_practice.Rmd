@@ -243,9 +243,10 @@ euclidDist2 <- sf::st_distance(dfs2)
 euclidDist2 <- units::drop_units(euclidDist2)
 euclidDist2[euclidDist2 == 0] <- NA
 distG <- rowMins(euclidDist2, na.rm=T)
+min(distG)
 ```
 
-Set power function and the number of nearest neighbours to consider in the inerpolation
+Set power function and the number of nearest neighbours to consider in the interpolation
 ```{r}
 power <- 3
 neigh <- 8 # all the closest point in a systematic grid
@@ -438,7 +439,7 @@ ggarrange(
 This figure tells us that the median (black) and the mean (grey) distance to nearest neighbor are very similar, meaning there is little skew, meaning again that the n reduction process has retained the systematic sampling design.
 
 ```{r}
-ggarrange(
+arrange <- ggarrange(
    ggplot(data = summaryTable)+
      geom_point(aes(x = n, y = estimatedPeatVolume_m3))+
      #geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
@@ -453,6 +454,8 @@ ggarrange(
      ggtitle("Geilo")+
      xlim(0,200)
 )
+
+ggsave("plot_best_practice_volume.png", arrange)
 ```
 
 
@@ -482,7 +485,8 @@ estPlotG <- ggplot(data = summaryTableG[summaryTableG$medianDist<100,],
 ```
 
 ```{r}
-ggarrange(estPlot, estPlotG)
+arrange2 <- ggarrange(estPlot, estPlotG)
+ggsave("plot_best_practice_volume_nn.png", arrange2)
 ```
 
 In Tydal, with distances above 25-30 m we start to se a systematic underestimation of volume. The variation seems to be stable to about 30 m.
@@ -623,6 +627,7 @@ cvPlot <- ggplot(data = cvTab,
   theme(axis.text.x = element_text(angle = 90))+
   xlab("")
 cvPlot
+ggsave("plot_best_practice_cv_nn.png", cvPlot)
 #cvPlotG <- ggplot(data = cvTableG, aes(x = order, y = cv))+
 #  geom_line(lty = 2)+
 #  geom_point(pch=21, fill="grey",
