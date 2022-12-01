@@ -1,1 +1,79 @@
 # Data
+
+## Peat depth data
+This data comes from five sites in Norway. For each site there is a shape file with the outline of the mire, and a csv file with georeferenced peat depth measurements
+
+```{r}
+library(tmap)
+library(sf)
+library(readr)
+library(tmaptools)
+library(basemaps)
+```
+
+```{r, import shape files}
+SHP_tydal <- sf::read_sf("Data/Tydal/stasjon_Setermyra.shp")
+SHP_geilo  <- sf::read_sf("Data/Geilo/geilo-dybdef.shp")
+
+st_crs(SHP_tydal)
+st_crs(SHP_geilo)# NA
+# I found CRS through trial and error 
+st_crs(SHP_geilo) <- 25832 
+#tmap_mode("view")
+#tm_shape(SHP_geilo)+
+#  tm_polygons()
+# perfect match with background map
+
+# Transform to UTM33N
+SHP_geilo <- st_transform(SHP_geilo, 25833)
+
+```
+
+Download basemaps
+```{r}
+SHP_geilo_2 <- st_transform(SHP_geilo, 3857)
+base_geilo <- basemap_gglayer(SHP_geilo_2, 
+                      map_type = "topographic", 
+                      map_service = "osm")
+ggplot() + 
+  base_geilo +
+  scale_fill_identity() + 
+  #geom_sf()+
+  theme_bw()+
+  geom_sf(data = SHP_geilo_2,
+          fill = "brown",
+          colour = "black",
+          size=1.4)
+
+base_geilo <- st_transform(base_geilo, 25833)
+```
+
+
+
+```{r, import depth data}
+
+depths_tydal <- read_csv("Data/Tydal/Torvdybder_Tydal_stasjon.csv")
+depths_geilo <- read.csv("Data/Geilo/torvdybder.csv", sep=";")
+
+
+depths_tydal <- st_as_sf(x = depths_tydal, 
+                        coords = c("coords.x1", "coords.x2"),
+                        crs = "+init=epsg:25833")
+depths_geilo <- st_as_sf(x = depths_geilo, 
+                        coords = c("x", "y"),
+                        crs = "+init=epsg:25832")
+depths_geilo <- st_transform(depths_geilo, 25833)
+tmap_mode("plot")
+
+# confirm overlap
+tile <- tmaptools::read_osm(x = SHP_geilo
+                            )
+tm_shape(base_geilo[,,,2])+
+  tm_raster()+
+tm_shape(SHP_geilo)+
+    tm_polygons()+
+  tm_shape(depths_geilo)+
+    tm_dots()
+# ok
+```
+

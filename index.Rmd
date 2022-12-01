@@ -13,4 +13,6 @@ description: |
 
 # Analyses of peatland carbon stocks
 
+This webpage describes the data and analyses behind a manuscript (Fandrem et al. in prep).
+
 
