@@ -103,9 +103,12 @@ base_tydal_ww <-
 
 ```
 Plot static map
-```{r, fig.cap="Map of Geilo and Tydal test sites. The peatland is deliminated as a grey polygon(s). Black dots are depth measurements. For Tydal, the size of the dots reflects the measured peat depths in meters."}
+```{r, fig.cap="Map of Geilo and Tydal test sites. The peatland is deliminated as a green polygon(s). Dots are depth measurements and for Tydal the colour and size of the dots reflects the measured peat depths in meters."}
+
+
+# GEILO
 static_geilo <- tm_shape(SHP_geilo_ll)+
-  tm_polygons()+
+  tm_polygons(col="green")+
 tm_shape(depths_geilo)+
   tm_dots()+
 tm_shape(base_geilo_hw)+
@@ -120,21 +123,22 @@ tm_compass()+
 tm_scale_bar()+
   tm_layout(title="Geilo")
 
+
+# TYDAL
 static_tydal <- tm_shape(SHP_tydal_ll)+
-  tm_polygons()+
+  tm_polygons(col="green")+
 tm_shape(depths_tydal)+
-  tm_dots(size="Dybde")+
-#tm_shape(base_tydal_hw)+
-#  tm_lines()+
+  tm_dots(size="Dybde",
+          col="Dybde",
+          palette="-viridis")+
 tm_shape(base_tydal_ww)+
   tm_lines(col="blue",
            size=2)+
-#tm_shape(base_tydal_building)+
-#  tm_polygons(col="black",
-#              alpha = .3)+
 tm_compass()+
 tm_scale_bar()+
-  tm_layout(title="Tydal")
+tm_layout(title="Tydal",
+          legend.show = F,
+            inner.margins = c(.1,.02,.1,.02))
 
 tmap_arrange(static_geilo,
              static_tydal)
