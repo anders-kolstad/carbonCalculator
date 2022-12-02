@@ -22,7 +22,7 @@ tm_shape(grid_Tydal_sf)+
               alpha=.5)
 ```
 
-```{r, fig.cap="Preview of the cropped raster grids."}
+```{r, fig.cap="Preview of the cropped raster grids.", warning=F, message=F}
 grid_Tydal_stars_crop <- sf::st_crop(grid_Tydal_stars, SHP_tydal)
 grid_Geilo_stars_crop <- sf::st_crop(grid_Geilo_stars, SHP_geilo)
 
@@ -38,4 +38,127 @@ tm_shape(grid_Tydal_stars_crop)+
 
 ```
 
+## Inverse distance weighting
+We chose to use IDW for the interpolation. This is because we do not want to include a separate step with for example calculating a variogram. 
+
+The IDW requires setting the number of neighbouring points to consider. We set this to consider all points in the dataset.
+IDW also has a power parameter, and this is where we can tune the results by down-weighting datapoints that are further away.
+Let's do a test with power equals 2 and power equals 3.
+```{r}
+library(gstat)
+
+myPowers <- 1:10
+for(i in myPowers){
+  temp <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=i)
+  assign(paste0("IDW_tydal_", i), temp)
+}
+
+
+
+```
+
+What do these models look like
+```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal."}
+for(i in myPowers){
+  
+  temp <- get(paste0("IDW_tydal_", i))
+  
+  temp <- tm_shape(temp)+
+    tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)")+
+    tm_layout(legend.outside = T,
+            title = paste0("Power = ", i))
+  assign(paste0("tmap_IDW_tydal_power_", i), temp)
+}
+
+
+
+tmap_arrange(
+  tmap_IDW_tydal_power_1,
+  tmap_IDW_tydal_power_2,
+  tmap_IDW_tydal_power_4,
+  tmap_IDW_tydal_power_6,
+  tmap_IDW_tydal_power_8,
+  tmap_IDW_tydal_power_10,
+ncol = 3)
+
+```
+
+Let's check the fit with a plot of the residuals.
+```{r}
+# Get the predicted values
+
+resids_tydal <- data.frame(run = 1:nrow(depths_tydal))
+
+for(i in myPowers){
+  temp <- get(paste0("IDW_tydal_", i))
+  fit  <- stars::st_extract(temp, depths_tydal)
+  resids_tydal[,i+1] <- fit$var1.pred
+}
+
+
+resids_tydal <- tidyr::pivot_longer(resids_tydal,
+                                    !run,
+                                    names_to = "power",
+                                    values_to = "residual")
+
+# Remove V from column names
+resids_tydal$power <- gsub(pattern = "V", 
+                           replacement = "",
+                           x = resids_tydal$power)
+
+resids_tydal$power <- as.numeric(resids_tydal$power)
+resids_tydal$power <- resids_tydal$power-1
+
+
+ggplot(resids_tydal, aes(x=factor(power), y = residual))+
+  geom_violin(fill="grey",
+              trim=F)+
+  theme_bw(base_size = 12)
+
+```
+
+These residuals don't seem to depends at all on whether we have a smooth ar detailed model.
+
+What about the estimated volume - does that change?
+```{r}
+volume_tydal <- NULL
+for(i in myPowers){
+  temp <- get(paste0("IDW_tydal_", i))
+  volume_tydal <- c(volume_tydal,
+                    sum(temp$var1.pred, na.rm = T))
+}
+
+```
+
+```{r}
+volume_tydal <- data.frame("volume" = volume_tydal,
+                              "power" = myPowers)
+ggplot(volume_tydal, aes(x = factor(power), y = volume))+
+  geom_point(size=10)+
+  xlab("power")+
+  theme_bw(base_size = 12)
+```
+
+
+But what if we do leave one out cross validation
+```{r}
+#for(i in myPowers){
+#  temp <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=i))
+#}
+#cv_tydal_power_1 <- 
+#
+#test <- stars::st_extract(IWD_tydal_1, depths_tydal)
+#
+#mean(abs(depths_tydal$Dybde-test$var1.pred))
+#mean(abs(cv_tydal_power_1$residual))
+#
+#
+#depths_tydal$fit_power_1 <- fit$var1.pred
+#depths_tydal$fit_power_1 - depths_tydal
+```
 
