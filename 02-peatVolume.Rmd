@@ -44,10 +44,10 @@ We chose to use IDW for the interpolation. This is because we do not want to inc
 The IDW requires setting the number of neighbouring points to consider. We set this to consider all points in the dataset.
 IDW also has a power parameter, and this is where we can tune the results by down-weighting datapoints that are further away.
 Let's do a test with power equals 2 and power equals 3.
-```{r}
+```{r, message=F}
 library(gstat)
 
-myPowers <- 1:10
+myPowers <- c(0:10)
 for(i in myPowers){
   temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
@@ -56,12 +56,17 @@ for(i in myPowers){
   assign(paste0("IDW_tydal_", i), temp)
 }
 
-
-
+for(i in myPowers){
+  temp <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Geilo_stars_crop, 
+           idp=i)
+  assign(paste0("IDW_geilo_", i), temp)
+}
 ```
 
-What do these models look like
-```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal."}
+What do these models look like. We will only look at Tydal, and not Geilo.
+```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal.", message=F}
 for(i in myPowers){
   
   temp <- get(paste0("IDW_tydal_", i))
@@ -78,51 +83,108 @@ for(i in myPowers){
 
 
 tmap_arrange(
+  tmap_IDW_tydal_power_0,
   tmap_IDW_tydal_power_1,
   tmap_IDW_tydal_power_2,
   tmap_IDW_tydal_power_4,
   tmap_IDW_tydal_power_6,
   tmap_IDW_tydal_power_8,
-  tmap_IDW_tydal_power_10,
 ncol = 3)
 
 ```
 
+A low power creates a more flat map where all the depth measurements count equally to any predicted value. With power set to 0 we just predict the average of all the measurened peat depths. For this case, increasing the power beyond 4 has little effect.
+
 Let's check the fit with a plot of the residuals.
 ```{r}
+# Prepare data frame with the measured data
+resids_tydal <- data.frame(ID = 1:nrow(depths_tydal))
+resids_geilo <- data.frame(ID = 1:nrow(depths_geilo))
+
+resids_tydal$measured <- depths_tydal$Dybde
+resids_geilo$measured <- depths_geilo$Dybde
+
 # Get the predicted values
-
-resids_tydal <- data.frame(run = 1:nrow(depths_tydal))
-
 for(i in myPowers){
   temp <- get(paste0("IDW_tydal_", i))
   fit  <- stars::st_extract(temp, depths_tydal)
-  resids_tydal[,i+1] <- fit$var1.pred
+  resids_tydal[,i+3] <- resids_tydal$measured-fit$var1.pred
 }
+
+for(i in myPowers){
+  temp <- get(paste0("IDW_geilo_", i))
+  fit  <- stars::st_extract(temp, depths_geilo)
+  resids_geilo[,i+3] <- resids_geilo$measured-fit$var1.pred
+}
+
+# Lots of NA's produced for depth measurements taken outside the peatland polygons
+#tmap_mode("plot")
+#tm_shape(IDW_geilo_10)+
+#  tm_raster(col="var1.pred")+
+#  tm_shape(fit[is.na(fit$var1.pred),])+
+#  tm_symbols(size = .1,
+#             col="yellow")
+
+resids_geilo <- resids_geilo[!is.na(resids_geilo$V3),]
 
 
 resids_tydal <- tidyr::pivot_longer(resids_tydal,
-                                    !run,
+                                    !ID&!measured,
                                     names_to = "power",
                                     values_to = "residual")
+resids_geilo <- tidyr::pivot_longer(resids_geilo,
+                                    !ID&!measured,
+                                    names_to = "power",
+                                    values_to = "residual")
+
 
 # Remove V from column names
 resids_tydal$power <- gsub(pattern = "V", 
                            replacement = "",
                            x = resids_tydal$power)
+resids_geilo$power <- gsub(pattern = "V", 
+                           replacement = "",
+                           x = resids_geilo$power)
 
 resids_tydal$power <- as.numeric(resids_tydal$power)
-resids_tydal$power <- resids_tydal$power-1
+resids_geilo$power <- as.numeric(resids_geilo$power)
+
+resids_tydal$power <- resids_tydal$power-3
+resids_geilo$power <- resids_geilo$power-3
 
 
-ggplot(resids_tydal, aes(x=factor(power), y = residual))+
-  geom_violin(fill="grey",
+gg_resids_tydal <- 
+  ggplot(resids_tydal, aes(x=factor(power), y = residual))+
+  geom_boxplot(fill="grey",
               trim=F)+
-  theme_bw(base_size = 12)
+  theme_bw(base_size = 12)+
+  xlab("Power")+
+  ggtitle("Tydal")
 
+
+gg_resids_geilo <- 
+  ggplot(resids_geilo, aes(x=factor(power), y = residual))+
+  geom_boxplot(fill="grey",
+              trim=F)+
+  theme_bw(base_size = 12)+
+  xlab("Power")+
+  ggtitle("Geilo")
+
+ggpubr::ggarrange(gg_resids_geilo,
+                  gg_resids_tydal)
 ```
 
-These residuals don't seem to depends at all on whether we have a smooth ar detailed model.
+
+```{r}
+
+
+mean(depths_geilo$Dybde)
+temp <- IDW_geilo_6
+fit  <- stars::st_extract(temp, depths_geilo)
+mean(fit$var1.pred, na.rm = T)
+```
+
+With a power of 2 or greater, the residuals are very stable. 
 
 What about the estimated volume - does that change?
 ```{r}
@@ -135,30 +197,44 @@ for(i in myPowers){
 
 ```
 
-```{r}
+```{r, fig.cap="Peat volume estimates as a function of the power parameter."}
 volume_tydal <- data.frame("volume" = volume_tydal,
                               "power" = myPowers)
-ggplot(volume_tydal, aes(x = factor(power), y = volume))+
+volume_tydal$relative_volume <- volume_tydal$volume/mean(volume_tydal$volume)*100
+ggplot(volume_tydal, aes(x = factor(power), y = relative_volume))+
   geom_point(size=10)+
   xlab("power")+
+  ylab("Peat volume as a percentage of\nmean predicted peat volume")+
   theme_bw(base_size = 12)
 ```
 
+The values are stabilizing. In general though, the difference between the worst and best models is just 2-3%. 
+This relationship probably depends a bit on the number of data points and the density of peat depth measurements. So we should not generalise just yet.
 
-But what if we do leave one out cross validation
+Now let's do a proper test of model fit, using leave one out cross validation.
 ```{r}
-#for(i in myPowers){
-#  temp <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=i))
-#}
-#cv_tydal_power_1 <- 
-#
-#test <- stars::st_extract(IWD_tydal_1, depths_tydal)
-#
-#mean(abs(depths_tydal$Dybde-test$var1.pred))
-#mean(abs(cv_tydal_power_1$residual))
-#
-#
-#depths_tydal$fit_power_1 <- fit$var1.pred
-#depths_tydal$fit_power_1 - depths_tydal
+MAE_tydal <- data.frame(power = myPowers,
+                        MAE = as.numeric(NA))
+for(i in myPowers){
+  temp <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=i))
+  MAE_tydal$MAE[MAE_tydal$power==i] <- mean(abs(temp$residual))
+}
+
+MAE_tydal$best <- ifelse(MAE_tydal$MAE==min(MAE_tydal$MAE), "best", "not-best")
 ```
+
+```{r, fig.cap="Mean absolute error based on leave one out cross validation. The optimal power setting is indikcated by a green star symbol."}
+ggplot(MAE_tydal, aes(x = power, y = MAE,
+                      colour = best,
+                      shape = best))+
+  geom_point(size=10)+
+  theme_bw(base_size = 12)+
+  scale_x_continuous(breaks = 0:10)+
+  guides(colour="none",
+         shape = "none")+
+  scale_color_manual(values = c("darkgreen","grey"))+
+  scale_shape_manual(values = c(18, 19))
+
+```
+
 

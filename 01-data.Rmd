@@ -9,9 +9,12 @@ library(sf)
 library(readr)
 library(tmaptools)
 library(basemaps)
+library(ggplot2)
+library(ggpubr)
+
 ```
 
-```{r, import shape files}
+```{r import shape files, message=F}
 SHP_tydal <- sf::read_sf("Data/Tydal/stasjon_Setermyra.shp")
 SHP_geilo  <- sf::read_sf("Data/Geilo/geilo-dybdef.shp")
 
@@ -19,10 +22,6 @@ st_crs(SHP_tydal)
 st_crs(SHP_geilo)# NA
 # I found CRS through trial and error 
 st_crs(SHP_geilo) <- 25832 
-#tmap_mode("view")
-#tm_shape(SHP_geilo)+
-#  tm_polygons()
-# perfect match with background map
 
 # Transform to UTM33N
 SHP_geilo <- st_transform(SHP_geilo, 25833)
@@ -31,7 +30,7 @@ SHP_geilo <- st_transform(SHP_geilo, 25833)
 
 
 
-```{r, import depth data}
+```{r import depth data, message=F, warning=F}
 
 depths_tydal <- readr::read_csv("Data/Tydal/Torvdybder_Tydal_stasjon.csv")
 depths_geilo <- read.csv("Data/Geilo/torvdybder.csv", sep=";")
@@ -144,3 +143,4 @@ tmap_arrange(static_geilo,
              static_tydal)
 ```
 
+These to test cases are very different. Geilo is a set of several unique mire polygons. Usually, in development project, one would estimate the peat volume and C stock for each of these seperately, but we will try now to see if it can be done in one operation. Tydal is a more typical example of a clear peatland delimination. Both cases have dense peat depth measurements taken. 

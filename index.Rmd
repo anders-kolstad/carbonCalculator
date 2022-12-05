@@ -16,3 +16,13 @@ description: |
 This webpage describes the data and analyses behind a manuscript (Fandrem et al. in prep).
 
 
+This web page was build
+```{r, echo=F}
+Sys.time()
+```
+
+in this session:
+```{r, echo=F}
+sessionInfo()
+```
+
