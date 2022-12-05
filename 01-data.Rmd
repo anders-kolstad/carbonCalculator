@@ -11,7 +11,9 @@ library(tmaptools)
 library(basemaps)
 library(ggplot2)
 library(ggpubr)
-
+library(gstat)
+library(matrixStats)
+library(ggtext)
 ```
 
 ```{r import shape files, message=F}

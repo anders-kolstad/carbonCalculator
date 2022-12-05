@@ -1,0 +1,58 @@
+# Optimise sampling intensity
+
+
+
+Now I want to resample and reduce the dataset, but try to keep the original sampling design. 
+
+## Subset data 
+by gradually removing the closest point.
+
+Fisr we need to set up some temporary files for the for-loop.
+
+Tydal:
+```{r}
+distMatrix_tydal <- sf::st_distance(depths_tydal) 
+distMatrix_tydal <- units::drop_units(distMatrix_tydal)
+distMatrix_tydal[distMatrix_tydal == 0] <- NA
+distMin_tydal <- matrixStats::rowMins(distMatrix_tydal, na.rm=T)
+```
+
+
+Perform the first interpolation using all the points
+```{r}
+IDW_tydal_5
+```
+
+Create temperarary working files
+```{r}
+distMin_tydal_temp <- distMin_tydal
+depths_tydal_temp <- depths_tydal
+```
+
+
+Get the summed volume
+
+tydal:
+```{r}
+(est_tydal <- sum(IDW_tydal_5@data$var1.pred))
+```
+
+Get the median, mean and skewness of the distances to the closest neighougbour
+```{r}
+medianDist <- median(dist2)
+meanDist <- mean(dist2)
+skewDist <- e1071::skewness(dist2)
+
+```
+
+Put it into a dataframe
+Tydal:
+```{r}
+(summaryTable <- data.frame(
+  medianDist,
+  meanDist,
+  skewness               = skewDist,
+  n                      = length(dist2),
+  estimatedPeatVolume_m3 = est
+))
+```
