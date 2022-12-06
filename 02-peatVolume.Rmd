@@ -46,17 +46,203 @@ tm_shape(grid_Tydal_stars_crop)+
 
 ## Inverse distance weighting
 
-We chose to use IDW for the interpolation. This is because we do not want to include a separate step with for example calculating a variogram.
+We chose to use IDW for the interpolation. This is because we do not want to include a separate step with for example calculating a variogram, and the functions for automatically fitting a variogram seems unstable.
 
-The IDW requires setting the number of neighboring points to consider. We set this to consider all points in the dataset. IDW also has a power parameter, and this is where we can tune the results by down-weighting datapoints that are further away.
+The IDW requires setting the number of neighboring points to consider. We could set this to consider all points in the dataset (the default), but this increases calculation times and it is also not sensible in general. I will use the 9 nearest points, as this would mean all the 8 closest points in a systematic grid around a point is included.
+```{r}
+nmax <- 9
+```
 
+IDW also has a power parameter, and this is where we can tune the results by down-weighting data points that are further away. This parameter needs to be optimized for each model. We will fit a model with power varying from 0 to 10 and explore the model fit as a result of the chosen power.
+
+First, lets explore the idw function and what the parameters mean.
+Tydal is `r max(depths_tydal$Dybde)` meters at it's deepest point. Depending on the idw setting, the prediction map will be further of closer to this number. For example, is we only consider the closest neighbor, we are essentially performing a nearest neighbor interpolation. The choice of power then has no effect, and the deepest point in the prediction map equals the deepest point in the measured data. 
+
+If we keep the power at zero (ignore distance weighting) and turn up nmax to 9, each raster cell is predicted to be the mean of the nine closest points. The overall predicted depth decreases.
+
+If we then also include distance weighting, e.g. by setting power =2, we get smoothing between the points, and a more local prediction than when we had no power (i.e. the deepest point is again close to its true value).
+
+```{r}
+temp <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=0,
+           nmax = 1)
+
+temp2 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=0,
+           nmax = 9)
+
+temp3 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=2,
+           nmax = 9)
+
+
+temp4 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=2,
+           nmax=20)
+
+temp4.1 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=2)
+
+temp5 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=100,
+           nmax = 9)
+
+gg_temp <- tm_shape(temp)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = F,
+            title = paste0("Power = 0\nNmax = 1"))
+
+gg_temp2 <- tm_shape(temp2)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = F,
+            title = paste0("Power = 0\nNmax = 9"))
+
+gg_temp3 <- tm_shape(temp3)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = F,
+            title = paste0("Power = 2\nNmax = 9"))
+
+gg_temp4 <- tm_shape(temp4)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = F,
+            title = paste0("Power = 2\nNmax = 20"))
+
+gg_temp4.1 <- tm_shape(temp4.1)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = F,
+            title = paste0("Power = 2\nNmax = Inf"))
+
+gg_temp5 <- tm_shape(temp5)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = F,
+            title = paste0("Power = 100\nNmax = 9"))
+```
+
+```{r, fig.cap="IDW with different setting."}
+tmap_arrange(gg_temp,
+             gg_temp2,
+             gg_temp3,
+             ncol = 3)
+```
+
+If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9.
+
+If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter.
+
+If we keep namx at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neigbor inerolation.
+
+```{r, fig.cap="IDW with different setting."}
+tmap_arrange(gg_temp4,
+             gg_temp4.1,
+             gg_temp5,
+             ncol = 3)
+```
+
+Of all the examples above, power = 2 and nmax = 9 is probably the best. However, I don't like these little dots on the map. They are artefacts of the model, and do not exist for real. Therefore I think I would prefer a model with a slightly more local focus. We can increase the power a bit to achieve this.
+```{r, fig.cap="IDW with relatively local focus." }
+temp <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=4,
+           nmax = 9)
+
+tm_shape(temp)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = T,
+            title = paste0("Power = 4\nNmax = 9"))
+
+```
+
+After a bit of trial and error, I noticed that by have namx as low as 9, the optimum power frequently became <2 (which results in model artefacts and biased predictions as you can read about below). I therefore increase the nmax.
+```{r, fig.cap="IDW with relatively slightlly higher nmax and higher power." }
+temp <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=5,
+           nmax = 20)
+
+tm_shape(temp)+
+  tm_raster(col="var1.pred",
+            title = "",
+            style = "fixed",
+              breaks = seq(0,5,1))+
+  tm_shape(depths_tydal)+
+  tm_symbols(shape = 4,
+             col = "black")+
+  tm_layout(legend.outside = T,
+            title = paste0("Power = 4\nNmax = 20"))
+
+```
+
+```{r}
+nmax <- 20
+```
+
+
+
+This tuning of the power parameter is where we will focus now.
 ```{r, message=F}
 myPowers <- c(0:10)
 for(i in myPowers){
   temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
            newdata = grid_Tydal_stars_crop, 
-           idp=i)
+           idp=i,
+           nmax = nmax)
   assign(paste0("IDW_tydal_", i), temp)
 }
 
@@ -71,7 +257,6 @@ for(i in myPowers){
 ```
 
 What do these models look like.
-
 ```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal.", message=F}
 for(i in myPowers){
   
@@ -82,7 +267,11 @@ for(i in myPowers){
             palette = "-viridis",
             title = "Interpolated peat\ndepth (m)")+
     tm_layout(legend.outside = T,
-            title = paste0("Power = ", i))
+            title = paste0("Power = ", i))+
+    tm_shape(depths_tydal)+
+    tm_symbols(col="black",
+               shape=4,
+               size = .5)
   assign(paste0("tmap_IDW_tydal_power_", i), temp)
 }
 
@@ -99,6 +288,7 @@ ncol = 3)
 
 ```
 
+When plotting Geilo I cannot include the crosses for the depth measurements because there are just too many and the clutter up the image.
 ```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Geilo.", message=F}
 for(i in myPowers){
   
@@ -118,20 +308,20 @@ for(i in myPowers){
 tmap_arrange(
   #tmap_IDW_geilo_power_0,
   tmap_IDW_geilo_power_1,
-  #tmap_IDW_geilo_power_2,
+  tmap_IDW_geilo_power_2,
   tmap_IDW_geilo_power_4,
   #tmap_IDW_geilo_power_6,
-  tmap_IDW_geilo_power_8,
+  #tmap_IDW_geilo_power_8,
 ncol = 1)
 
 ```
 
-A low power creates a more flat map where all the depth measurements count equally to any predicted value. With power set to 0 we just predict the average of all the measured peat depths. For both case, increasing the power beyond 4 has little visual effect.
+A low power creates a more flat map where all the depth measurements count equally to any predicted value. With power set to 0 we just predict the average of all the measured peat depths. For both cases, increasing the power beyond 4 has little visual effect.
+
+
 
 ## Original residuals
-
 Let's check the fit with a plot of the residuals.
-
 ```{r}
 # Prepare data frame with the measured data
 resids_tydal <- data.frame(ID = 1:nrow(depths_tydal))
@@ -206,15 +396,17 @@ gg_resids_geilo <-
   xlab("Power")+
   ggtitle("Geilo")
 
+```
+
+```{r, fig.cap="Residuals (observed - predicted) stabelize with power greater than 2."}
 ggpubr::ggarrange(gg_resids_geilo,
                   gg_resids_tydal)
 ```
 
-With a power of 2 or greater, the residuals are very stable and unbiased (centered on 0).
+With a power of 2 or greater, the residuals are very stable and unbiased (centered on 0). 
 
 ## Estimated volume
-
-What about the estimated volume - does that change? Note that because the data are projected in UTM, the mean depth (in meter) of each 1x1 raster cell equals the volumne in m3.
+What about the estimated volume - does that change depending on the power setting? Note that because the data are projected in UTM, the mean depth (in meter) of each 1x1 raster cell equals the volumne in m3.
 
 ```{r}
 volume_tydal <- NULL
@@ -267,30 +459,32 @@ ggpubr::ggarrange(
 
 ```
 
-The values are stabilizing, but a power of less than 3 seem like a bad idea. In general though, the difference between the worst and best models is just 2-4%.
+The values are stabilizing relativey fast, but a power of less than 3 seem like a bad idea. In general though, the difference between the worst and best models is just 2-4%.
 
 This relationship probably depends a bit on the number of data points and the density of peat depth measurements. So we should not generalise just yet.
 
-## Model fit LOOCV
 
+## Model fit LOOCV
 Now let's do a proper test of model fit, using leave one out cross validation. I will use the mean absolute deviation as my measure of model fit.
 
 ```{r}
 MAE_tydal <- data.frame(power = myPowers,
                         MAE = as.numeric(NA))
 for(i in myPowers){
-  temp <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=i))
+  temp <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=i), nmax = nmax)
   MAE_tydal$MAE[MAE_tydal$power==i] <- mean(abs(temp$residual))
 }
 
 MAE_tydal$best <- ifelse(MAE_tydal$MAE==min(MAE_tydal$MAE), "best", "not-best")
 
 
-# This part takes 5 min on my computer, so I will run it once and cach it on a local server.
-#MAE_geilo <- data.frame(power = myPowers,
+# For Geilo the calculations take longer, so I will not conser as big a range in power
+# This part still takes 2 min on my computer, so I will run it once and cache it on a local server.
+#myPowers2 <- seq(0,5,1)
+#MAE_geilo <- data.frame(power = myPowers2,
 #                        MAE = as.numeric(NA))
-#for(i in myPowers){
-#  temp <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=i))
+#for(i in myPowers2){
+#  temp <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=i), nmax = nmax)
 #  MAE_geilo$MAE[MAE_geilo$power==i] <- mean(abs(temp$residual))
 #}
 #
@@ -300,13 +494,13 @@ MAE_geilo <- readRDS("Data/cache/MAE_geilo_cashe.rds")
 
 ```
 
-```{r, fig.cap="Mean absolute error based on leave one out cross validation. The optimal power setting is indikcated by a green star symbol."}
+```{r, fig.cap="Mean absolute error based on leave-one-out cross validation. The optimal power setting is indicated by a green star symbol."}
 gg_MAE_tydal <- ggplot(MAE_tydal, aes(x = power, y = MAE,
                       colour = best,
                       shape = best))+
   geom_point(size=10)+
   theme_bw(base_size = 12)+
-  scale_x_continuous(breaks = 0:10)+
+  scale_x_continuous(breaks = myPowers)+
   guides(colour="none",
          shape = "none")+
   scale_color_manual(values = c("darkgreen","grey"))+
@@ -318,7 +512,7 @@ gg_MAE_geilo <- ggplot(MAE_geilo, aes(x = power, y = MAE,
                       shape = best))+
   geom_point(size=10)+
   theme_bw(base_size = 12)+
-  scale_x_continuous(breaks = 0:10)+
+  scale_x_continuous(breaks = myPowers2)+
   guides(colour="none",
          shape = "none")+
   scale_color_manual(values = c("darkgreen","grey"))+
@@ -330,27 +524,30 @@ ggpubr::ggarrange(gg_MAE_geilo,
 
 ```
 
-The mean absolute error is not neglisjeble in any of the two cases. The interpretation is, if you leave of one of the pat depth measurement and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.
+The mean absolute error is not negligible in any of the two cases. The interpretation is, if you leave out one of the peat depth measurement and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.
 
-The best models are 3 for Geilo and 5 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (see above).
+The best models have power =  2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (see above). But the map for Geilo is quite *dotted*, and perhaps a higher power would be smart. Or to estimate the peat volume for each polygon seperately. 
 
-Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.
+A power less than 2 is not recommended as we have seen above. With nmax set to 9, the optimum power for Geilo was actually 1. I therefore went back up in the script and increased nmax to 20.
+
 
 ## Best models
 
 Based on a criterion of lowest MAE we have identified the best IDW models for the two test sites:
 
-```{r, fig.cap="Best model for estimating the peat depth profile for the Tydal test site. Dots indicatore peat depth sampling points. MAE = 0.59 meters. Power = 5."}
-tm_shape(IDW_tydal_5)+
+```{r, fig.cap="Best model for estimating the peat depth profile for the Tydal test site. Dots indicatore peat depth sampling points. MAE = 0.59 meters. Power = 4."}
+tm_shape(IDW_tydal_4)+
   tm_raster(col="var1.pred",
             palette = "-viridis",
             title = "Interpolated peat\ndepth (m)")+
   tm_layout(legend.outside = T)+
   tm_shape(depths_tydal)+
-  tm_dots()
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)
 ```
 
-```{r, fig.cap="Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 3."}
+```{r, fig.cap="Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 2."}
 tm_shape(IDW_geilo_3)+
   tm_raster(col="var1.pred",
             palette = "-viridis",
@@ -359,94 +556,43 @@ tm_shape(IDW_geilo_3)+
   tm_dots()
 ```
 
-Tydal is `r sum(IDW_tydal_5$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_3$var1.pred, na.rm = T)` m^3^. We can get the errors from LOOCV.
+Tydal is `r sum(IDW_tydal_4$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_2$var1.pred, na.rm = T)` m^3^. We can get the errors from LOOCV.
 
-```{r, warning=F, message=F}
-SE_tydal <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=5))
-SE_geilo <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=3))
+```{r, warning=F, message=F, fig.cap="Resuduals from LOOCV. Test site: Tydal"}
+SE_tydal <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=4), nmax = nmax)
+SE_geilo <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=2), nmax = nmax)
 
 
 ggplot(SE_tydal, aes(x = residual))+
   geom_histogram()
 ```
 
-For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is `r round(mean(abs(SE_tydal$residual)), 2)` meters. We cannot perform an IDW for each iteration, as that would take too long. Instead we subtract each residual from the predicted values, on at a time, and sum up.
+For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is `r round(mean(abs(SE_tydal$residual)), 2)` meters. There is no clear way how to predict confidence intervals for IDW
 
-```{r}
-#resids_tydal_norm <- data.frame(Normalised_residuals = 
-#                                  SE_tydal$residual/mean(SE_tydal$observed))
-#
-#gg_resids_tydal_norm <- 
-#  ggplot(resids_tydal_norm, aes(x = Normalised_residuals))+
-#  geom_histogram()+
-#  ggtitle("Tydal")
-#
-#
-#resids_geilo_norm <- data.frame(Normalised_residuals = 
-#                                  SE_geilo$residual/mean(SE_geilo$observed))
-#
-#gg_resids_geilo_norm <- 
-#  ggplot(resids_geilo_norm, aes(x = Normalised_residuals))+
-#  geom_histogram()+
-#  ggtitle("Geilo")
-#
-#ggpubr::ggarrange(gg_resids_geilo_norm,
-#                  gg_resids_tydal_norm)
-```
+
 
 Then we can calculate the peat volume based on the best model
 ```{r}
-volume <- data.frame(site = c("Tydal", "Geilo"),
-                     volume = c(sum(IDW_tydal_5$var1.pred, na.rm = T),
-                                sum(IDW_geilo_3$var1.pred, na.rm = T)))
-```
-and also the errors based on the residuals
-
-```{r}
-volume$MPD <- c(mean(SE_tydal$residual[SE_tydal$residual>0]), mean(SE_geilo$residual[SE_geilo$residual>0]))
-volume$MND <- c(mean(SE_tydal$residual[SE_tydal$residual<=0]), mean(SE_geilo$residual[SE_geilo$residual<=0]))
-volume$mean_depth <- c(mean(IDW_tydal_5$var1.pred, na.rm = T),
-                       mean(IDW_geilo_5$var1.pred, na.rm = T))
-
-volume$lower <- volume$volume-volume$volume*(abs(volume$MND)/volume$mean_depth)
-volume$upper <- volume$volume+volume$volume*(abs(volume$MPD)/volume$mean_depth)
+(volume <- data.frame(site = c("Tydal", "Geilo"),
+                     volume = c(sum(IDW_tydal_4$var1.pred, na.rm = T),
+                                sum(IDW_geilo_2$var1.pred, na.rm = T))))
 ```
 
-```{r}
-#volume_tydal <- NULL
-#for(i in 1:nrow(SE_tydal)){
-#  volume_tydal <- c(volume_tydal, 
-#                    sum(c(IDW_tydal_5[[1]])-SE_tydal$residual[i], na.rm = T))
-#}
-#
-#summary(volume_tydal)
-#
-#volume_geilo <- NULL
-#for(i in 1:nrow(resids_geilo_norm)){
-#  volume_geilo <- c(volume_geilo, 
-#                    sum(c(IDW_geilo_3[[1]])-SE_geilo$residual[i], na.rm = T))
-#}
-#
-#volume$lower05 <- c(quantile(volume_tydal, .05),
-#                    quantile(volume_geilo, .05))
-#volume$upper95 <- c(quantile(volume_tydal, .95),
-#                    quantile(volume_geilo, .95))
-#
-```
 
 ```{r, fig.cap="Peat volume estimated from IDW. Errors are volumes calculated after multiplying the predicted values with the mean errors from LOOCV (positive and negative errors treated separately)."}
-library(ggtext) # write superscript as markdown
-ggplot(volume, aes(x = site, y = volume))+
-  geom_bar(stat="identity",
-           colour="black",
-           fill = "grey")+
-  theme_bw(base_size = 12)+
-  theme(axis.title.y = element_markdown())+
-  ylab("Volume m^(3)")+
-  geom_errorbar(aes(ymin = lower,
-                ymax = upper),
-                size=1.5,
-                width=.5)
+#library(ggtext) # write superscript as markdown
+#ggplot(volume, aes(x = site, y = volume))+
+#  geom_bar(stat="identity",
+#           colour="black",
+#           fill = "grey")+
+#  theme_bw(base_size = 12)+
+#  theme(axis.title.y = element_markdown())+
+#  ylab("Volume m^(3)")+
+#  geom_errorbar(aes(ymin = lower,
+#                ymax = upper),
+#                size=1.5,
+#                width=.5)
 ```
 
+Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.
 

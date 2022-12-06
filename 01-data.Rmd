@@ -1,6 +1,6 @@
 # Data
 
-## Peat depth data
+## Peat depth and peatland deliniation
 This data comes from five sites in Norway. For each site there is a shape file with the outline of the mire, and a csv file with georeferenced peat depth measurements
 
 ```{r}
@@ -16,7 +16,9 @@ library(matrixStats)
 library(ggtext)
 ```
 
-```{r import shape files, message=F}
+
+Import shape files with peatland delineations.
+```{r import shape files, message=F, warning=F}
 SHP_tydal <- sf::read_sf("Data/Tydal/stasjon_Setermyra.shp")
 SHP_geilo  <- sf::read_sf("Data/Geilo/geilo-dybdef.shp")
 
@@ -31,9 +33,8 @@ SHP_geilo <- st_transform(SHP_geilo, 25833)
 ```
 
 
-
+Import peat depth measurements
 ```{r import depth data, message=F, warning=F}
-
 depths_tydal <- readr::read_csv("Data/Tydal/Torvdybder_Tydal_stasjon.csv")
 depths_geilo <- read.csv("Data/Geilo/torvdybder.csv", sep=";")
 
@@ -45,9 +46,8 @@ depths_geilo <- st_as_sf(x = depths_geilo,
                         coords = c("x", "y"),
                         crs = "+init=epsg:25832")
 depths_geilo <- st_transform(depths_geilo, 25833)
-
-
 ```
+
 ```{r, fig.cap="Confirming overlap between shape file and depth measurements"}
 # Confirm overlap. Using base plotting to avoid 
 # auto-transformation
@@ -103,9 +103,9 @@ base_tydal_ww <-
                                             return_type = "line")
 
 ```
+
 Plot static map
 ```{r, fig.cap="Map of Geilo and Tydal test sites. The peatland is deliminated as a green polygon(s). Dots are depth measurements and for Tydal the colour and size of the dots reflects the measured peat depths in meters."}
-
 
 # GEILO
 static_geilo <- tm_shape(SHP_geilo_ll)+
@@ -145,4 +145,4 @@ tmap_arrange(static_geilo,
              static_tydal)
 ```
 
-These to test cases are very different. Geilo is a set of several unique mire polygons. Usually, in development project, one would estimate the peat volume and C stock for each of these seperately, but we will try now to see if it can be done in one operation. Tydal is a more typical example of a clear peatland delimination. Both cases have dense peat depth measurements taken. 
+These to test cases are very different. Geilo is a set of several unique mire polygons. Usually, in development project, one would estimate the peat volume and C stock for each of these seperately, but we will try now to see if it can be done in one operation. Tydal is a more typical example of a clear peatland delinination. Both cases have dense peat depth measurements taken. 
