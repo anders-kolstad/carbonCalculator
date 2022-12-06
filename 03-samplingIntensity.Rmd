@@ -1,13 +1,11 @@
 # Optimise sampling intensity
 
-
-
 Now I want to resample and reduce the dataset, but try to keep the original sampling design. 
 
 ## Subset data 
 by gradually removing the closest point.
 
-Fisr we need to set up some temporary files for the for-loop.
+First we need to set up some temporary files for the for-loop.
 
 Tydal:
 ```{r}
@@ -20,7 +18,7 @@ distMin_tydal <- matrixStats::rowMins(distMatrix_tydal, na.rm=T)
 
 Perform the first interpolation using all the points
 ```{r}
-IDW_tydal_5
+IDW_tydal_4
 ```
 
 Create temperarary working files
@@ -34,25 +32,86 @@ Get the summed volume
 
 tydal:
 ```{r}
-(est_tydal <- sum(IDW_tydal_5@data$var1.pred))
+(est_tydal <- sum(IDW_tydal_4$var1.pred, na.rm=T))
 ```
 
-Get the median, mean and skewness of the distances to the closest neighougbour
+Get the median, mean and skewness of the distances to the closest neighbor
 ```{r}
-medianDist <- median(dist2)
-meanDist <- mean(dist2)
-skewDist <- e1071::skewness(dist2)
+medianDist_tydal <- median(distMin_tydal)
+meanDist_tydal <- mean(distMin_tydal)
+skewDist_tydal <- e1071::skewness(distMin_tydal)
 
 ```
+
+Get the MAE
+```{r}
+MAE_tydal_allData <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=4), nmax = nmax)
+MAE_tydal_allData <- mean(abs(MAE_tydal_allData$residual))
+```
+
 
 Put it into a dataframe
 Tydal:
 ```{r}
-(summaryTable <- data.frame(
-  medianDist,
-  meanDist,
-  skewness               = skewDist,
-  n                      = length(dist2),
-  estimatedPeatVolume_m3 = est
+(summaryTable_tydal <- data.frame(
+  medianDist             = medianDist_tydal,
+  meanDist               = meanDist_tydal,
+  skewness               = skewDist_tydal,
+  n                      = length(distMin_tydal),
+  estimatedPeatVolume_m3 = est_tydal,
+  MAE                    = MAE_tydal_allData
 ))
+```
+A negative skewness means the mean is smaller than the median (i.e. a right skew)
+
+
+Perform a for-loop to gradually remove points based on how close they are to other points. This will retain most of the systematic design of the points (avoiding clumping of points).
+
+Tydal:
+```{r, eval=F}
+for(i in 1:c(nrow(depths_tydal)-5)){
+  
+ print(paste("run number = ", i))
+  
+ toRemove <- which(distMin_tydal_temp == min(distMin_tydal_temp))[1]
+ print(paste("Removing row number ", toRemove))
+ 
+ # get some stats distance between neighbours
+ medianDist <- median(distMin_tydal_temp)
+ meanDist   <- mean(distMin_tydal_temp)
+ skewDist   <- e1071::skewness(distMin_tydal_temp)
+
+ #distMin_tydal <- distMin_tydal[-toRemove]
+ 
+ depths_tydal_temp <- depths_tydal_temp[-toRemove,]
+ #depths_tydal_temp <- as(depths_tydal_temp , Class="Spatial")
+ 
+
+ # perform interpolation on tempDF
+  int <- gstat::idw(Dybde ~ 1, depths_tydal_temp, 
+                    newdata=grid_Tydal_stars_crop, 
+                    nmax=nmax, idp=4)
+  est <- sum(int$var1.pred, na.rm=T)
+  
+  # get the MAE as well
+  MAE <- krige.cv(Dybde ~ 1, depths_tydal_temp, set = list(idp=4), nmax = nmax)
+  MAE <- mean(abs(MAE$residual))
+  
+ # paste into the summary table
+ summaryTable_tydal[1+i,"medianDist"]      <- medianDist
+ summaryTable_tydal[1+i,"meanDist"]        <- meanDist
+ summaryTable_tydal[1+i,"skewness"]        <- skewDist
+ summaryTable_tydal[1+i,"n"]               <- length(distMin_tydal_temp)-1
+ summaryTable_tydal[1+i,"estimatedPeatVolume_m3"]           <- est
+ summaryTable_tydal[1+i,"MAE"]             <- MAE
+
+ 
+  # prepare dataset for next loop
+ euclidDist <- sf::st_distance(depths_tydal_temp) 
+ euclidDist <- units::drop_units(euclidDist)
+ euclidDist[euclidDist == 0] <- NA
+ distMin_tydal_temp <- rowMins(euclidDist, na.rm=T)
+ 
+}
+saveRDS(summaryTable_tydal, "Data/Tydal/tydal_cvAnalysisData.rds")
 ```

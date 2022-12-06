@@ -556,7 +556,7 @@ tm_shape(IDW_geilo_3)+
   tm_dots()
 ```
 
-Tydal is `r sum(IDW_tydal_4$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_2$var1.pred, na.rm = T)` m^3^. We can get the errors from LOOCV.
+Tydal is `r sum(IDW_tydal_4$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_2$var1.pred, na.rm = T)` m^3^. We can get the residuals from LOOCV.
 
 ```{r, warning=F, message=F, fig.cap="Resuduals from LOOCV. Test site: Tydal"}
 SE_tydal <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=4), nmax = nmax)
@@ -567,31 +567,24 @@ ggplot(SE_tydal, aes(x = residual))+
   geom_histogram()
 ```
 
-For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is `r round(mean(abs(SE_tydal$residual)), 2)` meters. There is no clear way how to predict confidence intervals for IDW
+For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is `r round(mean(abs(SE_tydal$residual)), 2)` meters. There is no clear way how to predict confidence intervals for IDW. The residuals, and the MAE, represnets uncertainty for each grid cell value, and not uncertainty in the sum of all these grid cells. Since the mean of the residuals (not the absolute mean, but the normal mean) is quite close to 0, the uncertainty for each cell cancels out.  
 
-
-
-Then we can calculate the peat volume based on the best model
+We can calculate the peat volume based on the best model
 ```{r}
-(volume <- data.frame(site = c("Tydal", "Geilo"),
+volume <- data.frame(site = c("Tydal", "Geilo"),
                      volume = c(sum(IDW_tydal_4$var1.pred, na.rm = T),
-                                sum(IDW_geilo_2$var1.pred, na.rm = T))))
+                                sum(IDW_geilo_2$var1.pred, na.rm = T)))
 ```
 
-
-```{r, fig.cap="Peat volume estimated from IDW. Errors are volumes calculated after multiplying the predicted values with the mean errors from LOOCV (positive and negative errors treated separately)."}
-#library(ggtext) # write superscript as markdown
-#ggplot(volume, aes(x = site, y = volume))+
-#  geom_bar(stat="identity",
-#           colour="black",
-#           fill = "grey")+
-#  theme_bw(base_size = 12)+
-#  theme(axis.title.y = element_markdown())+
-#  ylab("Volume m^(3)")+
-#  geom_errorbar(aes(ymin = lower,
-#                ymax = upper),
-#                size=1.5,
-#                width=.5)
+```{r, fig.cap="Peat volume estimated from IDW. Errors are volumes calculated after multiplying the predicted values with the mean absolute error from LOOCV."}
+library(ggtext) # write superscript as markdown
+ggplot(volume, aes(x = site, y = volume))+
+  geom_bar(stat="identity",
+           colour="black",
+           fill = "grey")+
+  theme_bw(base_size = 12)+
+  theme(axis.title.y = element_markdown())+
+  ylab("Volume m^(3)")
 ```
 
 Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.
