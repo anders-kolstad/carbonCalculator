@@ -1,8 +1,9 @@
 # Find best model
 
-*Determination of optimal power for IDW by cross validation*
+We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles.
 
-We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualise the depth profiles.
+*The main task in this chapter is the determination of optimal power for IDW by cross validation*
+
 
 ## Raster grid
 
@@ -28,10 +29,14 @@ tm_shape(grid_Tydal_sf)+
               alpha=.5)
 ```
 
-```{r, fig.cap="Preview of the cropped raster grids.", warning=F, message=F}
+Crop raster grid using the peatland deliniation
+```{r}
 grid_Tydal_stars_crop <- sf::st_crop(grid_Tydal_stars, SHP_tydal)
 grid_Geilo_stars_crop <- sf::st_crop(grid_Geilo_stars, SHP_geilo)
 
+```
+
+```{r, fig.cap="Preview of the cropped raster grids.", warning=F, message=F}
 tmap_arrange(
 tm_shape(grid_Geilo_stars_crop)+
   tm_raster(palette = "blue")+
@@ -207,7 +212,7 @@ tm_shape(temp)+
 
 ```
 
-After a bit of trial and error, I noticed that by have namx as low as 9, the optimum power frequently became <2 (which results in model artefacts and biased predictions as you can read about below). I therefore increase the nmax.
+After a bit of trial and error, I noticed that by have nmax as low as 9, the optimum power frequently became <2 (which results in model artefacts and biased predictions as you can read about below). I therefore increase the nmax.
 ```{r, fig.cap="IDW with relatively slightlly higher nmax and higher power." }
 temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 

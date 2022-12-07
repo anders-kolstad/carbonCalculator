@@ -4,23 +4,48 @@ Now I want to resample and reduce the dataset, but try to keep the original samp
 For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is obvious that a peat depth measurement from a neighboring mire cannot replace data collection on the actuall mire.
 
 ## Subset Geilo data
-Pick the biggest polygon
-```{r}
-which.max(SHP_geilo$AREAL)
-```
-```{r}
+
+```{r, warning=FALSE}
+# select a single mire polygon
+SHP_geilo_biggest <- SHP_geilo[which.max(SHP_geilo$AREAL),]
+
+# drop the depth measurements from the other polygons
 depths_geilo_biggest <- sf::st_intersection(depths_geilo, SHP_geilo_biggest)
+
+#Crop the raster grid
+grid_Geilo_stars_crop_biggest <- sf::st_crop(grid_Geilo_stars, SHP_geilo_biggest)
 ```
+```{r, fig.cap="Peat depth measurements for tge biggest of the Geilo mires."}
+plot(depths_geilo_biggest$Dybde[order(depths_geilo_biggest$Dybde)],
+     ylab="Peat depth (m)")
+```
+
+Looking at the depth measurements in the figure above, we are reminded that the data contains zeros (measurements taken near the edge) and a truncated above 3 (because that was the length of the peat depth probe).
 
 
 ```{r, fig.cap="One mire polygon from the Geilo test site used in the assessment of minimum sampling."}
-SHP_geilo_biggest <- SHP_geilo[1,]
 tm_shape(SHP_geilo_biggest)+
   tm_polygons()+
   tm_shape(depths_geilo_biggest)+
   tm_symbols(col="black",
              shape=4)
 
+```
+
+## Repeat the best IDW
+Here I simply recalculate the best models, as described in the previous chapter
+```{r}
+IDW_tydal_4 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=4,
+           nmax = nmax)
+
+IDW_geilo_2 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_geilo_biggest, 
+           newdata = grid_Geilo_stars_crop_biggest, 
+           idp=2,
+           nmax = nmax)
 ```
 
 
@@ -35,7 +60,7 @@ distMatrix_tydal <- units::drop_units(distMatrix_tydal)
 distMatrix_tydal[distMatrix_tydal == 0] <- NA
 distMin_tydal <- matrixStats::rowMins(distMatrix_tydal, na.rm=T)
 
-distMatrix_geilo <- sf::st_distance(depths_geilo) 
+distMatrix_geilo <- sf::st_distance(depths_geilo_biggest) 
 distMatrix_geilo <- units::drop_units(distMatrix_geilo)
 distMatrix_geilo[distMatrix_geilo == 0] <- NA
 distMin_geilo <- matrixStats::rowMins(distMatrix_geilo, na.rm=T)
@@ -48,12 +73,11 @@ distMin_tydal_temp <- distMin_tydal
 depths_tydal_temp <- depths_tydal
 
 distMin_geilo_temp <- distMin_geilo
-depths_geilo_temp <- depths_geilo
+depths_geilo_temp <- depths_geilo_biggest
 ```
 
 
 Get the summed volume
-
 ```{r}
 est_tydal <- sum(IDW_tydal_4$var1.pred, na.rm=T)
 est_geilo <- sum(IDW_geilo_2$var1.pred, na.rm=T)
@@ -75,39 +99,37 @@ Get the MAE
 MAE_tydal_allData <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=4), nmax = nmax)
 MAE_tydal_allData <- mean(abs(MAE_tydal_allData$residual))
 
-MAE_geilo_allData <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=2), nmax = nmax)
+MAE_geilo_allData <- krige.cv(Dybde ~ 1, depths_geilo_biggest, set = list(idp=2), nmax = nmax)
 MAE_geilo_allData <- mean(abs(MAE_geilo_allData$residual))
 ```
 
 
 Put it into a dataframe
 ```{r}
-(summaryTable_tydal <- data.frame(
+summaryTable_tydal <- data.frame(
   medianDist             = medianDist_tydal,
   meanDist               = meanDist_tydal,
   skewness               = skewDist_tydal,
   n                      = length(distMin_tydal),
   estimatedPeatVolume_m3 = est_tydal,
   MAE                    = MAE_tydal_allData
-))
+)
 
-(summaryTable_geilo <- data.frame(
+summaryTable_geilo <- data.frame(
   medianDist             = medianDist_geilo,
   meanDist               = meanDist_geilo,
   skewness               = skewDist_geilo,
   n                      = length(distMin_geilo),
   estimatedPeatVolume_m3 = est_geilo,
   MAE                    = MAE_geilo_allData
-))
+)
 ```
-A negative skewness means the mean is smaller than the median (i.e. a right skew)
 
+Perform a for-loop to gradually remove points based on how close they are to other points. This will hopefully retain most of the systematic design of the points (avoiding clumping of points).
 
-Perform a for-loop to gradually remove points based on how close they are to other points. This will retain most of the systematic design of the points (avoiding clumping of points).
-
-Tydal:
 ```{r, eval=F}
-for(i in 1:c(nrow(depths_tydal)-5)){
+# I will not bother going lower than ten data points
+for(i in 1:c(nrow(depths_tydal)-10)){
   
  print(paste("run number = ", i))
   
@@ -119,19 +141,22 @@ for(i in 1:c(nrow(depths_tydal)-5)){
  meanDist   <- mean(distMin_tydal_temp)
  skewDist   <- e1071::skewness(distMin_tydal_temp)
 
- #distMin_tydal <- distMin_tydal[-toRemove]
- 
  depths_tydal_temp <- depths_tydal_temp[-toRemove,]
- #depths_tydal_temp <- as(depths_tydal_temp , Class="Spatial")
- 
 
  # perform interpolation on tempDF
   int <- gstat::idw(Dybde ~ 1, depths_tydal_temp, 
                     newdata=grid_Tydal_stars_crop, 
                     nmax=nmax, idp=4)
+  
+  # Export some predictions for checks
+  if(i %in% seq(30, 90, 30)){
+    assign(paste0("IDW_tydal_i", i), int)
+  }
+  
+  
   est <- sum(int$var1.pred, na.rm=T)
   
-  # get the MAE as well
+  # get the MAE as well, even though it takes a long time to run
   MAE <- krige.cv(Dybde ~ 1, depths_tydal_temp, set = list(idp=4), nmax = nmax)
   MAE <- mean(abs(MAE$residual))
   
@@ -152,7 +177,139 @@ for(i in 1:c(nrow(depths_tydal)-5)){
  
 }
 saveRDS(summaryTable_tydal, "Data/Tydal/tydal_cvAnalysisData.rds")
+
+saveRDS(IDW_tydal_i30, "Output/Tydal/IDW_tydal_i30.rds")
+saveRDS(IDW_tydal_i60, "Output/Tydal/IDW_tydal_i60.rds")
+saveRDS(IDW_tydal_i90, "Output/Tydal/IDW_tydal_i90.rds")
 ```
+
+```{r, eval=F}
+# I will not bother going lower than ten data points
+for(i in 1:c(nrow(depths_geilo)-10)){
+  
+ print(paste("run number = ", i))
+  
+ toRemove <- which(distMin_geilo_temp == min(distMin_geilo_temp))[1]
+ print(paste("Removing row number ", toRemove))
+ 
+ # get some stats distance between neighbours
+ medianDist <- median(distMin_geilo_temp)
+ meanDist   <- mean(distMin_geilo_temp)
+ skewDist   <- e1071::skewness(distMin_geilo_temp)
+
+ depths_geilo_temp <- depths_geilo_temp[-toRemove,]
+
+ # perform interpolation on tempDF
+  int <- gstat::idw(Dybde ~ 1, depths_geilo_temp, 
+                    newdata=grid_Geilo_stars_crop_biggest, 
+                    nmax=nmax, idp=2)
+  
+  # Export some predictions for checks
+  if(i %in% seq(40, 240, 50)){
+    assign(paste0("IDW_geilo_i", i), int)
+  }
+  
+  
+  est <- sum(int$var1.pred, na.rm=T)
+  
+  # get the MAE as well, even though it takes a long time to run
+  MAE <- krige.cv(Dybde ~ 1, depths_geilo_temp, set = list(idp=2), nmax = nmax)
+  MAE <- mean(abs(MAE$residual))
+  
+ # paste into the summary table
+ summaryTable_geilo[1+i,"medianDist"]      <- medianDist
+ summaryTable_geilo[1+i,"meanDist"]        <- meanDist
+ summaryTable_geilo[1+i,"skewness"]        <- skewDist
+ summaryTable_geilo[1+i,"n"]               <- length(distMin_geilo_temp)-1
+ summaryTable_geilo[1+i,"estimatedPeatVolume_m3"]           <- est
+ summaryTable_geilo[1+i,"MAE"]             <- MAE
+
+ 
+  # prepare dataset for next loop
+ euclidDist <- sf::st_distance(depths_geilo_temp) 
+ euclidDist <- units::drop_units(euclidDist)
+ euclidDist[euclidDist == 0] <- NA
+ distMin_geilo_temp <- rowMins(euclidDist, na.rm=T)
+ 
+}
+saveRDS(summaryTable_geilo, "Data/Geilo/geilo_cvAnalysisData.rds")
+
+saveRDS(IDW_geilo_i40, "Output/Geilo/IDW_geilo_i40.rds")
+saveRDS(IDW_geilo_i90, "Output/Geilo/IDW_geilo_i90.rds")
+saveRDS(IDW_geilo_i140, "Output/Geilo/IDW_geilo_i140.rds")
+saveRDS(IDW_geilo_i190, "Output/Geilo/IDW_geilo_i190.rds")
+saveRDS(IDW_geilo_i240, "Output/Geilo/IDW_geilo_i240.rds")
+
+```
+
+A code block just for getting the reduced datasets
+```{r}
+distMin_tydal_temp <- distMin_tydal
+depths_tydal_temp <- depths_tydal
+
+for(i in 1:c(nrow(depths_tydal)-10)){
+  
+ print(paste("run number = ", i))
+  
+ toRemove <- which(distMin_tydal_temp == min(distMin_tydal_temp))[1]
+ print(paste("Removing row number ", toRemove))
+ 
+ depths_tydal_temp <- depths_tydal_temp[-toRemove,]
+
+  # Export some data set for checks
+  if(i %in% seq(30, 90, 10)){
+    assign(paste0("depths_tydal_i", i), depths_tydal_temp)
+  }
+
+ 
+  # prepare dataset for next loop
+ euclidDist <- sf::st_distance(depths_tydal_temp) 
+ euclidDist <- units::drop_units(euclidDist)
+ euclidDist[euclidDist == 0] <- NA
+ distMin_tydal_temp <- rowMins(euclidDist, na.rm=T)
+ 
+}
+```
+
+```{r, fig.cap="Demonstrating the gradual reductino in sampling points."}
+tmap_arrange(
+tm_shape(SHP_tydal)+
+  tm_polygons()+
+  tm_shape(depths_tydal)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "All data points",
+            inner.margins = c(.1,.02,.1,.02))
+,
+tm_shape(SHP_tydal)+
+  tm_polygons()+
+  tm_shape(depths_tydal_i30)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "-32 data points",
+            inner.margins = c(.1,.02,.1,.02))
+,
+tm_shape(SHP_tydal)+
+  tm_polygons()+
+  tm_shape(depths_tydal_i60)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "-62 data points",
+            inner.margins = c(.1,.02,.1,.02))
+,
+tm_shape(SHP_tydal)+
+  tm_polygons()+
+  tm_shape(depths_tydal_i80)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "-82 data points",
+            inner.margins = c(.1,.02,.1,.02)))
+```
+
 
 ```{r}
 summaryTable_tydal <- readRDS("Data/Tydal/tydal_cvAnalysisData.rds")
@@ -161,7 +318,27 @@ summaryTable_tydal <- readRDS("Data/Tydal/tydal_cvAnalysisData.rds")
 
 ## Explore results
 
-## Distance to neighbours 
+### Sampling design
+
+```{r, fig.cap="IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m"}
+tmap_arrange(
+tm_shape(IDW_tydal_i30)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)"),
+tm_shape(IDW_tydal_i60)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)"),
+tm_shape(IDW_tydal_i90)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)")
+)
+```
+
+
+### Distance to neighbours 
 ```{r}
 ggarrange(
    ggplot(data = summaryTable_tydal)+
@@ -170,7 +347,7 @@ ggarrange(
      theme_bw()+
      ylab("Distance to nearest neighbour")+
      ggtitle("Tydal")+
-     ylim(0,200),
+     ylim(0,75),
    ggplot(data = summaryTableG)+
      geom_point(aes(x = n, y = medianDist))+
      geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
@@ -206,7 +383,7 @@ Contyrary to the above, this figure indicates perhaps that the sampling designs 
 
 Plot maps with varying sampling densities here!
 
-## Peat volume estimates
+### Peat volume estimates
 
 ```{r, fig.cap="Estimated peat volume as a response of the median distance between sampling points."}
 arrange <- ggarrange(
@@ -240,9 +417,12 @@ ggsave("plot_best_practice_volume.png", arrange)
 For Tydal, the estimated peat volume is quite stable up to around 30 meter between sampling points. 
 
 
-## CV
+### CV
 In addition to seeing the peat volume estimates becoming biased with increasing distance between sampling points, we also we the variation increasing. Now we will calculate this in terms of the coefficient of variation. 
 
+```{r}
+max(summaryTable_tydal$medianDist)
+```
 
 
 ```{r}
@@ -254,13 +434,15 @@ tydal_cv$group <- ifelse(
        tydal_cv$medianDist<25, "20-25 m", ifelse(
          tydal_cv$medianDist<30, "25-30 m", ifelse(
            tydal_cv$medianDist<35, "30-35 m", ifelse(
-             tydal_cv$medianDist<40, "35-40 m", "40-100 m")))))))
+             tydal_cv$medianDist<40, "35-40 m", "40-55 m")))))))
 tydal_cv <- tydal_cv[tydal_cv$medianDist<100,]
 (tydal_n <- table(tydal_cv$group))
 
 ```
 
-cv function
+There's quite few data points in the higher categories. Perhaps too few.
+
+CV function
 ```{r}
 cv <- function(x){sd(x)/mean(x)}
 ```
