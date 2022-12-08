@@ -1,0 +1,68 @@
+# Additional test sites
+
+We used two contrastong sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additinal three sites to validate the gernerality of these finding.
+
+## Modalen
+Import shape files with peatland delineations.
+```{r import shape files, message=F, warning=F}
+SHP_modalen <- sf::read_sf("Data/Modalen/Modalen_myrareal.shp")
+#st_crs(SHP_modalen) #OK
+```
+
+Import depth samples
+```{r}
+depths_modalen <- sf::read_sf("Data/Modalen/modalen_punkter.shp")
+#st_crs(depths_modalen) #OK
+
+```
+
+
+```{r, fig.cap="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples."}
+tm_shape(SHP_modalen)+
+  tm_polygons()+
+  tm_shape(depths_modalen)+
+  tm_symbols(col="black",
+             size=.5,
+             shape=4)
+```
+
+Im not sure how to approach this. Why is there peat depth data from outside the peatland?
+
+## Opelandsmarka
+
+```{r import shape files, message=F, warning=F}
+SHP_opelandsmarka <- sf::read_sf("Data/Opelandsmarka/Opelandsmarka Voss.shp")
+#st_crs(SHP_opedalsmarka) #32632 UTM 32
+
+```
+
+
+```{r, eval=F}
+depths_opelandsmarka <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr1.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
+    trim_ws = TRUE)
+depths_opelandsmarka2 <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr2.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
+    trim_ws = TRUE)
+depths_opelandsmarka3 <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr3.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
+    trim_ws = TRUE)
+
+
+depths_opelandsmarka <- sf::st_as_sf(depths_opelandsmarka3,
+                                     coords = c("UTM_N_ZONE32N", "UTM_E_ZONE32N"),
+                                     crs = 32632)
+```
+Not clear which one to use here. I will focus on just the middle peatland.
+
+```{r}
+tm_shape(SHP_opelandsmarka)+
+  tm_polygons()+
+  tm_shape(depths_opelandsmarka)+
+  tm_symbols(col="black",
+             size=.5,
+             shape=4)
+```
+
+
+

@@ -531,7 +531,7 @@ ggpubr::ggarrange(gg_MAE_geilo,
 
 The mean absolute error is not negligible in any of the two cases. The interpretation is, if you leave out one of the peat depth measurement and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.
 
-The best models have power =  2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (see above). But the map for Geilo is quite *dotted*, and perhaps a higher power would be smart. Or to estimate the peat volume for each polygon seperately. 
+The best models have power =  2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (see above). But the map for Geilo is quite *spotted*, and perhaps a higher power would be smart. Or to estimate the peat volume for each polygon separately. 
 
 A power less than 2 is not recommended as we have seen above. With nmax set to 9, the optimum power for Geilo was actually 1. I therefore went back up in the script and increased nmax to 20.
 
