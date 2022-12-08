@@ -464,7 +464,7 @@ ggpubr::ggarrange(
 
 ```
 
-The values are stabilizing relativey fast, but a power of less than 3 seem like a bad idea. In general though, the difference between the worst and best models is just 2-4%.
+The values are stabilizing relatively fast, but a power of less than 3 seem like a bad idea. In general though, the difference between the worst and best models is just 2-4%.
 
 This relationship probably depends a bit on the number of data points and the density of peat depth measurements. So we should not generalise just yet.
 
@@ -541,24 +541,47 @@ A power less than 2 is not recommended as we have seen above. With nmax set to 9
 Based on a criterion of lowest MAE we have identified the best IDW models for the two test sites:
 
 ```{r, fig.cap="Best model for estimating the peat depth profile for the Tydal test site. Dots indicatore peat depth sampling points. MAE = 0.59 meters. Power = 4."}
-tm_shape(IDW_tydal_4)+
+tm_tydal <- tm_shape(IDW_tydal_4)+
   tm_raster(col="var1.pred",
             palette = "-viridis",
             title = "Interpolated peat\ndepth (m)")+
-  tm_layout(legend.outside = T)+
   tm_shape(depths_tydal)+
   tm_symbols(shape=4,
              col="black",
-             size=.5)
+             size=.5)+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("left", "bottom"), width = 0.3)+
+  tm_layout(inner.margins = c(0.15, 0.05, 0, 0.05),
+            legend.outside = T)
+
+#tmap::tmap_save(tm_tydal,
+#                "Output/plot_IDW_tydal_bestModel.tiff",
+#                 width = 1600, height = 1600, units = "px")
+tm_tydal
 ```
 
+```{r, eval=F}
+IDW_geilo_2 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_geilo, 
+           newdata = grid_Geilo_stars_crop, 
+           idp=2,
+           nmax = nmax)
+```
+
+
 ```{r, fig.cap="Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 2."}
-tm_shape(IDW_geilo_3)+
+tm_geilo <- 
+  tm_shape(IDW_geilo_2)+
   tm_raster(col="var1.pred",
             palette = "-viridis",
             title = "Interpolated peat\ndepth (m)")+
-  tm_shape(depths_tydal)+
-  tm_dots()
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3)
+
+#tmap::tmap_save(tm_geilo,
+#                "Output/plot_IDW_geilo_bestModel.tiff",
+#                 width = 1600, height = 1600, units = "px")
+tm_geilo
 ```
 
 Tydal is `r sum(IDW_tydal_4$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_2$var1.pred, na.rm = T)` m^3^. We can get the residuals from LOOCV.

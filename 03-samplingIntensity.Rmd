@@ -15,7 +15,7 @@ depths_geilo_biggest <- sf::st_intersection(depths_geilo, SHP_geilo_biggest)
 #Crop the raster grid
 grid_Geilo_stars_crop_biggest <- sf::st_crop(grid_Geilo_stars, SHP_geilo_biggest)
 ```
-```{r, fig.cap="Peat depth measurements for tge biggest of the Geilo mires."}
+```{r, fig.cap="Peat depth measurements for the biggest of the Geilo mires."}
 plot(depths_geilo_biggest$Dybde[order(depths_geilo_biggest$Dybde)],
      ylab="Peat depth (m)")
 ```
