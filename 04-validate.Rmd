@@ -1,0 +1,66 @@
+# Validate using reduced sampling data
+
+In chapter 2 we found the optimal power settings for the Tydal and Geilo sites. Now I just want to look at how this might have changed when we have removed *superflous* data points as in chapter 3.
+
+Lets say for Tydal that we want to have 20 meters between the sampling points.
+
+```{r, fig.cap="Peat depth measurements in the Tydal test site, after trimming the data poins so that the median distance between them is 20 meters."}
+tm_shape(SHP_tydal)+
+  tm_polygons()+
+tm_shape(depths_tydal_i60)+
+  tm_dots(size="Dybde",
+          scale=2,
+          col = "Dybde",
+          palette = "-viridis",
+          title = "Measured peat depth (m)")+
+  tm_layout(legend.outside = T)
+```
+Confirm the median distance is 20 meters
+```{r}
+temp <- sf::st_distance(depths_tydal_i60) 
+temp <- units::drop_units(temp)
+temp[temp == 0] <- NA
+temp <- rowMins(temp, na.rm=T)
+median(temp)
+```
+
+Then we determine the optimal power setting.
+
+```{r}
+ccalc_optimumPower <- function(powerRange = 1:6,
+                               nmax = 20,
+                               peatDepths,
+                               title
+                               ){
+  
+  temp <- data.frame(power = powerRange,
+                     MAE = as.numeric(NA))
+  
+  for(i in powerRange){
+    temp2 <- krige.cv(Dybde ~ 1, peatDepths, set = list(idp=i), nmax = nmax)
+    temp$MAE[temp$power==i] <- mean(abs(temp2$residual))
+}
+   temp$best <- ifelse(temp$MAE==min(temp$MAE), "best", "not-best")
+
+  gg_out <- ggplot(temp, aes(x = power, y = MAE,
+                      colour = best,
+                      shape = best))+
+  geom_point(size=10)+
+  theme_bw(base_size = 12)+
+  scale_x_continuous(breaks = powerRange)+
+  guides(colour="none",
+         shape = "none")+
+  scale_color_manual(values = c("darkgreen","grey"))+
+  scale_shape_manual(values = c(18, 19))+
+  ggtitle(title)
+
+  gg_out
+}
+```
+
+```{r}
+ccalc_optimumPower(peatDepths = depths_tydal_i60,
+                   title = "Tydal")
+```
+
+Thats good. The optimum power is the same as when we had all the data points.

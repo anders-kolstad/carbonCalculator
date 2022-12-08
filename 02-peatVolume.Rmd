@@ -483,7 +483,7 @@ for(i in myPowers){
 MAE_tydal$best <- ifelse(MAE_tydal$MAE==min(MAE_tydal$MAE), "best", "not-best")
 
 
-# For Geilo the calculations take longer, so I will not conser as big a range in power
+# For Geilo the calculations take longer, so I will not consider as big a range in power
 # This part still takes 2 min on my computer, so I will run it once and cache it on a local server.
 #myPowers2 <- seq(0,5,1)
 #MAE_geilo <- data.frame(power = myPowers2,
