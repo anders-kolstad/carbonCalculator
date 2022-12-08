@@ -185,7 +185,7 @@ saveRDS(IDW_tydal_i90, "Output/Tydal/IDW_tydal_i90.rds")
 
 ```{r, eval=F}
 # I will not bother going lower than ten data points
-for(i in 1:c(nrow(depths_geilo)-10)){
+for(i in 1:c(nrow(depths_geilo_biggest)-10)){
   
  print(paste("run number = ", i))
   
@@ -242,17 +242,23 @@ saveRDS(IDW_geilo_i240, "Output/Geilo/IDW_geilo_i240.rds")
 
 ```
 
-A code block just for getting the reduced datasets
+Import the data back in
 ```{r}
+summaryTable_tydal <- readRDS("Data/Tydal/tydal_cvAnalysisData.rds")
+summaryTable_geilo <- readRDS("Data/Geilo/geilo_cvAnalysisData.rds")
+```
+
+A code block just for getting the reduced datasets 
+```{r, message=F}
 distMin_tydal_temp <- distMin_tydal
 depths_tydal_temp <- depths_tydal
 
 for(i in 1:c(nrow(depths_tydal)-10)){
   
- print(paste("run number = ", i))
+ #print(paste("run number = ", i))
   
  toRemove <- which(distMin_tydal_temp == min(distMin_tydal_temp))[1]
- print(paste("Removing row number ", toRemove))
+ #print(paste("Removing row number ", toRemove))
  
  depths_tydal_temp <- depths_tydal_temp[-toRemove,]
 
@@ -269,9 +275,39 @@ for(i in 1:c(nrow(depths_tydal)-10)){
  distMin_tydal_temp <- rowMins(euclidDist, na.rm=T)
  
 }
+
+
+
+#### Geilo
+
+distMin_geilo_temp <- distMin_geilo
+depths_geilo_temp <- depths_geilo_biggest
+
+for(i in 1:c(nrow(depths_geilo_biggest)-10)){
+  
+ #print(paste("run number = ", i))
+  
+ toRemove <- which(distMin_geilo_temp == min(distMin_geilo_temp))[1]
+ #print(paste("Removing row number ", toRemove))
+ 
+ depths_geilo_temp <- depths_geilo_temp[-toRemove,]
+
+  # Export some data set for checks
+  if(i %in% c(1, 50, 100, 200)){
+    assign(paste0("depths_geilo_i", i), depths_geilo_temp)
+  }
+
+ 
+  # prepare dataset for next loop
+ euclidDist <- sf::st_distance(depths_geilo_temp) 
+ euclidDist <- units::drop_units(euclidDist)
+ euclidDist[euclidDist == 0] <- NA
+ distMin_geilo_temp <- rowMins(euclidDist, na.rm=T)
+ 
+}
 ```
 
-```{r, fig.cap="Demonstrating the gradual reductino in sampling points."}
+```{r sampling_reduction, fig.cap="Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal"}
 tmap_arrange(
 tm_shape(SHP_tydal)+
   tm_polygons()+
@@ -288,7 +324,7 @@ tm_shape(SHP_tydal)+
   tm_symbols(col="black",
                shape=4,
                size = .5)+
-  tm_layout(title = "-32 data points",
+  tm_layout(title = "-30 data points",
             inner.margins = c(.1,.02,.1,.02))
 ,
 tm_shape(SHP_tydal)+
@@ -297,7 +333,7 @@ tm_shape(SHP_tydal)+
   tm_symbols(col="black",
                shape=4,
                size = .5)+
-  tm_layout(title = "-62 data points",
+  tm_layout(title = "-60 data points",
             inner.margins = c(.1,.02,.1,.02))
 ,
 tm_shape(SHP_tydal)+
@@ -306,21 +342,60 @@ tm_shape(SHP_tydal)+
   tm_symbols(col="black",
                shape=4,
                size = .5)+
-  tm_layout(title = "-82 data points",
+  tm_layout(title = "-80 data points",
             inner.margins = c(.1,.02,.1,.02)))
 ```
 
-
-```{r}
-summaryTable_tydal <- readRDS("Data/Tydal/tydal_cvAnalysisData.rds")
+```{r sampling_reduction_geilo, fig.cap="Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo"}
+tmap_arrange(
+tm_shape(SHP_geilo_biggest)+
+  tm_polygons()+
+  tm_shape(depths_geilo_biggest)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "All data points",
+            inner.margins = c(.1,.02,.1,.02))
+,
+tm_shape(SHP_geilo_biggest)+
+  tm_polygons()+
+  tm_shape(depths_geilo_i50)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "-50 data points",
+            inner.margins = c(.1,.02,.1,.02))
+,
+tm_shape(SHP_geilo_biggest)+
+  tm_polygons()+
+  tm_shape(depths_geilo_i100)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "-100 data points",
+            inner.margins = c(.1,.02,.1,.02))
+,
+tm_shape(SHP_geilo_biggest)+
+  tm_polygons()+
+  tm_shape(depths_geilo_i200)+
+  tm_symbols(col="black",
+               shape=4,
+               size = .5)+
+  tm_layout(title = "-200 data points",
+            inner.margins = c(.1,.02,.1,.02)))
 ```
 
 
 ## Explore results
 
 ### Sampling design
+```{r}
+IDW_tydal_i30 <- readRDS("Output/Tydal/IDW_tydal_i30.rds")
+IDW_tydal_i60 <- readRDS("Output/Tydal/IDW_tydal_i60.rds")
+IDW_tydal_i90 <- readRDS("Output/Tydal/IDW_tydal_i90.rds")
+```
 
-```{r, fig.cap="IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m"}
+```{r, fig.cap="IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal"}
 tmap_arrange(
 tm_shape(IDW_tydal_i30)+
   tm_raster(col="var1.pred",
@@ -337,84 +412,101 @@ tm_shape(IDW_tydal_i90)+
 )
 ```
 
+```{r}
+IDW_geilo_i90 <- readRDS("Output/Geilo/IDW_geilo_i90.rds")
+IDW_geilo_i140 <- readRDS("Output/Geilo/IDW_geilo_i140.rds")
+IDW_geilo_i190 <- readRDS("Output/Geilo/IDW_geilo_i190.rds")
+IDW_geilo_i240 <- readRDS("Output/Geilo/IDW_geilo_i240.rds")
+```
+
+
+```{r, fig.cap="IDW with mean distance between data points fromleft to right: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo"}
+tmap_arrange(
+tm_shape(IDW_geilo_i90)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)"),
+tm_shape(IDW_geilo_i140)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)"),
+tm_shape(IDW_geilo_i190)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)"),
+tm_shape(IDW_geilo_i240)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)")
+)
+```
 
 ### Distance to neighbours 
+
+Combine datasets
 ```{r}
-ggarrange(
-   ggplot(data = summaryTable_tydal)+
+summaryTable_tydal$site <- "Tydal"
+summaryTable_geilo$site <- "Geilo"
+summaryTable_twoSites <- rbind(summaryTable_tydal,
+                               summaryTable_geilo)
+```
+
+```{r, fig.cap="Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity. "}
+ggplot(data = summaryTable_twoSites)+
      geom_point(aes(x = n, y = medianDist))+
      geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
-     theme_bw()+
-     ylab("Distance to nearest neighbour")+
-     ggtitle("Tydal")+
-     ylim(0,75),
-   ggplot(data = summaryTableG)+
-     geom_point(aes(x = n, y = medianDist))+
-     geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
-     theme_bw()+
-     ylab("Distance to nearest neighbour")+
-     ggtitle("Geilo")+
-     ylim(0,200)
-)
+     theme_bw(base_size = 16)+
+     ylab("Distance to nearest neighbour (m)")+
+     ylim(0,60)+
+  facet_wrap(vars(site),
+             scales = "free_x")
+   
+
 ```
 
 This figure tells us that the median (black) and the mean (grey) distance to nearest neighbor are very similar, meaning there is little skew, meaning again that the n reduction process has retained the systematic sampling design.
 
-### skew
+### Skewness
 
-```{r}
-ggarrange(
-   ggplot(data = summaryTable_tydal)+
-     geom_point(aes(x = n, y = skewness), pch = 21,fill="grey")+
-     theme_bw()+
-     ylab("Distance to nearest neighbour")+
-     ggtitle("Tydal"),
-   ggplot(data = summaryTableG)+
-     geom_point(aes(x = n, y = medianDist))+
-     geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
-     theme_bw()+
-     ylab("Distance to nearest neighbour")+
-     ggtitle("Geilo")+
-     ylim(0,200)
-)
+```{r, fig.cap="Skewness in the distribution of euclidian distances as a response to varying sapling intensity."}
+ ggplot(data = summaryTable_twoSites)+
+     geom_point(aes(x = n, 
+                    y = skewness), 
+                pch = 21,fill="grey")+
+     theme_bw(base_size = 16)+
+     ylab("Skewness")+
+     facet_wrap(vars(site),
+                scales="free_x")
 ```
 
-Contyrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then 'weeded out' first, and the skew is flipped around to become positive.
-
-Plot maps with varying sampling densities here!
+Contrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then 'weeded out' first, and the skew is flipped around to become positive. I will mostly rely on figure \@ref(fig:sampling_reduction) and \@ref(fig:sampling_reduction_geilo) and say that the reduction in sampling intensity retains the systamatic design.
 
 ### Peat volume estimates
 
 ```{r, fig.cap="Estimated peat volume as a response of the median distance between sampling points."}
-arrange <- ggarrange(
-   ggplot(data = summaryTable_tydal,
-          aes(x = medianDist, y = estimatedPeatVolume_m3))+
+
+gg_volume <-    ggplot(data = summaryTable_twoSites,
+          aes(x = medianDist, 
+              y = estimatedPeatVolume_m3))+
      geom_point(
                 pch=21, 
                 fill="grey",
                 size=2)+
-     #geom_smooth(method = "loess", span=0.5, colour="grey30")+
      theme_bw(base_size = 16)+
      ylab(expression("Est. peat volume (m"^3*")"))+
-     xlab("Median distance to\nnearest neighbour (m)")+
-     ggtitle("Tydal")+
-     coord_trans(x="log2"),
-  
-  
-   ggplot(data = summaryTableG)+
-     geom_point(aes(x = n, y = estimatedPeatVolume_m3))+
-    # geom_point(aes(x = n, y = meanDist), pch = 21,fill="grey")+
-     theme_bw()+
-     ylab("Est. peat volume")+
-     ggtitle("Geilo")+
-     xlim(0,200)+
-     scale_x_continuous(trans='log2')
-)
+     xlab("Median distance to nearest neighbour (m)")+
+     coord_trans(x="log2")+
+     facet_wrap(vars(site),
+                scales="free")
 
-ggsave("plot_best_practice_volume.png", arrange)
+
+ggsave("Output/plot_distanceAgainstVolume.tiff", gg_volume,
+       width = 1600, height = 1200, units = "px")
+
+gg_volume
 ```
 
-For Tydal, the estimated peat volume is quite stable up to around 30 meter between sampling points. 
+For Tydal, the estimated peat volume is quite stable up to around 25 meter between sampling points. For Geilo, the estimated volume increases from zero to 10-12 meters, before stabilizing and finally increasing again with distances above 29 meters. The most correct prediction comes with a median distance between 12-20 meters. The original sampling density was biased towards the edges, resulting in a disproportionate large number of samples from shallow areas (Fig. \@ref(fig:sampling_reduction_geilo) ). The IDW does not seem to be able to adequately control for this, and care should be taken to ensure a balanced and systematic sampling design. 
 
 
 ### CV
@@ -423,7 +515,9 @@ In addition to seeing the peat volume estimates becoming biased with increasing 
 ```{r}
 max(summaryTable_tydal$medianDist)
 ```
-
+```{r}
+max(summaryTable_geilo$medianDist)
+```
 
 ```{r}
 tydal_cv <- summaryTable_tydal
@@ -439,8 +533,21 @@ tydal_cv <- tydal_cv[tydal_cv$medianDist<100,]
 (tydal_n <- table(tydal_cv$group))
 
 ```
-
 There's quite few data points in the higher categories. Perhaps too few.
+
+```{r}
+geilo_cv <- summaryTable_geilo
+geilo_cv$group <- ifelse(
+  geilo_cv$medianDist<10, "<10 m", ifelse(
+    geilo_cv$medianDist<15, "10-15 m", ifelse(
+     geilo_cv$medianDist<20, "15-20 m", ifelse(
+       geilo_cv$medianDist<25, "20-25 m", ifelse(
+         geilo_cv$medianDist<30, "25-30 m", ifelse(
+           geilo_cv$medianDist<35, "30-35 m", ifelse(
+             geilo_cv$medianDist<40, "35-40 m", "40-55 m")))))))
+geilo_cv <- geilo_cv[geilo_cv$medianDist<100,]
+(geilo_n <- table(geilo_cv$group))
+```
 
 CV function
 ```{r}
@@ -448,68 +555,39 @@ cv <- function(x){sd(x)/mean(x)}
 ```
 
 
-Tydal:
 ```{r}
-#cvTable <- tapply(dat$estimatedPeatVolume_m3, dat$group, cv)
-#cvTable <- data.frame(cv = cvTable,
-#                      label = theMax$label,
-#                      order = as.numeric(rownames(cvTable)))
-#
 tydal_cv_tbl <- tapply(tydal_cv$estimatedPeatVolume_m3, tydal_cv$group, cv)
 tydal_cv_tbl <- data.frame(cv = tydal_cv_tbl,
                       label = names(tydal_cv_tbl),
                       order = c(3,4,5,6, 7,8))
 tydal_cv_tbl <- tydal_cv_tbl[order(tydal_cv_tbl$order),]
 tydal_cv_tbl$n <- tydal_n
-```
 
-```{r}
-ggplot(data = tydal_cv_tbl, 
-                 aes(x = order, y = cv
-                     ))+
-  geom_line(lty = 2)+
-  geom_point(pch=21,
-             size=3, 
-             stroke=1.5,
-             position = position_dodge(width=0.2))+
-  theme_bw(base_size = 16)+
-  scale_x_continuous(breaks = tydal_cv_tbl$order,
-                     labels = tydal_cv_tbl$label)+
-  theme(axis.text.x = element_text(angle = 90))+
-  xlab("")
-```
-
-Geilo:
-```{r}
-#cvTableG <- tapply(datG$estimatedPeatVolume_m3, datG$group, cv)
-#cvTableG <- data.frame(cv = cvTableG,
-#                      label = theMaxG$label,
-#                      order = as.numeric(rownames(cvTableG)))
-
-cvTableG <- tapply(summaryTableG$estimatedPeatVolume_m3, summaryTableG$group, cv)
-cvTableG <- data.frame(cv = cvTableG,
-                      label = names(cvTableG),
-                      order = c(1,2,3,4,5,6,7,8))
-cvTableG <- cvTableG[order(cvTableG$order),]
-cvTableG$n <- geiloN
+geilo_cv_tbl <- tapply(geilo_cv$estimatedPeatVolume_m3, geilo_cv$group, cv)
+geilo_cv_tbl <- data.frame(cv = geilo_cv_tbl,
+                      label = names(geilo_cv_tbl),
+                      order = c(1,2,3,4,5,6, 7,8))
+geilo_cv_tbl <- geilo_cv_tbl[order(geilo_cv_tbl$order),]
+geilo_cv_tbl$n <- geilo_n
 ```
 
 Join tables
 ```{r}
-cvTable$site = "Tydal"
-cvTableG$site = "Geilo"
-cvTab <- rbind(cvTable,
-               cvTableG)
+tydal_cv_tbl$site = "Tydal"
+geilo_cv_tbl$site = "Geilo"
+cvTab <- rbind(tydal_cv_tbl,
+               geilo_cv_tbl)
 ```
 
-```{r}
-cvPlot <- ggplot(data = cvTab, 
+```{r, fig.cap="Coefficient of variation in peat volume estimates as a response to median distance between sampling points"}
+gg_cv <- ggplot(data = cvTab, 
                  aes(x = order, y = cv,
-                     group=site,
-                     fill=site
+                     fill=site,
+                     shape=site
                      ))+
   geom_line(lty = 2)+
-  geom_point(pch=21,
+  scale_shape_manual(values=c(21,24))+
+  geom_point(
              size=3, 
              stroke=1.5,
              position = position_dodge(width=0.2))+
@@ -518,34 +596,35 @@ cvPlot <- ggplot(data = cvTab,
                      labels = cvTab$label)+
   theme(axis.text.x = element_text(angle = 90))+
   xlab("")
-cvPlot
-ggsave("plot_best_practice_cv_nn.png", cvPlot)
-#cvPlotG <- ggplot(data = cvTableG, aes(x = order, y = cv))+
-#  geom_line(lty = 2)+
-#  geom_point(pch=21, fill="grey",
-#             size=3, stroke=1.5)+
-#  theme_bw(base_size = 16)+
-#  scale_x_continuous(breaks = cvTableG$order,
-#                     labels = cvTableG$label)+
-#  theme(axis.text.x = element_text(angle = 90))+
-#  xlab("")+
-#  ggtitle("Geilo")
-```
 
+ggsave("Output/plot_distanceAgainstCV.tiff", gg_cv,
+       width = 1600, height = 1200, units = "px")
+
+gg_cv
+```
 
 ## MAE
 
-```{r}
-ggplot(summaryTable_tydal,
-       aes(x = medianDist, y = MAE))+
-  geom_point(pch=21, 
+```{r, fig.cap="MAE in IDW predictions as a response of median distance between sampling points."}
+gg_mae <-    ggplot(data = summaryTable_twoSites,
+          aes(x = medianDist, 
+              y = MAE))+
+     geom_point(
+                pch=21, 
                 fill="grey",
                 size=2)+
-     #geom_smooth(method = "loess", span=0.5, colour="grey30")+
      theme_bw(base_size = 16)+
      ylab("Mean absolute error (m)")+
-     xlab("Median distance to\nnearest neighbour (m)")+
-     ggtitle("Tydal")+
-     coord_trans(x="log2")
+     xlab("Median distance to nearest neighbour (m)")+
+     coord_trans(x="log2")+
+     facet_wrap(vars(site),
+                scales="free")
+
+
+ggsave("Output/plot_distanceAgainstMAE.tiff", gg_mae,
+       width = 1600, height = 1200, units = "px")
+
+gg_mae
 ```
 
+This figure I think also support that sampling distances aboev about 25 m is a bad idea.
