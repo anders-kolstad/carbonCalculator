@@ -63,4 +63,4 @@ ccalc_optimumPower(peatDepths = depths_tydal_i60,
                    title = "Tydal")
 ```
 
-Thats good. The optimum power is the same as when we had all the data points.
+That's good. The optimum power is the same as when we had all the data points.

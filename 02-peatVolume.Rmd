@@ -615,5 +615,15 @@ ggplot(volume, aes(x = site, y = volume))+
   ylab("Volume m^(3)")
 ```
 
+The rough volume (no iDW) Tydal and Geilo
+```{r}
+SHP_tydal$myArea <- sf::st_area(SHP_tydal)
+mean(depths_tydal$Dybde)*sum(SHP_tydal$myArea)
+```
+```{r}
+SHP_geilo$myArea <- sf::st_area(SHP_geilo)
+mean(depths_geilo$Dybde)*sum(SHP_geilo$myArea)
+```
+
 Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.
 

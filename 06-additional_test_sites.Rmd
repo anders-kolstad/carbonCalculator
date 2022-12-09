@@ -9,6 +9,13 @@ SHP_modalen <- sf::read_sf("Data/Modalen/Modalen_myrareal.shp")
 #st_crs(SHP_modalen) #OK
 ```
 
+Another shape filw with the project area (see below)
+```{r}
+SHP_modalen_project <- sf::read_sf("Data/Modalen/modalen_shp.shp") 
+#st_crs(SHP_modalen_project) # OK
+```
+
+
 Import depth samples
 ```{r}
 depths_modalen <- sf::read_sf("Data/Modalen/modalen_punkter.shp")
@@ -17,16 +24,165 @@ depths_modalen <- sf::read_sf("Data/Modalen/modalen_punkter.shp")
 ```
 
 
-```{r, fig.cap="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples."}
+```{r, fig.cap="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line)."}
 tm_shape(SHP_modalen)+
   tm_polygons()+
   tm_shape(depths_modalen)+
   tm_symbols(col="black",
              size=.5,
-             shape=4)
+             shape=4)+
+  tm_shape(SHP_modalen_project)+
+  tm_borders(lty="dotted")+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("left", "bottom"), width = 0.3)+
+  tm_layout(inner.margins = c(0.15, 0.05, 0.05, 0.05))
+```
+The depth measurements are done within a bigger project area, also covering non-peat areas. The depth measurements come from ground boring, rather than from a simple peat probe, and may reflect the depth including some mineral layers at the bottom. We therefore should not use those points in the IDW I think. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two datapoints.   
+
+Calculating the combined area of the five mires. 
+```{r}
+SHP_modalen$myArea <- sf::st_area(SHP_modalen)
+sum(SHP_modalen$myArea)
 ```
 
-Im not sure how to approach this. Why is there peat depth data from outside the peatland?
+And the area of the project deliniation
+```{r}
+SHP_modalen_project$myArea <- sf::st_area(SHP_modalen_project)
+SHP_modalen_project$myArea
+```
+
+Removing the depth measurement from outside the peatland delinitaion
+```{r}
+depths_modalen_reduced <- sf::st_intersection(depths_modalen, SHP_modalen)
+```
+
+```{r, fig.cap="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line). Only depth measurements that intersects the mire polygons are included"}
+tm_shape(SHP_modalen)+
+  tm_polygons()+
+  tm_shape(depths_modalen_reduced)+
+  tm_symbols(col="black",
+             size=.5,
+             shape=4)+
+  tm_shape(SHP_modalen_project)+
+  tm_borders(lty="dotted")+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("left", "bottom"), width = 0.3)+
+  tm_layout(inner.margins = c(0.15, 0.05, 0.05, 0.05))
+```
+
+Create a raster grid
+```{r}
+#First fix polygon closure
+SHP_modalen <- sf::st_make_valid(SHP_modalen)
+
+
+grid_Modalen_stars_crop <- starsExtra::make_grid(SHP_modalen, 1) %>%
+  sf::st_crop(SHP_modalen)
+```
+
+```{r, fig.cap="Checking that the raster grid for Modalen looks correct."}
+tm_shape(grid_Modalen_stars_crop)+
+  tm_raster()
+```
+
+Predict peat depth
+```{r}
+ccalc_optimumPower(nmax=nrow(depths_modalen_reduced),
+                   peatDepths = depths_modalen_reduced,
+                   title="Modalen")
+```
+
+Unsurprising, when we have so few data points, the optimum power is very low. I will predict using power 1 though 3 to compare, just because I don't trus power 1 is the best choice. 
+
+```{r}
+IDW_Modalen_1 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_modalen_reduced, 
+           newdata = grid_Modalen_stars_crop, 
+           idp=1,
+           nmax = 20) # nmax > than the number of points
+
+IDW_Modalen_2 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_modalen_reduced, 
+           newdata = grid_Modalen_stars_crop, 
+           idp=2,
+           nmax = nrow(depths_modalen_reduced))
+
+IDW_Modalen_3 <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_modalen_reduced, 
+           newdata = grid_Modalen_stars_crop, 
+           idp=3,
+           nmax = nrow(depths_modalen_reduced))
+```
+
+```{r, fig.cap="IDW for peat depth at Modalen test site."}
+tmap_arrange(
+tm_shape(IDW_Modalen_1)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 1\nInterpolated peat\ndepth (m)",
+            breaks = seq(0,3,.5))+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3)+
+  tm_shape(depths_modalen_reduced)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+,
+tm_shape(IDW_Modalen_2)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 2\nInterpolated peat\ndepth (m)",
+            breaks = seq(0,3,.5))+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3)+
+  tm_shape(depths_modalen_reduced)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+,
+tm_shape(IDW_Modalen_3)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 3\nInterpolated peat\ndepth (m)",
+            breaks = seq(0,3,.5))+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("right", "bottom"), width = 0.3)+
+  tm_shape(depths_modalen_reduced)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+
+)
+  
+```
+
+I think power 3 looks more accurate because of the way it gives weight to local points. The recommended practice for this case I think would be to analyse each polyong or mire separately because of how the point from neighboring mires affect the depth predictions.
+
+Summary stats for the peat depth at Modalen.
+```{r}
+summary(depths_modalen_reduced$Dybde)
+```
+
+The MAE for the power =3 prediction is 0.82 m.
+
+The rough volume (in m3), that is the mean peat depth multiplied by the area, is
+```{r}
+mean(depths_modalen_reduced$Dybde)*sum(SHP_modalen$myArea)
+```
+Number of depth samples per 100 m2:
+```{r}
+12/(sum(SHP_modalen$myArea)/100)
+```
+
+Interpolated volume
+```{r}
+sum(IDW_Modalen_3$var1.pred, na.rm=T)
+```
+
+
 
 ## Opelandsmarka
 
