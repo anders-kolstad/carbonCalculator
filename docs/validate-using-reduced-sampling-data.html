@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 5 Validate using reduced sampling data | Analyses of peatland carbon stocks</title>
+<meta name="author" content="Marte Fandre, Anders L. Kolstad">
+<meta name="description" content="In chapter 2 we found the optimal power settings for the Tydal and Geilo sites. Now I just want to look at how this might have changed when we have removed superflous data points as in chapter 3....">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="Chapter 5 Validate using reduced sampling data | Analyses of peatland carbon stocks">
+<meta property="og:type" content="book">
+<meta property="og:description" content="In chapter 2 we found the optimal power settings for the Tydal and Geilo sites. Now I just want to look at how this might have changed when we have removed superflous data points as in chapter 3....">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 5 Validate using reduced sampling data | Analyses of peatland carbon stocks">
+<meta name="twitter:description" content="In chapter 2 we found the optimal power settings for the Tydal and Geilo sites. Now I just want to look at how this might have changed when we have removed superflous data points as in chapter 3....">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><link rel="stylesheet" href="bs4_style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Analyses of peatland carbon stocks</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> Analyses of peatland carbon stocks</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> Data</a></li>
+<li><a class="" href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></li>
+<li><a class="" href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></li>
+<li><a class="active" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
+<li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
+<li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/anders-kolstad/carbonCalculator">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="validate-using-reduced-sampling-data" class="section level1" number="5">
+<h1>
+<span class="header-section-number">5</span> Validate using reduced sampling data<a class="anchor" aria-label="anchor" href="#validate-using-reduced-sampling-data"><i class="fas fa-link"></i></a>
+</h1>
+<p>In chapter 2 we found the optimal power settings for the Tydal and Geilo sites. Now I just want to look at how this might have changed when we have removed <em>superflous</em> data points as in chapter 3.</p>
+<p>Lets say for Tydal that we want to have 20 meters between the sampling points.</p>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal_i60</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_dots</a></span><span class="op">(</span>size<span class="op">=</span><span class="st">"Dybde"</span>,
+          scale<span class="op">=</span><span class="fl">2</span>,
+          col <span class="op">=</span> <span class="st">"Dybde"</span>,
+          palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+          title <span class="op">=</span> <span class="st">"Measured peat depth (m)"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-72"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-72-1.png" alt="Peat depth measurements in the Tydal test site, after trimming the data poins so that the median distance between them is 20 meters." width="672"><p class="caption">
+Figure 5.1: Peat depth measurements in the Tydal test site, after trimming the data poins so that the median distance between them is 20 meters.
+</p>
+</div>
+<p>Confirm the median distance is 20 meters</p>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_tydal_i60</span><span class="op">)</span> 
+<span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span>
+<span class="va">temp</span><span class="op">[</span><span class="va">temp</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+<span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">temp</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span>
+<span class="co">#&gt; [1] 20.18216</span></code></pre></div>
+<p>Then we determine the optimal power setting.</p>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ccalc_optimumPower</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">powerRange</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span>,
+                               <span class="va">nmax</span> <span class="op">=</span> <span class="fl">20</span>,
+                               <span class="va">peatDepths</span>,
+                               <span class="va">peatlandDelimination</span>,
+                               <span class="va">title</span>
+                               <span class="op">)</span><span class="op">{</span>
+  
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">powerRange</span>,
+                     MAE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span><span class="op">)</span>
+  
+  <span class="va">vol</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
+  
+  <span class="va">myGrid</span> <span class="op">&lt;-</span> <span class="fu">starsExtra</span><span class="fu">::</span><span class="fu"><a href="https://michaeldorman.github.io/starsExtra/reference/make_grid.html">make_grid</a></span><span class="op">(</span><span class="va">peatlandDelimination</span>, <span class="fl">1</span><span class="op">)</span>
+  <span class="va">myGrid</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crop.html">st_crop</a></span><span class="op">(</span><span class="va">myGrid</span>, <span class="va">peatlandDelimination</span><span class="op">)</span>
+  
+  <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">powerRange</span><span class="op">)</span><span class="op">{</span>
+    
+    <span class="co"># Get the MAE</span>
+    <span class="va">temp2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">peatDepths</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="va">i</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+    <span class="va">temp</span><span class="op">$</span><span class="va">MAE</span><span class="op">[</span><span class="va">temp</span><span class="op">$</span><span class="va">power</span><span class="op">==</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">temp2</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
+    
+    <span class="co">#  Get the volume</span>
+    <span class="va">vol_temp</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">peatDepths</span>, 
+                    newdata<span class="op">=</span><span class="va">myGrid</span>, 
+                    nmax<span class="op">=</span><span class="va">nmax</span>, 
+                    idp<span class="op">=</span><span class="va">i</span><span class="op">)</span>
+    
+    <span class="va">vol</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">vol</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">vol_temp</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span>
+  
+  
+  <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">power</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.min</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">MAE</span><span class="op">)</span><span class="op">]</span><span class="op">&lt;</span><span class="fl">2</span>,
+  <span class="va">temp</span><span class="op">$</span><span class="va">best</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">power</span><span class="op">==</span><span class="fl">2</span>, <span class="st">"best"</span>, <span class="st">"not-best"</span><span class="op">)</span>,
+  <span class="va">temp</span><span class="op">$</span><span class="va">best</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">MAE</span><span class="op">==</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">MAE</span><span class="op">)</span>, <span class="st">"best"</span>, <span class="st">"not-best"</span><span class="op">)</span>
+  <span class="op">)</span>
+
+  <span class="co"># Plot MAE</span>
+  <span class="va">gg_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">temp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">power</span>, y <span class="op">=</span> <span class="va">MAE</span>,
+                      colour <span class="op">=</span> <span class="va">best</span>,
+                      shape <span class="op">=</span> <span class="va">best</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="va">powerRange</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span><span class="op">(</span>colour<span class="op">=</span><span class="st">"none"</span>,
+         shape <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkgreen"</span>,<span class="st">"grey"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">18</span>, <span class="fl">19</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="va">title</span><span class="op">)</span>
+  
+  <span class="co"># Plot volume</span>
+  <span class="va">vol_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="st">"volume"</span> <span class="op">=</span> <span class="va">vol</span>,
+                              <span class="st">"power"</span> <span class="op">=</span> <span class="va">powerRange</span><span class="op">)</span>
+  <span class="va">vol_df</span><span class="op">$</span><span class="va">relative_volume</span> <span class="op">&lt;-</span> <span class="va">vol_df</span><span class="op">$</span><span class="va">volume</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">vol_df</span><span class="op">$</span><span class="va">volume</span><span class="op">)</span><span class="op">*</span><span class="fl">100</span>
+
+  
+  <span class="va">gg_out_vol</span> <span class="op">&lt;-</span> 
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">vol_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">power</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_volume</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">8</span><span class="op">)</span><span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"power"</span><span class="op">)</span><span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Peat volume as a percentage of\nmean predicted peat volume"</span><span class="op">)</span><span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>
+  
+  <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">gg_out</span>,
+                    <span class="va">gg_out_vol</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">ccalc_optimumPower</span><span class="op">(</span>peatDepths <span class="op">=</span> <span class="va">depths_tydal_i60</span>,
+                   title <span class="op">=</span> <span class="st">"Tydal"</span>,
+                   peatlandDelimination <span class="op">=</span> <span class="va">SHP_tydal</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
+<div class="inline-figure"><img src="carbonCalculator_files/figure-html/unnamed-chunk-75-1.png" width="672"></div>
+<p>That’s good. The optimum power is the same as when we had all the data points.</p>
+
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></div>
+<div class="next"><a href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav"><li><a class="nav-link" href="#validate-using-reduced-sampling-data"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li></ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/anders-kolstad/carbonCalculator/blob/master/04-validate.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/anders-kolstad/carbonCalculator/edit/master/04-validate.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

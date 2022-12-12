@@ -19,7 +19,7 @@ library(tidyverse)
 
 
 Import shape files with peatland delineations.
-```{r import shape files, message=F, warning=F}
+```{r, message=F, warning=F}
 SHP_tydal <- sf::read_sf("Data/Tydal/stasjon_Setermyra.shp")
 SHP_geilo  <- sf::read_sf("Data/Geilo/geilo-dybdef.shp")
 

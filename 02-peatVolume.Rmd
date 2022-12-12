@@ -178,18 +178,18 @@ tmap_arrange(gg_temp,
              ncol = 3)
 ```
 
-If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9.
-
-If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter.
-
-If we keep namx at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neigbor inerolation.
-
 ```{r, fig.cap="IDW with different setting."}
 tmap_arrange(gg_temp4,
              gg_temp4.1,
              gg_temp5,
              ncol = 3)
 ```
+
+If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9.
+
+If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter.
+
+If we keep nmax at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neighbor interpolation.
 
 Of all the examples above, power = 2 and nmax = 9 is probably the best. However, I don't like these little dots on the map. They are artefacts of the model, and do not exist for real. Therefore I think I would prefer a model with a slightly more local focus. We can increase the power a bit to achieve this.
 ```{r, fig.cap="IDW with relatively local focus." }
@@ -485,7 +485,7 @@ MAE_tydal$best <- ifelse(MAE_tydal$MAE==min(MAE_tydal$MAE), "best", "not-best")
 
 # For Geilo the calculations take longer, so I will not consider as big a range in power
 # This part still takes 2 min on my computer, so I will run it once and cache it on a local server.
-#myPowers2 <- seq(0,5,1)
+myPowers2 <- seq(0,5,1)
 #MAE_geilo <- data.frame(power = myPowers2,
 #                        MAE = as.numeric(NA))
 #for(i in myPowers2){
@@ -604,7 +604,7 @@ volume <- data.frame(site = c("Tydal", "Geilo"),
                                 sum(IDW_geilo_2$var1.pred, na.rm = T)))
 ```
 
-```{r, fig.cap="Peat volume estimated from IDW. Errors are volumes calculated after multiplying the predicted values with the mean absolute error from LOOCV."}
+```{r, fig.cap="Peat volume estimated from IDW."}
 library(ggtext) # write superscript as markdown
 ggplot(volume, aes(x = site, y = volume))+
   geom_bar(stat="identity",

@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 2 Data | Analyses of peatland carbon stocks</title>
 <meta name="author" content="Marte Fandre, Anders L. Kolstad">
-<meta name="description" content="Analyses of peat volume and carbon stock in Norwegian mires">
+<meta name="description" content="2.1 Peat depth and peatland deliniation This data comes from five sites in Norway. For each site there is a shape file with the outline of the mire, and a csv file with georeferenced peat depth...">
 <meta name="generator" content="bookdown 0.24 with bs4_book()">
 <meta property="og:title" content="Chapter 2 Data | Analyses of peatland carbon stocks">
 <meta property="og:type" content="book">
-<meta property="og:description" content="Analyses of peat volume and carbon stock in Norwegian mires">
+<meta property="og:description" content="2.1 Peat depth and peatland deliniation This data comes from five sites in Norway. For each site there is a shape file with the outline of the mire, and a csv file with georeferenced peat depth...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 2 Data | Analyses of peatland carbon stocks">
-<meta name="twitter:description" content="Analyses of peat volume and carbon stock in Norwegian mires">
+<meta name="twitter:description" content="2.1 Peat depth and peatland deliniation This data comes from five sites in Norway. For each site there is a shape file with the outline of the mire, and a csv file with georeferenced peat depth...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -41,6 +41,11 @@
         <ul class="book-toc list-unstyled">
 <li><a class="" href="index.html"><span class="header-section-number">1</span> Analyses of peatland carbon stocks</a></li>
 <li><a class="active" href="data.html"><span class="header-section-number">2</span> Data</a></li>
+<li><a class="" href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></li>
+<li><a class="" href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></li>
+<li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
+<li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
+<li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
 </ul>
 
         <div class="book-extra">
@@ -52,14 +57,220 @@
 <h1>
 <span class="header-section-number">2</span> Data<a class="anchor" aria-label="anchor" href="#data"><i class="fas fa-link"></i></a>
 </h1>
+<div id="peat-depth-and-peatland-deliniation" class="section level2" number="2.1">
+<h2>
+<span class="header-section-number">2.1</span> Peat depth and peatland deliniation<a class="anchor" aria-label="anchor" href="#peat-depth-and-peatland-deliniation"><i class="fas fa-link"></i></a>
+</h2>
+<p>This data comes from five sites in Norway. For each site there is a shape file with the outline of the mire, and a csv file with georeferenced peat depth measurements</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mtennekes/tmap">tmap</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/">sf</a></span><span class="op">)</span>
+<span class="co">#&gt; Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf_use_s2() is TRUE</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://readr.tidyverse.org">readr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mtennekes/tmaptools">tmaptools</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">basemaps</span><span class="op">)</span>
+<span class="co">#&gt; Warning: package 'basemaps' was built under R version 4.1.3</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/">ggpubr</a></span><span class="op">)</span>
+<span class="co">#&gt; Warning: package 'ggpubr' was built under R version 4.1.3</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/gstat/">gstat</a></span><span class="op">)</span>
+<span class="co">#&gt; Warning: package 'gstat' was built under R version 4.1.3</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/HenrikBengtsson/matrixStats">matrixStats</a></span><span class="op">)</span>
+<span class="co">#&gt; Warning: package 'matrixStats' was built under R version</span>
+<span class="co">#&gt; 4.1.3</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/ggtext/">ggtext</a></span><span class="op">)</span>
+<span class="co">#&gt; Warning: package 'ggtext' was built under R version 4.1.3</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span>
+<span class="co">#&gt; -- Attaching packages ------------------- tidyverse 1.3.1 --</span>
+<span class="co">#&gt; v tibble  3.1.6     v dplyr   1.0.8</span>
+<span class="co">#&gt; v tidyr   1.2.0     v stringr 1.4.0</span>
+<span class="co">#&gt; v purrr   0.3.4     v forcats 0.5.1</span>
+<span class="co">#&gt; -- Conflicts ---------------------- tidyverse_conflicts() --</span>
+<span class="co">#&gt; x dplyr::count()  masks matrixStats::count()</span>
+<span class="co">#&gt; x dplyr::filter() masks stats::filter()</span>
+<span class="co">#&gt; x dplyr::lag()    masks stats::lag()</span></code></pre></div>
+<p>Import shape files with peatland delineations.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">SHP_tydal</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">read_sf</a></span><span class="op">(</span><span class="st">"Data/Tydal/stasjon_Setermyra.shp"</span><span class="op">)</span>
+<span class="va">SHP_geilo</span>  <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">read_sf</a></span><span class="op">(</span><span class="st">"Data/Geilo/geilo-dybdef.shp"</span><span class="op">)</span>
 
+<span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crs.html">st_crs</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span>
+<span class="co">#&gt; Coordinate Reference System:</span>
+<span class="co">#&gt;   User input: ETRS89 / UTM zone 33N </span>
+<span class="co">#&gt;   wkt:</span>
+<span class="co">#&gt; PROJCRS["ETRS89 / UTM zone 33N",</span>
+<span class="co">#&gt;     BASEGEOGCRS["ETRS89",</span>
+<span class="co">#&gt;         DATUM["European Terrestrial Reference System 1989",</span>
+<span class="co">#&gt;             ELLIPSOID["GRS 1980",6378137,298.257222101,</span>
+<span class="co">#&gt;                 LENGTHUNIT["metre",1]]],</span>
+<span class="co">#&gt;         PRIMEM["Greenwich",0,</span>
+<span class="co">#&gt;             ANGLEUNIT["degree",0.0174532925199433]],</span>
+<span class="co">#&gt;         ID["EPSG",4258]],</span>
+<span class="co">#&gt;     CONVERSION["UTM zone 33N",</span>
+<span class="co">#&gt;         METHOD["Transverse Mercator",</span>
+<span class="co">#&gt;             ID["EPSG",9807]],</span>
+<span class="co">#&gt;         PARAMETER["Latitude of natural origin",0,</span>
+<span class="co">#&gt;             ANGLEUNIT["degree",0.0174532925199433],</span>
+<span class="co">#&gt;             ID["EPSG",8801]],</span>
+<span class="co">#&gt;         PARAMETER["Longitude of natural origin",15,</span>
+<span class="co">#&gt;             ANGLEUNIT["degree",0.0174532925199433],</span>
+<span class="co">#&gt;             ID["EPSG",8802]],</span>
+<span class="co">#&gt;         PARAMETER["Scale factor at natural origin",0.9996,</span>
+<span class="co">#&gt;             SCALEUNIT["unity",1],</span>
+<span class="co">#&gt;             ID["EPSG",8805]],</span>
+<span class="co">#&gt;         PARAMETER["False easting",500000,</span>
+<span class="co">#&gt;             LENGTHUNIT["metre",1],</span>
+<span class="co">#&gt;             ID["EPSG",8806]],</span>
+<span class="co">#&gt;         PARAMETER["False northing",0,</span>
+<span class="co">#&gt;             LENGTHUNIT["metre",1],</span>
+<span class="co">#&gt;             ID["EPSG",8807]]],</span>
+<span class="co">#&gt;     CS[Cartesian,2],</span>
+<span class="co">#&gt;         AXIS["(E)",east,</span>
+<span class="co">#&gt;             ORDER[1],</span>
+<span class="co">#&gt;             LENGTHUNIT["metre",1]],</span>
+<span class="co">#&gt;         AXIS["(N)",north,</span>
+<span class="co">#&gt;             ORDER[2],</span>
+<span class="co">#&gt;             LENGTHUNIT["metre",1]],</span>
+<span class="co">#&gt;     USAGE[</span>
+<span class="co">#&gt;         SCOPE["Engineering survey, topographic mapping."],</span>
+<span class="co">#&gt;         AREA["Europe between 12Â°E and 18Â°E: Austria; Denmark - offshore and offshore; Germany - onshore and offshore; Norway including Svalbard - onshore and offshore."],</span>
+<span class="co">#&gt;         BBOX[46.4,12,84.01,18.01]],</span>
+<span class="co">#&gt;     ID["EPSG",25833]]</span>
+<span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crs.html">st_crs</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">)</span><span class="co"># NA</span>
+<span class="co">#&gt; Coordinate Reference System: NA</span>
+<span class="co"># I found CRS through trial and error </span>
+<span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crs.html">st_crs</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">25832</span> 
+
+<span class="co"># Transform to UTM33N</span>
+<span class="va">SHP_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="va">SHP_geilo</span>, <span class="fl">25833</span><span class="op">)</span></code></pre></div>
+<p>Import peat depth measurements</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">depths_tydal</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"Data/Tydal/Torvdybder_Tydal_stasjon.csv"</span><span class="op">)</span>
+<span class="va">depths_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"Data/Geilo/torvdybder.csv"</span>, sep<span class="op">=</span><span class="st">";"</span><span class="op">)</span>
+
+
+<span class="va">depths_tydal</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">depths_tydal</span>, 
+                        coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"coords.x1"</span>, <span class="st">"coords.x2"</span><span class="op">)</span>,
+                        crs <span class="op">=</span> <span class="st">"+init=epsg:25833"</span><span class="op">)</span>
+<span class="va">depths_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">depths_geilo</span>, 
+                        coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span>,
+                        crs <span class="op">=</span> <span class="st">"+init=epsg:25832"</span><span class="op">)</span>
+<span class="va">depths_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="va">depths_geilo</span>, <span class="fl">25833</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Confirm overlap. Using base plotting to avoid </span>
+<span class="co"># auto-transformation</span>
+<span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html">plot</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">$</span><span class="va">geometry</span>,
+     col<span class="op">=</span><span class="st">"red"</span>
+     <span class="op">)</span>
+<span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html">plot</a></span><span class="op">(</span><span class="va">depths_geilo</span><span class="op">$</span><span class="va">geometry</span>, 
+     pch <span class="op">=</span> <span class="fl">16</span>,
+     col<span class="op">=</span><span class="st">"grey"</span>,
+     cex<span class="op">=</span><span class="fl">.1</span>,
+     add<span class="op">=</span><span class="cn">T</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-7"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-7-1.png" alt="Confirming overlap between shape file and depth measurements" width="672"><p class="caption">
+Figure 2.1: Confirming overlap between shape file and depth measurements
+</p>
+</div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">#OK</span></code></pre></div>
+<p>Download basemaps</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># osmplotr want bboxes in latlong</span>
+<span class="va">SHP_geilo_ll</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="va">SHP_geilo</span>, <span class="fl">4326</span><span class="op">)</span>
+<span class="va">SHP_tydal_ll</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html">st_transform</a></span><span class="op">(</span><span class="va">SHP_tydal</span>, <span class="fl">4326</span><span class="op">)</span>
+
+<span class="va">bb_Geilo</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html">st_bbox</a></span><span class="op">(</span><span class="va">SHP_geilo_ll</span><span class="op">)</span>
+<span class="va">bb_Tydal</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html">st_bbox</a></span><span class="op">(</span><span class="va">SHP_tydal_ll</span><span class="op">)</span>
+
+<span class="co"># GEILO</span>
+<span class="va">base_geilo_hw</span> <span class="op">&lt;-</span> 
+  <span class="fu">osmplotr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/osmplotr/reference/extract_osm_objects.html">extract_osm_objects</a></span><span class="op">(</span>bbox <span class="op">=</span> <span class="va">bb_Geilo</span>,
+                                            key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"highway"</span><span class="op">)</span>,
+                                            sf <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
+<span class="va">base_geilo_building</span> <span class="op">&lt;-</span> 
+  <span class="fu">osmplotr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/osmplotr/reference/extract_osm_objects.html">extract_osm_objects</a></span><span class="op">(</span>bbox <span class="op">=</span> <span class="va">bb_Geilo</span>,
+                                            key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"building"</span><span class="op">)</span>,
+                                            sf <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
+<span class="va">base_geilo_ww</span> <span class="op">&lt;-</span> 
+  <span class="fu">osmplotr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/osmplotr/reference/extract_osm_objects.html">extract_osm_objects</a></span><span class="op">(</span>bbox <span class="op">=</span> <span class="va">bb_Geilo</span>,
+                                            key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"waterway"</span><span class="op">)</span>,
+                                            sf <span class="op">=</span> <span class="cn">T</span>,
+                                            return_type <span class="op">=</span> <span class="st">"line"</span><span class="op">)</span>
+
+<span class="co"># TYDAL</span>
+<span class="va">base_tydal_hw</span> <span class="op">&lt;-</span> 
+  <span class="fu">osmplotr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/osmplotr/reference/extract_osm_objects.html">extract_osm_objects</a></span><span class="op">(</span>bbox <span class="op">=</span> <span class="va">bb_Tydal</span>,
+                                            key <span class="op">=</span> <span class="st">"highway"</span>,
+                                            sf <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
+<span class="va">base_tydal_building</span> <span class="op">&lt;-</span> 
+  <span class="fu">osmplotr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/osmplotr/reference/extract_osm_objects.html">extract_osm_objects</a></span><span class="op">(</span>bbox <span class="op">=</span> <span class="va">bb_Tydal</span>,
+                                            key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"building"</span><span class="op">)</span>,
+                                            sf <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
+<span class="va">base_tydal_ww</span> <span class="op">&lt;-</span> 
+  <span class="fu">osmplotr</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/osmplotr/reference/extract_osm_objects.html">extract_osm_objects</a></span><span class="op">(</span>bbox <span class="op">=</span> <span class="va">bb_Tydal</span>,
+                                            key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"waterway"</span><span class="op">)</span>,
+                                            sf <span class="op">=</span> <span class="cn">T</span>,
+                                            return_type <span class="op">=</span> <span class="st">"line"</span><span class="op">)</span></code></pre></div>
+<p>Plot static map</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="co"># GEILO</span>
+<span class="va">static_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_ll</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"green"</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_dots</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">base_geilo_hw</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_lines.html">tm_lines</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">base_geilo_ww</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_lines.html">tm_lines</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"blue"</span>,
+           size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">base_geilo_building</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+              alpha <span class="op">=</span> <span class="fl">.3</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_compass.html">tm_compass</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">"Geilo"</span><span class="op">)</span>
+
+
+<span class="co"># TYDAL</span>
+<span class="va">static_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal_ll</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"green"</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_dots</a></span><span class="op">(</span>size<span class="op">=</span><span class="st">"Dybde"</span>,
+          col<span class="op">=</span><span class="st">"Dybde"</span>,
+          palette<span class="op">=</span><span class="st">"-viridis"</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">base_tydal_ww</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_lines.html">tm_lines</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"blue"</span>,
+           size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_compass.html">tm_compass</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title<span class="op">=</span><span class="st">"Tydal"</span>,
+          legend.show <span class="op">=</span> <span class="cn">F</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span><span class="va">static_geilo</span>,
+             <span class="va">static_tydal</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-9"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-9-1.png" alt="Map of Geilo and Tydal test sites. The peatland is deliminated as a green polygon(s). Dots are depth measurements and for Tydal the colour and size of the dots reflects the measured peat depths in meters." width="672"><p class="caption">
+Figure 2.2: Map of Geilo and Tydal test sites. The peatland is deliminated as a green polygon(s). Dots are depth measurements and for Tydal the colour and size of the dots reflects the measured peat depths in meters.
+</p>
+</div>
+<p>These to test cases are very different. Geilo is a set of several unique mire polygons. Usually, in development project, one would estimate the peat volume and C stock for each of these seperately, but we will try now to see if it can be done in one operation. Tydal is a more typical example of a clear peatland delinination. Both cases have dense peat depth measurements taken.</p>
+
+</div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="index.html"><span class="header-section-number">1</span> Analyses of peatland carbon stocks</a></div>
-<div class="empty"></div>
+<div class="next"><a href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#data"><span class="header-section-number">2</span> Data</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#data"><span class="header-section-number">2</span> Data</a></li>
+<li><a class="nav-link" href="#peat-depth-and-peatland-deliniation"><span class="header-section-number">2.1</span> Peat depth and peatland deliniation</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
@@ -76,7 +287,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-01.</p>
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

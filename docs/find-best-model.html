@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 3 Find best model | Analyses of peatland carbon stocks</title>
+<meta name="author" content="Marte Fandre, Anders L. Kolstad">
+<meta name="description" content="We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles. The main task in...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="Chapter 3 Find best model | Analyses of peatland carbon stocks">
+<meta property="og:type" content="book">
+<meta property="og:description" content="We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles. The main task in...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 3 Find best model | Analyses of peatland carbon stocks">
+<meta name="twitter:description" content="We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles. The main task in...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><link rel="stylesheet" href="bs4_style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Analyses of peatland carbon stocks</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> Analyses of peatland carbon stocks</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> Data</a></li>
+<li><a class="active" href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></li>
+<li><a class="" href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></li>
+<li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
+<li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
+<li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/anders-kolstad/carbonCalculator">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="find-best-model" class="section level1" number="3">
+<h1>
+<span class="header-section-number">3</span> Find best model<a class="anchor" aria-label="anchor" href="#find-best-model"><i class="fas fa-link"></i></a>
+</h1>
+<p>We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles.</p>
+<p><em>The main task in this chapter is the determination of optimal power for IDW by cross validation</em></p>
+<div id="raster-grid" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Raster grid<a class="anchor" aria-label="anchor" href="#raster-grid"><i class="fas fa-link"></i></a>
+</h2>
+<p>Create raster grid based on the extent of the peatland</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co">#Create empty raster grid (stars object) based on the extent of the peatland shape files. Resolution 1 = 1 m (becasue crs is UTM)</span>
+<span class="va">grid_Tydal_stars</span> <span class="op">&lt;-</span> <span class="fu">starsExtra</span><span class="fu">::</span><span class="fu"><a href="https://michaeldorman.github.io/starsExtra/reference/make_grid.html">make_grid</a></span><span class="op">(</span><span class="va">SHP_tydal</span>, <span class="fl">1</span><span class="op">)</span>
+<span class="va">grid_Geilo_stars</span> <span class="op">&lt;-</span> <span class="fu">starsExtra</span><span class="fu">::</span><span class="fu"><a href="https://michaeldorman.github.io/starsExtra/reference/make_grid.html">make_grid</a></span><span class="op">(</span><span class="va">SHP_geilo</span>, <span class="fl">1</span><span class="op">)</span></code></pre></div>
+<p>Visualise the grid</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># To plot the grid we can convert the stars objects to sf. That way we can plot as polygons and visualise the individual cells.</span>
+<span class="co"># This takes too long to perform for Geilo, but we can do it for Tydal:</span>
+<span class="va">grid_Tydal_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span><span class="va">grid_Tydal_stars</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">grid_Tydal_sf</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"yellow"</span>,
+              alpha<span class="op">=</span><span class="fl">.5</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-12"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-12-1.png" alt="A 1x1 m raster grid in grey, overlayed with the peatland delineation in yellow." width="672"><p class="caption">
+Figure 3.1: A 1x1 m raster grid in grey, overlayed with the peatland delineation in yellow.
+</p>
+</div>
+<p>Crop raster grid using the peatland deliniation</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">grid_Tydal_stars_crop</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crop.html">st_crop</a></span><span class="op">(</span><span class="va">grid_Tydal_stars</span>, <span class="va">SHP_tydal</span><span class="op">)</span>
+<span class="va">grid_Geilo_stars_crop</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crop.html">st_crop</a></span><span class="op">(</span><span class="va">grid_Geilo_stars</span>, <span class="va">SHP_geilo</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">grid_Geilo_stars_crop</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Geilo"</span>,
+            legend.show <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">grid_Tydal_stars_crop</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Tydal"</span>,
+            legend.show <span class="op">=</span> <span class="cn">F</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-14"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-14-1.png" alt="Preview of the cropped raster grids." width="672"><p class="caption">
+Figure 3.2: Preview of the cropped raster grids.
+</p>
+</div>
+</div>
+<div id="inverse-distance-weighting" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Inverse distance weighting<a class="anchor" aria-label="anchor" href="#inverse-distance-weighting"><i class="fas fa-link"></i></a>
+</h2>
+<p>We chose to use IDW for the interpolation. This is because we do not want to include a separate step with for example calculating a variogram, and the functions for automatically fitting a variogram seems unstable.</p>
+<p>The IDW requires setting the number of neighboring points to consider. We could set this to consider all points in the dataset (the default), but this increases calculation times and it is also not sensible in general. I will use the 9 nearest points, as this would mean all the 8 closest points in a systematic grid around a point is included.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nmax</span> <span class="op">&lt;-</span> <span class="fl">9</span></code></pre></div>
+<p>IDW also has a power parameter, and this is where we can tune the results by down-weighting data points that are further away. This parameter needs to be optimized for each model. We will fit a model with power varying from 0 to 10 and explore the model fit as a result of the chosen power.</p>
+<p>First, lets explore the idw function and what the parameters mean.
+Tydal is 4.4 meters at it’s deepest point. Depending on the idw setting, the prediction map will be further of closer to this number. For example, is we only consider the closest neighbor, we are essentially performing a nearest neighbor interpolation. The choice of power then has no effect, and the deepest point in the prediction map equals the deepest point in the measured data.</p>
+<p>If we keep the power at zero (ignore distance weighting) and turn up nmax to 9, each raster cell is predicted to be the mean of the nine closest points. The overall predicted depth decreases.</p>
+<p>If we then also include distance weighting, e.g. by setting power =2, we get smoothing between the points, and a more local prediction than when we had no power (i.e. the deepest point is again close to its true value).</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">0</span>,
+           nmax <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="va">temp2</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">0</span>,
+           nmax <span class="op">=</span> <span class="fl">9</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="va">temp3</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">2</span>,
+           nmax <span class="op">=</span> <span class="fl">9</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+
+<span class="va">temp4</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">2</span>,
+           nmax<span class="op">=</span><span class="fl">20</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="va">temp4.1</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="va">temp5</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">100</span>,
+           nmax <span class="op">=</span> <span class="fl">9</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="va">gg_temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">F</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 0\nNmax = 1"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">gg_temp2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp2</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">F</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 0\nNmax = 9"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">gg_temp3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp3</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">F</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 2\nNmax = 9"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">gg_temp4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp4</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">F</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 2\nNmax = 20"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">gg_temp4.1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp4.1</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">F</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 2\nNmax = Inf"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">gg_temp5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">F</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 100\nNmax = 9"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span><span class="va">gg_temp</span>,
+             <span class="va">gg_temp2</span>,
+             <span class="va">gg_temp3</span>,
+             ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-17"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-17-1.png" alt="IDW with different setting." width="672"><p class="caption">
+Figure 3.3: IDW with different setting.
+</p>
+</div>
+<p>If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9.</p>
+<p>If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter.</p>
+<p>If we keep namx at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neigbor inerolation.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span><span class="va">gg_temp4</span>,
+             <span class="va">gg_temp4.1</span>,
+             <span class="va">gg_temp5</span>,
+             ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-18"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-18-1.png" alt="IDW with different setting." width="672"><p class="caption">
+Figure 3.4: IDW with different setting.
+</p>
+</div>
+<p>Of all the examples above, power = 2 and nmax = 9 is probably the best. However, I don’t like these little dots on the map. They are artefacts of the model, and do not exist for real. Therefore I think I would prefer a model with a slightly more local focus. We can increase the power a bit to achieve this.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">4</span>,
+           nmax <span class="op">=</span> <span class="fl">9</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 4\nNmax = 9"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-19"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-19-1.png" alt="IDW with relatively local focus." width="672"><p class="caption">
+Figure 3.5: IDW with relatively local focus.
+</p>
+</div>
+<p>After a bit of trial and error, I noticed that by have nmax as low as 9, the optimum power frequently became &lt;2 (which results in model artefacts and biased predictions as you can read about below). I therefore increase the nmax.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">5</span>,
+           nmax <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            title <span class="op">=</span> <span class="st">""</span>,
+            style <span class="op">=</span> <span class="st">"fixed"</span>,
+              breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">4</span>,
+             col <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = 4\nNmax = 20"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-20"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-20-1.png" alt="IDW with relatively slightlly higher nmax and higher power." width="672"><p class="caption">
+Figure 3.6: IDW with relatively slightlly higher nmax and higher power.
+</p>
+</div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nmax</span> <span class="op">&lt;-</span> <span class="fl">20</span></code></pre></div>
+<p>This tuning of the power parameter is where we will focus now.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">myPowers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="va">i</span>,
+           nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_tydal_"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">temp</span><span class="op">)</span>
+<span class="op">}</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="co"># this one takes a couple of minutes to run</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_geilo</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Geilo_stars_crop</span>, 
+           idp<span class="op">=</span><span class="va">i</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_geilo_"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">temp</span><span class="op">)</span>
+<span class="op">}</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
+<p>What do these models look like.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_tydal_"</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span><span class="op">+</span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span><span class="op">+</span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = "</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"tmap_IDW_tydal_power_"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">temp</span><span class="op">)</span>
+<span class="op">}</span>
+
+
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+  <span class="va">tmap_IDW_tydal_power_0</span>,
+  <span class="va">tmap_IDW_tydal_power_1</span>,
+  <span class="va">tmap_IDW_tydal_power_2</span>,
+  <span class="va">tmap_IDW_tydal_power_4</span>,
+  <span class="va">tmap_IDW_tydal_power_6</span>,
+  <span class="va">tmap_IDW_tydal_power_8</span>,
+ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-23"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-23-1.png" alt="First view of how IDW models look like depending on the power parameter. Test site: Tydal." width="672"><p class="caption">
+Figure 3.7: First view of how IDW models look like depending on the power parameter. Test site: Tydal.
+</p>
+</div>
+<p>When plotting Geilo I cannot include the crosses for the depth measurements because there are just too many and the clutter up the image.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_geilo_"</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span><span class="op">+</span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span><span class="op">+</span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span>,
+            title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"Power = "</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"tmap_IDW_geilo_power_"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">temp</span><span class="op">)</span>
+<span class="op">}</span>
+
+
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+  <span class="co">#tmap_IDW_geilo_power_0,</span>
+  <span class="va">tmap_IDW_geilo_power_1</span>,
+  <span class="va">tmap_IDW_geilo_power_2</span>,
+  <span class="va">tmap_IDW_geilo_power_4</span>,
+  <span class="co">#tmap_IDW_geilo_power_6,</span>
+  <span class="co">#tmap_IDW_geilo_power_8,</span>
+ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-24"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-24-1.png" alt="First view of how IDW models look like depending on the power parameter. Test site: Geilo." width="672"><p class="caption">
+Figure 3.8: First view of how IDW models look like depending on the power parameter. Test site: Geilo.
+</p>
+</div>
+<p>A low power creates a more flat map where all the depth measurements count equally to any predicted value. With power set to 0 we just predict the average of all the measured peat depths. For both cases, increasing the power beyond 4 has little visual effect.</p>
+</div>
+<div id="original-residuals" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> Original residuals<a class="anchor" aria-label="anchor" href="#original-residuals"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let’s check the fit with a plot of the residuals.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Prepare data frame with the measured data</span>
+<span class="va">resids_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>ID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">)</span>
+<span class="va">resids_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>ID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_geilo</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">resids_tydal</span><span class="op">$</span><span class="va">measured</span> <span class="op">&lt;-</span> <span class="va">depths_tydal</span><span class="op">$</span><span class="va">Dybde</span>
+<span class="va">resids_geilo</span><span class="op">$</span><span class="va">measured</span> <span class="op">&lt;-</span> <span class="va">depths_geilo</span><span class="op">$</span><span class="va">Dybde</span>
+
+<span class="co"># Get the predicted values</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_tydal_"</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">fit</span>  <span class="op">&lt;-</span> <span class="fu">stars</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html">st_extract</a></span><span class="op">(</span><span class="va">temp</span>, <span class="va">depths_tydal</span><span class="op">)</span>
+  <span class="va">resids_tydal</span><span class="op">[</span>,<span class="va">i</span><span class="op">+</span><span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">resids_tydal</span><span class="op">$</span><span class="va">measured</span><span class="op">-</span><span class="va">fit</span><span class="op">$</span><span class="va">var1.pred</span>
+<span class="op">}</span>
+
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_geilo_"</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">fit</span>  <span class="op">&lt;-</span> <span class="fu">stars</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html">st_extract</a></span><span class="op">(</span><span class="va">temp</span>, <span class="va">depths_geilo</span><span class="op">)</span>
+  <span class="va">resids_geilo</span><span class="op">[</span>,<span class="va">i</span><span class="op">+</span><span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">resids_geilo</span><span class="op">$</span><span class="va">measured</span><span class="op">-</span><span class="va">fit</span><span class="op">$</span><span class="va">var1.pred</span>
+<span class="op">}</span>
+
+<span class="co"># Lots of NA's produced for depth measurements taken outside the peatland polygons</span>
+<span class="co">#tmap_mode("plot")</span>
+<span class="co">#tm_shape(IDW_geilo_10)+</span>
+<span class="co">#  tm_raster(col="var1.pred")+</span>
+<span class="co">#  tm_shape(fit[is.na(fit$var1.pred),])+</span>
+<span class="co">#  tm_symbols(size = .1,</span>
+<span class="co">#             col="yellow")</span>
+
+<span class="va">resids_geilo</span> <span class="op">&lt;-</span> <span class="va">resids_geilo</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">resids_geilo</span><span class="op">$</span><span class="va">V3</span><span class="op">)</span>,<span class="op">]</span>
+
+
+<span class="va">resids_tydal</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="va">resids_tydal</span>,
+                                    <span class="op">!</span><span class="va">ID</span><span class="op">&amp;</span><span class="op">!</span><span class="va">measured</span>,
+                                    names_to <span class="op">=</span> <span class="st">"power"</span>,
+                                    values_to <span class="op">=</span> <span class="st">"residual"</span><span class="op">)</span>
+<span class="va">resids_geilo</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="va">resids_geilo</span>,
+                                    <span class="op">!</span><span class="va">ID</span><span class="op">&amp;</span><span class="op">!</span><span class="va">measured</span>,
+                                    names_to <span class="op">=</span> <span class="st">"power"</span>,
+                                    values_to <span class="op">=</span> <span class="st">"residual"</span><span class="op">)</span>
+
+
+<span class="co"># Remove V from column names</span>
+<span class="va">resids_tydal</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"V"</span>, 
+                           replacement <span class="op">=</span> <span class="st">""</span>,
+                           x <span class="op">=</span> <span class="va">resids_tydal</span><span class="op">$</span><span class="va">power</span><span class="op">)</span>
+<span class="va">resids_geilo</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"V"</span>, 
+                           replacement <span class="op">=</span> <span class="st">""</span>,
+                           x <span class="op">=</span> <span class="va">resids_geilo</span><span class="op">$</span><span class="va">power</span><span class="op">)</span>
+
+<span class="va">resids_tydal</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">resids_tydal</span><span class="op">$</span><span class="va">power</span><span class="op">)</span>
+<span class="va">resids_geilo</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">resids_geilo</span><span class="op">$</span><span class="va">power</span><span class="op">)</span>
+
+<span class="va">resids_tydal</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="va">resids_tydal</span><span class="op">$</span><span class="va">power</span><span class="op">-</span><span class="fl">3</span>
+<span class="va">resids_geilo</span><span class="op">$</span><span class="va">power</span> <span class="op">&lt;-</span> <span class="va">resids_geilo</span><span class="op">$</span><span class="va">power</span><span class="op">-</span><span class="fl">3</span>
+
+
+<span class="va">gg_resids_tydal</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">resids_tydal</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">power</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">residual</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>fill<span class="op">=</span><span class="st">"grey"</span>,
+              trim<span class="op">=</span><span class="cn">F</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Power"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Tydal"</span><span class="op">)</span>
+<span class="co">#&gt; Warning: Ignoring unknown parameters: trim</span>
+
+
+<span class="va">gg_resids_geilo</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">resids_geilo</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">power</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">residual</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>fill<span class="op">=</span><span class="st">"grey"</span>,
+              trim<span class="op">=</span><span class="cn">F</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Power"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Geilo"</span><span class="op">)</span>
+<span class="co">#&gt; Warning: Ignoring unknown parameters: trim</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">gg_resids_geilo</span>,
+                  <span class="va">gg_resids_tydal</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-26"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-26-1.png" alt="Residuals (observed - predicted) stabelize with power greater than 2." width="672"><p class="caption">
+Figure 3.9: Residuals (observed - predicted) stabelize with power greater than 2.
+</p>
+</div>
+<p>With a power of 2 or greater, the residuals are very stable and unbiased (centered on 0).</p>
+</div>
+<div id="estimated-volume" class="section level2" number="3.4">
+<h2>
+<span class="header-section-number">3.4</span> Estimated volume<a class="anchor" aria-label="anchor" href="#estimated-volume"><i class="fas fa-link"></i></a>
+</h2>
+<p>What about the estimated volume - does that change depending on the power setting? Note that because the data are projected in UTM, the mean depth (in meter) of each 1x1 raster cell equals the volumne in m3.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">volume_tydal</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_tydal_"</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">volume_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">volume_tydal</span>,
+                    <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span>
+
+
+<span class="va">volume_geilo</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_geilo_"</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  <span class="va">volume_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">volume_geilo</span>,
+                    <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">volume_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="st">"volume"</span> <span class="op">=</span> <span class="va">volume_tydal</span>,
+                              <span class="st">"power"</span> <span class="op">=</span> <span class="va">myPowers</span><span class="op">)</span>
+<span class="va">volume_tydal</span><span class="op">$</span><span class="va">relative_volume</span> <span class="op">&lt;-</span> <span class="va">volume_tydal</span><span class="op">$</span><span class="va">volume</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">volume_tydal</span><span class="op">$</span><span class="va">volume</span><span class="op">)</span><span class="op">*</span><span class="fl">100</span>
+
+<span class="va">volume_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="st">"volume"</span> <span class="op">=</span> <span class="va">volume_geilo</span>,
+                              <span class="st">"power"</span> <span class="op">=</span> <span class="va">myPowers</span><span class="op">)</span>
+<span class="va">volume_geilo</span><span class="op">$</span><span class="va">relative_volume</span> <span class="op">&lt;-</span> <span class="va">volume_geilo</span><span class="op">$</span><span class="va">volume</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">volume_geilo</span><span class="op">$</span><span class="va">volume</span><span class="op">)</span><span class="op">*</span><span class="fl">100</span>
+
+
+<span class="va">gg_predVolume_tydal</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">volume_tydal</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">power</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_volume</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"power"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Peat volume as a percentage of\nmean predicted peat volume"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Tydal"</span><span class="op">)</span>
+
+<span class="va">gg_predVolume_geilo</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">volume_geilo</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">power</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">relative_volume</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"power"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Peat volume as a percentage of\nmean predicted peat volume"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Geilo"</span><span class="op">)</span>
+
+<span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span>
+  <span class="va">gg_predVolume_geilo</span>,
+  <span class="va">gg_predVolume_tydal</span>
+<span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-28"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-28-1.png" alt="Peat volume estimates as a function of the power parameter." width="672"><p class="caption">
+Figure 3.10: Peat volume estimates as a function of the power parameter.
+</p>
+</div>
+<p>The values are stabilizing relatively fast, but a power of less than 3 seem like a bad idea. In general though, the difference between the worst and best models is just 2-4%.</p>
+<p>This relationship probably depends a bit on the number of data points and the density of peat depth measurements. So we should not generalise just yet.</p>
+</div>
+<div id="model-fit-loocv" class="section level2" number="3.5">
+<h2>
+<span class="header-section-number">3.5</span> Model fit LOOCV<a class="anchor" aria-label="anchor" href="#model-fit-loocv"><i class="fas fa-link"></i></a>
+</h2>
+<p>Now let’s do a proper test of model fit, using leave one out cross validation. I will use the mean absolute deviation as my measure of model fit.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">MAE_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">myPowers</span>,
+                        MAE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span><span class="op">)</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_tydal</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="va">i</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+  <span class="va">MAE_tydal</span><span class="op">$</span><span class="va">MAE</span><span class="op">[</span><span class="va">MAE_tydal</span><span class="op">$</span><span class="va">power</span><span class="op">==</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">temp</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span>
+
+<span class="va">MAE_tydal</span><span class="op">$</span><span class="va">best</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">MAE_tydal</span><span class="op">$</span><span class="va">MAE</span><span class="op">==</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">MAE_tydal</span><span class="op">$</span><span class="va">MAE</span><span class="op">)</span>, <span class="st">"best"</span>, <span class="st">"not-best"</span><span class="op">)</span>
+
+
+<span class="co"># For Geilo the calculations take longer, so I will not consider as big a range in power</span>
+<span class="co"># This part still takes 2 min on my computer, so I will run it once and cache it on a local server.</span>
+<span class="va">myPowers2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">1</span><span class="op">)</span>
+<span class="co">#MAE_geilo &lt;- data.frame(power = myPowers2,</span>
+<span class="co">#                        MAE = as.numeric(NA))</span>
+<span class="co">#for(i in myPowers2){</span>
+<span class="co">#  temp &lt;- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=i), nmax = nmax)</span>
+<span class="co">#  MAE_geilo$MAE[MAE_geilo$power==i] &lt;- mean(abs(temp$residual))</span>
+<span class="co">#}</span>
+<span class="co">#</span>
+<span class="co">#MAE_geilo$best &lt;- ifelse(MAE_geilo$MAE==min(MAE_geilo$MAE), "best", "not-best")</span>
+<span class="co">#saveRDS(MAE_geilo, "Data/cache/MAE_geilo_cashe.rds")</span>
+<span class="va">MAE_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Data/cache/MAE_geilo_cashe.rds"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">gg_MAE_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">MAE_tydal</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">power</span>, y <span class="op">=</span> <span class="va">MAE</span>,
+                      colour <span class="op">=</span> <span class="va">best</span>,
+                      shape <span class="op">=</span> <span class="va">best</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="va">myPowers</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span><span class="op">(</span>colour<span class="op">=</span><span class="st">"none"</span>,
+         shape <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkgreen"</span>,<span class="st">"grey"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">18</span>, <span class="fl">19</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Tydal"</span><span class="op">)</span>
+
+<span class="va">gg_MAE_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">MAE_geilo</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">power</span>, y <span class="op">=</span> <span class="va">MAE</span>,
+                      colour <span class="op">=</span> <span class="va">best</span>,
+                      shape <span class="op">=</span> <span class="va">best</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="va">myPowers2</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html">guides</a></span><span class="op">(</span>colour<span class="op">=</span><span class="st">"none"</span>,
+         shape <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"darkgreen"</span>,<span class="st">"grey"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">18</span>, <span class="fl">19</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Geilo"</span><span class="op">)</span>
+
+<span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">gg_MAE_geilo</span>,
+                  <span class="va">gg_MAE_tydal</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-30"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-30-1.png" alt="Mean absolute error based on leave-one-out cross validation. The optimal power setting is indicated by a green star symbol." width="672"><p class="caption">
+Figure 3.11: Mean absolute error based on leave-one-out cross validation. The optimal power setting is indicated by a green star symbol.
+</p>
+</div>
+<p>The mean absolute error is not negligible in any of the two cases. The interpretation is, if you leave out one of the peat depth measurement and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.</p>
+<p>The best models have power = 2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (see above). But the map for Geilo is quite <em>spotted</em>, and perhaps a higher power would be smart. Or to estimate the peat volume for each polygon separately.</p>
+<p>A power less than 2 is not recommended as we have seen above. With nmax set to 9, the optimum power for Geilo was actually 1. I therefore went back up in the script and increased nmax to 20.</p>
+</div>
+<div id="best-models" class="section level2" number="3.6">
+<h2>
+<span class="header-section-number">3.6</span> Best models<a class="anchor" aria-label="anchor" href="#best-models"><i class="fas fa-link"></i></a>
+</h2>
+<p>Based on a criterion of lowest MAE we have identified the best IDW models for the two test sites:</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tm_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_tydal_4</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape<span class="op">=</span><span class="fl">4</span>,
+             col<span class="op">=</span><span class="st">"black"</span>,
+             size<span class="op">=</span><span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_compass.html">tm_compass</a></span><span class="op">(</span>type<span class="op">=</span><span class="st">"8star"</span>, position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"right"</span>, <span class="st">"bottom"</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.05</span>, <span class="fl">0</span>, <span class="fl">0.05</span><span class="op">)</span>,
+            legend.outside <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
+
+<span class="co">#tmap::tmap_save(tm_tydal,</span>
+<span class="co">#                "Output/plot_IDW_tydal_bestModel.tiff",</span>
+<span class="co">#                 width = 1600, height = 1600, units = "px")</span>
+<span class="va">tm_tydal</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-31"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-31-1.png" alt="Best model for estimating the peat depth profile for the Tydal test site. Dots indicatore peat depth sampling points. MAE = 0.59 meters. Power = 4." width="672"><p class="caption">
+Figure 3.12: Best model for estimating the peat depth profile for the Tydal test site. Dots indicatore peat depth sampling points. MAE = 0.59 meters. Power = 4.
+</p>
+</div>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">IDW_geilo_2</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_geilo</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Geilo_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">2</span>,
+           nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tm_geilo</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_geilo_2</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_compass.html">tm_compass</a></span><span class="op">(</span>type<span class="op">=</span><span class="st">"8star"</span>, position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"right"</span>, <span class="st">"bottom"</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"right"</span>, <span class="st">"bottom"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>
+
+<span class="co">#tmap::tmap_save(tm_geilo,</span>
+<span class="co">#                "Output/plot_IDW_geilo_bestModel.tiff",</span>
+<span class="co">#                 width = 1600, height = 1600, units = "px")</span>
+<span class="va">tm_geilo</span>
+<span class="co">#&gt; stars object downsampled to 1369 by 730 cells. See tm_shape manual (argument raster.downsample)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-33"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-33-1.png" alt="Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 2." width="672"><p class="caption">
+Figure 3.13: Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 2.
+</p>
+</div>
+<p>Tydal is 7.7336967^{4} m<sup>3</sup> and Geilo is 1.0226839^{5} m<sup>3</sup>. We can get the residuals from LOOCV.</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">SE_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_tydal</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">4</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+<span class="va">SE_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">SE_tydal</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">residual</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-34"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-34-1.png" alt="Resuduals from LOOCV. Test site: Tydal" width="672"><p class="caption">
+Figure 3.14: Resuduals from LOOCV. Test site: Tydal
+</p>
+</div>
+<p>For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is 0.59 meters. There is no clear way how to predict confidence intervals for IDW. The residuals, and the MAE, represnets uncertainty for each grid cell value, and not uncertainty in the sum of all these grid cells. Since the mean of the residuals (not the absolute mean, but the normal mean) is quite close to 0, the uncertainty for each cell cancels out.</p>
+<p>We can calculate the peat volume based on the best model</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">volume</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>site <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Tydal"</span>, <span class="st">"Geilo"</span><span class="op">)</span>,
+                     volume <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_tydal_4</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,
+                                <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_geilo_2</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/ggtext/">ggtext</a></span><span class="op">)</span> <span class="co"># write superscript as markdown</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">volume</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">site</span>, y <span class="op">=</span> <span class="va">volume</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>stat<span class="op">=</span><span class="st">"identity"</span>,
+           colour<span class="op">=</span><span class="st">"black"</span>,
+           fill <span class="op">=</span> <span class="st">"grey"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>axis.title.y <span class="op">=</span> <span class="fu"><a href="https://wilkelab.org/ggtext/reference/element_markdown.html">element_markdown</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Volume m^(3)"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-36"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-36-1.png" alt="Peat volume estimated from IDW. Errors are volumes calculated after multiplying the predicted values with the mean absolute error from LOOCV." width="672"><p class="caption">
+Figure 3.15: Peat volume estimated from IDW. Errors are volumes calculated after multiplying the predicted values with the mean absolute error from LOOCV.
+</p>
+</div>
+<p>The rough volume (no iDW) Tydal and Geilo</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">SHP_tydal</span><span class="op">$</span><span class="va">myArea</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_area</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">$</span><span class="va">Dybde</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">$</span><span class="va">myArea</span><span class="op">)</span>
+<span class="co">#&gt; 76994.27 [m^2]</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">SHP_geilo</span><span class="op">$</span><span class="va">myArea</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_area</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">depths_geilo</span><span class="op">$</span><span class="va">Dybde</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">$</span><span class="va">myArea</span><span class="op">)</span>
+<span class="co">#&gt; 98690.12 [m^2]</span></code></pre></div>
+<p>Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="data.html"><span class="header-section-number">2</span> Data</a></div>
+<div class="next"><a href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#find-best-model"><span class="header-section-number">3</span> Find best model</a></li>
+<li><a class="nav-link" href="#raster-grid"><span class="header-section-number">3.1</span> Raster grid</a></li>
+<li><a class="nav-link" href="#inverse-distance-weighting"><span class="header-section-number">3.2</span> Inverse distance weighting</a></li>
+<li><a class="nav-link" href="#original-residuals"><span class="header-section-number">3.3</span> Original residuals</a></li>
+<li><a class="nav-link" href="#estimated-volume"><span class="header-section-number">3.4</span> Estimated volume</a></li>
+<li><a class="nav-link" href="#model-fit-loocv"><span class="header-section-number">3.5</span> Model fit LOOCV</a></li>
+<li><a class="nav-link" href="#best-models"><span class="header-section-number">3.6</span> Best models</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/anders-kolstad/carbonCalculator/blob/master/02-peatVolume.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/anders-kolstad/carbonCalculator/edit/master/02-peatVolume.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

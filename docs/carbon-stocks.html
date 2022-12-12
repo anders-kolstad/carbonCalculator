@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 6 Carbon stocks | Analyses of peatland carbon stocks</title>
+<meta name="author" content="Marte Fandre, Anders L. Kolstad">
+<meta name="description" content="Now I want to convert the peat volumes into estimates of carbon stock. This conversion depends on the values of some peat characteristics, such as bulk density and C concentrations. We have a data...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="Chapter 6 Carbon stocks | Analyses of peatland carbon stocks">
+<meta property="og:type" content="book">
+<meta property="og:description" content="Now I want to convert the peat volumes into estimates of carbon stock. This conversion depends on the values of some peat characteristics, such as bulk density and C concentrations. We have a data...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 6 Carbon stocks | Analyses of peatland carbon stocks">
+<meta name="twitter:description" content="Now I want to convert the peat volumes into estimates of carbon stock. This conversion depends on the values of some peat characteristics, such as bulk density and C concentrations. We have a data...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><link rel="stylesheet" href="bs4_style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Analyses of peatland carbon stocks</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> Analyses of peatland carbon stocks</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> Data</a></li>
+<li><a class="" href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></li>
+<li><a class="" href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></li>
+<li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
+<li><a class="active" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
+<li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/anders-kolstad/carbonCalculator">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="carbon-stocks" class="section level1" number="6">
+<h1>
+<span class="header-section-number">6</span> Carbon stocks<a class="anchor" aria-label="anchor" href="#carbon-stocks"><i class="fas fa-link"></i></a>
+</h1>
+<p>Now I want to convert the peat volumes into estimates of carbon stock. This conversion depends on the values of some peat characteristics, such as bulk density and C concentrations. We have a data set with these values.</p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">peatCharacteristics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_delim</a></span><span class="op">(</span><span class="st">"Data/peatCharacteristics.csv"</span>, 
+    delim <span class="op">=</span> <span class="st">";"</span>, escape_double <span class="op">=</span> <span class="cn">FALSE</span>, locale <span class="op">=</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/locale.html">locale</a></span><span class="op">(</span>encoding <span class="op">=</span> <span class="st">"ISO-8859-1"</span><span class="op">)</span>, 
+    trim_ws <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; Rows: 88 Columns: 30</span>
+<span class="co">#&gt; -- Column specification ------------------------------------</span>
+<span class="co">#&gt; Delimiter: ";"</span>
+<span class="co">#&gt; chr (17): SAMPLE ID2, Location Name, Municipality, Count...</span>
+<span class="co">#&gt; dbl (12): Sample No, ETRS89_UTM32_E, ETRS89_UTM32_N, BD ...</span>
+<span class="co">#&gt; lgl  (1): Condition_notes</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; i Use `spec()` to retrieve the full column specification for this data.</span>
+<span class="co">#&gt; i Specify the column types or set `show_col_types = FALSE` to quiet this message.</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">peatCharacteristics</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 6 x 30</span>
+<span class="co">#&gt;   `SAMPLE ID2` `Sample No` `Location Name`      Municipality</span>
+<span class="co">#&gt;   &lt;chr&gt;              &lt;dbl&gt; &lt;chr&gt;                &lt;chr&gt;       </span>
+<span class="co">#&gt; 1 0029                   1 Myr NV for Vesterse~ Namsos      </span>
+<span class="co">#&gt; 2 0029                   2 Myr NV for Vesterse~ Namsos      </span>
+<span class="co">#&gt; 3 0030                   1 Bakkemyr SV for Ves~ Namsos      </span>
+<span class="co">#&gt; 4 0031                   1 Skognbakkmyra        Namsos      </span>
+<span class="co">#&gt; 5 0031                   2 Skognbakkmyra        Namsos      </span>
+<span class="co">#&gt; 6 0031                   3 Skognbakkmyra        Namsos      </span>
+<span class="co">#&gt; # ... with 26 more variables: County &lt;chr&gt;,</span>
+<span class="co">#&gt; #   `General Peatland Type` &lt;chr&gt;,</span>
+<span class="co">#&gt; #   `Specific Peatland Type` &lt;chr&gt;,</span>
+<span class="co">#&gt; #   `Generell myrtype` &lt;chr&gt;, Naturtype &lt;chr&gt;,</span>
+<span class="co">#&gt; #   `Detaljert Naturtype` &lt;chr&gt;, `NiN kode` &lt;chr&gt;,</span>
+<span class="co">#&gt; #   Condition &lt;chr&gt;, Condition_notes &lt;lgl&gt;,</span>
+<span class="co">#&gt; #   Notes_misc &lt;chr&gt;, ETRS89_UTM32_E &lt;dbl&gt;, ...</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take te mean from each sample core.</span>
+<span class="va">peatCharacteristics_summedDepths</span> <span class="op">&lt;-</span> <span class="va">peatCharacteristics</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>perc_SOM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">`% SOM`</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>BD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">`BD (t/m3)`</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">`SAMPLE ID2`</span>, <span class="va">perc_SOM</span>, <span class="va">BD</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">`SAMPLE ID2`</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu"><a href="https://r-spatial.github.io/sf/reference/tidyverse.html">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span>.fns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mean <span class="op">=</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">.</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="co"># Getting the other variables that I also want to keep</span>
+<span class="va">df_info</span> <span class="op">&lt;-</span> <span class="va">peatCharacteristics</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">`SAMPLE ID2`</span>, <span class="va">`General Peatland Type`</span>, <span class="va">`Specific Peatland Type`</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">`SAMPLE ID2`</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+      <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="op">)</span>
+<span class="co"># and join together again (this two-stap proceedure could be simplified)</span>
+<span class="va">df</span> <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">full_join</a></span><span class="op">(</span><span class="va">peatCharacteristics_summedDepths</span>, <span class="va">df_info</span>, by <span class="op">=</span> <span class="st">"SAMPLE ID2"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/drop_na.html">drop_na</a></span><span class="op">(</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 6 x 5</span>
+<span class="co">#&gt;   `SAMPLE ID2` perc_SOM_mean BD_mean `General Peatland Type`</span>
+<span class="co">#&gt;   &lt;chr&gt;                &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                  </span>
+<span class="co">#&gt; 1 0029                  98.3  0.05   fen                    </span>
+<span class="co">#&gt; 2 0030                  99.5  0.102  fen                    </span>
+<span class="co">#&gt; 3 0031                  98.2  0.0527 bog                    </span>
+<span class="co">#&gt; 4 0032                  95.9  0.0555 fen                    </span>
+<span class="co">#&gt; 5 0033                  96.6  0.067  fen                    </span>
+<span class="co">#&gt; 6 0034                  99.3  0.066  fen                    </span>
+<span class="co">#&gt; # ... with 1 more variable: `Specific Peatland Type` &lt;chr&gt;</span></code></pre></div>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">`General Peatland Type`</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; bog fen </span>
+<span class="co">#&gt;  12  14</span></code></pre></div>
+<p>We have 12 samples from bogs, and 14 from fens.</p>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">`Specific Peatland Type`</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;              bog intermediate fen      oceanic bog </span>
+<span class="co">#&gt;                3                5                2 </span>
+<span class="co">#&gt;         poor fen       raised bog         rich fen </span>
+<span class="co">#&gt;                5                7                4</span></code></pre></div>
+<p>We do not perhaps have enough data points to really compare the different spesific peatland types.</p>
+<p>Lets get the total peat volumes for Tydal (and Geilo, but I will not look at Geilo here).</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">volume</span>
+<span class="co">#&gt;    site    volume</span>
+<span class="co">#&gt; 1 Tydal  77336.97</span>
+<span class="co">#&gt; 2 Geilo 102268.39</span></code></pre></div>
+<p>Calculating the c stocks (tons C) for the Tydal site without specifying the mire type</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">c_stock_tydal_uninformed</span> <span class="op">&lt;-</span> 
+              <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Tydal"</span><span class="op">]</span> <span class="op">*</span> 
+              <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">perc_SOM_mean</span> <span class="op">/</span> <span class="fl">100</span><span class="op">)</span> <span class="op">*</span> 
+              <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">BD_mean</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.5</span> <span class="co">#* 1000 # removing the original conversion from tons to kg</span>
+<span class="va">c_stock_tydal_uninformed</span>
+<span class="co">#&gt; [1] 3519.665</span></code></pre></div>
+<p>I think we also need to estimate the uncertainties around this number. Note that for the peat volume estimation, we did not calculate an uncertainty. But for the peat characteristics we have an uncertainty in therms of variation within and between samples points. I will calculate the uncertainty between points only.</p>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">c_stock_tydal_uninformed</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">)</span><span class="op">{</span>
+ <span class="va">temp</span> <span class="op">&lt;-</span>      <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Tydal"</span><span class="op">]</span> <span class="op">*</span> 
+              <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">perc_SOM_mean</span>, replace <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op">/</span> <span class="fl">100</span><span class="op">)</span> <span class="op">*</span> 
+              <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">BD_mean</span>, replace <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.5</span><span class="op">)</span>
+ 
+ <span class="va">c_stock_tydal_uninformed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span>, <span class="va">temp</span><span class="op">)</span>
+  <span class="op">}</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span>, main<span class="op">=</span><span class="st">""</span>,
+     xlab<span class="op">=</span><span class="st">"C stock"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-83"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-83-1.png" alt="Estaimted carbon stock in the Tydal peatland" width="672"><p class="caption">
+Figure 6.1: Estaimted carbon stock in the Tydal peatland
+</p>
+</div>
+<p>This distribution is quite wide. Let’s summarize the distribution.</p>
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.05</span>, <span class="fl">.5</span>, <span class="fl">.95</span><span class="op">)</span><span class="op">)</span>,
+  mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;        5%       50%       95%      mean        sd </span>
+<span class="co">#&gt; 2998.6965 3496.7183 4042.6686 3511.7408  308.4893</span></code></pre></div>
+<p>We can put this stuff into a more generic function.</p>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ccalc_cStocks</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">volume</span>,
+                          <span class="va">peatlandType</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"fen"</span>, <span class="st">"bog"</span><span class="op">)</span>,
+                          <span class="va">peatData</span><span class="op">)</span><span class="op">{</span>
+  <span class="va">temp_stocks</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
+  <span class="va">temp_peatData</span> <span class="op">&lt;-</span>  <span class="va">peatData</span><span class="op">[</span><span class="va">peatData</span><span class="op">$</span><span class="va">`General Peatland Type`</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">peatlandType</span>,<span class="op">]</span>
+    
+  <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">)</span><span class="op">{</span>
+    <span class="va">temp</span> <span class="op">&lt;-</span>   <span class="va">volume</span> <span class="op">*</span> 
+              <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">peatData</span><span class="op">$</span><span class="va">perc_SOM_mean</span>, replace <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op">/</span> <span class="fl">100</span><span class="op">)</span> <span class="op">*</span> 
+              <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">peatData</span><span class="op">$</span><span class="va">BD_mean</span>, replace <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.5</span><span class="op">)</span>
+ 
+    <span class="va">temp_stocks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">temp_stocks</span>, <span class="va">temp</span><span class="op">)</span>
+  <span class="op">}</span>
+  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">temp_stocks</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.05</span>, <span class="fl">.5</span>, <span class="fl">.95</span><span class="op">)</span><span class="op">)</span>,
+  mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">temp_stocks</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">temp_stocks</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<p>Calculating summary statistics for the carbon stocks in Tydal, using both general peatland types.</p>
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">(</span><span class="va">cstocks_tydal_unspecified</span> <span class="op">&lt;-</span> 
+  <span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Tydal"</span><span class="op">]</span>,
+              peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;        5%       50%       95%      mean        sd </span>
+<span class="co">#&gt; 3028.5506 3504.3595 4016.4993 3511.9293  305.2949</span></code></pre></div>
+<p>And using only the <em>bog</em> data.</p>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">(</span><span class="va">cstocks_tydal_bog</span> <span class="op">&lt;-</span> 
+  <span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Tydal"</span><span class="op">]</span>,
+              peatData <span class="op">=</span> <span class="va">df</span>,
+              peatlandType <span class="op">=</span> <span class="st">"bog"</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;        5%       50%       95%      mean        sd </span>
+<span class="co">#&gt; 3046.2127 3534.3871 4034.4952 3526.9671  303.6141</span></code></pre></div>
+<p>And finally, aslo the fen data.</p>
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="op">(</span><span class="va">cstocks_tydal_fen</span> <span class="op">&lt;-</span> 
+  <span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Tydal"</span><span class="op">]</span>,
+              peatData <span class="op">=</span> <span class="va">df</span>,
+              peatlandType <span class="op">=</span> <span class="st">"fen"</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;        5%       50%       95%      mean        sd </span>
+<span class="co">#&gt; 3023.6334 3504.1587 4023.3711 3512.9791  301.8405</span></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">cstocks_tydal_unspecified_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">cstocks_tydal_unspecified</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">cstocks_tydal_unspecified_df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"C stocks"</span>
+<span class="va">cstocks_tydal_unspecified_df</span><span class="op">$</span><span class="va">summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html">row.names</a></span><span class="op">(</span><span class="va">cstocks_tydal_unspecified_df</span><span class="op">)</span>
+<span class="va">cstocks_tydal_unspecified_df</span><span class="op">$</span><span class="va">information</span> <span class="op">&lt;-</span> <span class="st">"Unspesified"</span>
+
+
+<span class="va">cstocks_tydal_bog_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">cstocks_tydal_bog</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">cstocks_tydal_bog_df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"C stocks"</span>
+<span class="va">cstocks_tydal_bog_df</span><span class="op">$</span><span class="va">summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html">row.names</a></span><span class="op">(</span><span class="va">cstocks_tydal_bog_df</span><span class="op">)</span>
+<span class="va">cstocks_tydal_bog_df</span><span class="op">$</span><span class="va">information</span> <span class="op">&lt;-</span> <span class="st">"Bog"</span>
+
+<span class="va">cstocks_tydal_fen_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">cstocks_tydal_fen</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">cstocks_tydal_fen_df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"C stocks"</span>
+<span class="va">cstocks_tydal_fen_df</span><span class="op">$</span><span class="va">summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html">row.names</a></span><span class="op">(</span><span class="va">cstocks_tydal_fen_df</span><span class="op">)</span>
+<span class="va">cstocks_tydal_fen_df</span><span class="op">$</span><span class="va">information</span> <span class="op">&lt;-</span> <span class="st">"Fen"</span>
+
+<span class="va">cstocks_tydal_compare</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span>
+  <span class="va">cstocks_tydal_fen_df</span>,
+  <span class="va">cstocks_tydal_bog_df</span>,
+  <span class="va">cstocks_tydal_unspecified_df</span>
+<span class="op">)</span>
+
+<span class="co"># Pivot</span>
+<span class="va">cstocks_tydal_compare</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html">pivot_wider</a></span><span class="op">(</span><span class="va">cstocks_tydal_compare</span>,
+                                      names_from <span class="op">=</span> <span class="va">summary</span>,
+                                      values_from <span class="op">=</span> <span class="st">"C stocks"</span>
+                                      <span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">cstocks_tydal_compare</span>,
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">information</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">mean</span><span class="op">)</span>, shape<span class="op">=</span><span class="fl">15</span>, size<span class="op">=</span><span class="fl">10</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html">geom_linerange</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin<span class="op">=</span><span class="va">`5%`</span>, 
+                     ymax<span class="op">=</span><span class="va">`95%`</span><span class="op">)</span>,
+                 size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Peat characteristics"</span>,
+       y <span class="op">=</span> <span class="st">"Carbon stocks (tons)"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-89"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-89-1.png" alt="Mean (+- 95 CI) carbon stock for the Tydal test site." width="672"><p class="caption">
+Figure 6.2: Mean (+- 95 CI) carbon stock for the Tydal test site.
+</p>
+</div>
+<p>Specifying the peatland type makes no difference!</p>
+<p>Let’s just get the (non-informed) C stock estimates for Geilo as well</p>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="fl">102444.14</span>,
+              peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
+<span class="co">#&gt;       5%      50%      95%     mean       sd </span>
+<span class="co">#&gt; 3936.979 4616.614 5349.353 4627.271  424.368</span></code></pre></div>
+
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></div>
+<div class="next"><a href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav"><li><a class="nav-link" href="#carbon-stocks"><span class="header-section-number">6</span> Carbon stocks</a></li></ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/anders-kolstad/carbonCalculator/blob/master/05-carbonStocks.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/anders-kolstad/carbonCalculator/edit/master/05-carbonStocks.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

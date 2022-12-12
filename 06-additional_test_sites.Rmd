@@ -4,7 +4,7 @@ We used two contrastong sites, Tydal and Geilo, for the main analyses and testin
 
 ## Modalen
 Import shape files with peatland delineations.
-```{r import shape files, message=F, warning=F}
+```{r, message=F, warning=F}
 SHP_modalen <- sf::read_sf("Data/Modalen/Modalen_myrareal.shp")
 #st_crs(SHP_modalen) #OK
 ```
@@ -93,7 +93,7 @@ ccalc_optimumPower(nmax=nrow(depths_modalen_reduced),
                    peatlandDelimination = SHP_modalen)
 ```
 
-Unsurprising, when we have so few data points, the optimum power is very low. I will predict using power 1 though 3 to compare, just because I don't trus power 1 is the best choice. 
+Unsurprising, when we have so few data points, the optimum power is very low. I will predict using power 1 through 3 to compare, just because I don't trust power 1 is the best choice. 
 
 ```{r}
 IDW_Modalen_1 <- gstat::idw(formula = Dybde ~ 1, 
@@ -248,11 +248,6 @@ tm_shape(SHP_opelandsmarka_twoMires)+
   tm_symbols(col="black",
              size=.5,
              shape=4)
-```
-
-
-```{r}
-ccalc_optimumPower(peatDepths = depths_opelandsmarka, title = "Opelandsmarka")
 ```
 
 There is one NA in the depth data which we have to remove
@@ -596,7 +591,7 @@ nrow(depths_kinn2_spatial)/SHP_kinn2$myArea*100
 ```
 
 Find optimal power
-```{r, fig.cap="Finding the best power setting for the Kinn1 test site."}
+```{r, fig.cap="Finding the best power setting for the Kinn2 test site."}
 ccalc_optimumPower(peatDepths = depths_kinn2_spatial,
                    peatlandDelimination = SHP_kinn2,
                    title = "Kinn2")
@@ -619,7 +614,7 @@ IDW_kinn2_4 <- gstat::idw(Dybde ~ 1, depths_kinn2_spatial,
 
 ```
 
-```{r, fig.cap="Best model for test site Kinn1"}
+```{r, fig.cap="Best model for test site Kinn2"}
 myBreaks <- seq(0,3,.5)
 myPos <- c("right", "bottom")
 

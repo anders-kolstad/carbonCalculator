@@ -627,4 +627,4 @@ ggsave("Output/plot_distanceAgainstMAE.tiff", gg_mae,
 gg_mae
 ```
 
-This figure I think also support that sampling distances aboev about 25 m is a bad idea.
+This figure I think also support that sampling distances above about 25 m is a bad idea.

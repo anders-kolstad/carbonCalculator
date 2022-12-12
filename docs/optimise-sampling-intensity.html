@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 4 Optimise sampling intensity | Analyses of peatland carbon stocks</title>
+<meta name="author" content="Marte Fandre, Anders L. Kolstad">
+<meta name="description" content="Now I want to resample and reduce the dataset, but try to keep the original sampling design. For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="Chapter 4 Optimise sampling intensity | Analyses of peatland carbon stocks">
+<meta property="og:type" content="book">
+<meta property="og:description" content="Now I want to resample and reduce the dataset, but try to keep the original sampling design. For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 4 Optimise sampling intensity | Analyses of peatland carbon stocks">
+<meta name="twitter:description" content="Now I want to resample and reduce the dataset, but try to keep the original sampling design. For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><link rel="stylesheet" href="bs4_style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Analyses of peatland carbon stocks</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> Analyses of peatland carbon stocks</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">2</span> Data</a></li>
+<li><a class="" href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></li>
+<li><a class="active" href="optimise-sampling-intensity.html"><span class="header-section-number">4</span> Optimise sampling intensity</a></li>
+<li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
+<li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
+<li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/anders-kolstad/carbonCalculator">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="optimise-sampling-intensity" class="section level1" number="4">
+<h1>
+<span class="header-section-number">4</span> Optimise sampling intensity<a class="anchor" aria-label="anchor" href="#optimise-sampling-intensity"><i class="fas fa-link"></i></a>
+</h1>
+<p>Now I want to resample and reduce the dataset, but try to keep the original sampling design.
+For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is obvious that a peat depth measurement from a neighboring mire cannot replace data collection on the actuall mire.</p>
+<div id="subset-geilo-data" class="section level2" number="4.1">
+<h2>
+<span class="header-section-number">4.1</span> Subset Geilo data<a class="anchor" aria-label="anchor" href="#subset-geilo-data"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># select a single mire polygon</span>
+<span class="va">SHP_geilo_biggest</span> <span class="op">&lt;-</span> <span class="va">SHP_geilo</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">$</span><span class="va">AREAL</span><span class="op">)</span>,<span class="op">]</span>
+
+<span class="co"># drop the depth measurements from the other polygons</span>
+<span class="va">depths_geilo_biggest</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html">st_intersection</a></span><span class="op">(</span><span class="va">depths_geilo</span>, <span class="va">SHP_geilo_biggest</span><span class="op">)</span>
+
+<span class="co">#Crop the raster grid</span>
+<span class="va">grid_Geilo_stars_crop_biggest</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crop.html">st_crop</a></span><span class="op">(</span><span class="va">grid_Geilo_stars</span>, <span class="va">SHP_geilo_biggest</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html">plot</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">$</span><span class="va">Dybde</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">$</span><span class="va">Dybde</span><span class="op">)</span><span class="op">]</span>,
+     ylab<span class="op">=</span><span class="st">"Peat depth (m)"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-41"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-41-1.png" alt="Peat depth measurements for the biggest of the Geilo mires." width="672"><p class="caption">
+Figure 4.1: Peat depth measurements for the biggest of the Geilo mires.
+</p>
+</div>
+<p>Looking at the depth measurements in the figure above, we are reminded that the data contains zeros (measurements taken near the edge) and a truncated above 3 (because that was the length of the peat depth probe).</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+             shape<span class="op">=</span><span class="fl">4</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-42"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-42-1.png" alt="One mire polygon from the Geilo test site used in the assessment of minimum sampling." width="672"><p class="caption">
+Figure 4.2: One mire polygon from the Geilo test site used in the assessment of minimum sampling.
+</p>
+</div>
+</div>
+<div id="repeat-the-best-idw" class="section level2" number="4.2">
+<h2>
+<span class="header-section-number">4.2</span> Repeat the best IDW<a class="anchor" aria-label="anchor" href="#repeat-the-best-idw"><i class="fas fa-link"></i></a>
+</h2>
+<p>Here I simply recalculate the best models, as described in the previous chapter</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">IDW_tydal_4</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">4</span>,
+           nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span>
+
+<span class="va">IDW_geilo_2</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_geilo_biggest</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Geilo_stars_crop_biggest</span>, 
+           idp<span class="op">=</span><span class="fl">2</span>,
+           nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
+</div>
+<div id="reduce-n" class="section level2" number="4.3">
+<h2>
+<span class="header-section-number">4.3</span> Reduce N<a class="anchor" aria-label="anchor" href="#reduce-n"><i class="fas fa-link"></i></a>
+</h2>
+<p>by gradually removing the closest point.</p>
+<p>First we need to set up some temporary files for the for-loop.</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">distMatrix_tydal</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span> 
+<span class="va">distMatrix_tydal</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">distMatrix_tydal</span><span class="op">)</span>
+<span class="va">distMatrix_tydal</span><span class="op">[</span><span class="va">distMatrix_tydal</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+<span class="va">distMin_tydal</span> <span class="op">&lt;-</span> <span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">distMatrix_tydal</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+
+<span class="va">distMatrix_geilo</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span> 
+<span class="va">distMatrix_geilo</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">distMatrix_geilo</span><span class="op">)</span>
+<span class="va">distMatrix_geilo</span><span class="op">[</span><span class="va">distMatrix_geilo</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+<span class="va">distMin_geilo</span> <span class="op">&lt;-</span> <span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">distMatrix_geilo</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span></code></pre></div>
+<p>Create temporary working files</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">distMin_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_tydal</span>
+<span class="va">depths_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">depths_tydal</span>
+
+<span class="va">distMin_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_geilo</span>
+<span class="va">depths_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">depths_geilo_biggest</span></code></pre></div>
+<p>Get the summed volume</p>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">est_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_tydal_4</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+<span class="va">est_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_geilo_2</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span></code></pre></div>
+<p>Get the median, mean and skewness of the distances to the closest neighbor</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">medianDist_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>
+<span class="va">meanDist_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>
+<span class="va">skewDist_tydal</span> <span class="op">&lt;-</span> <span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/skewness.html">skewness</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>
+
+<span class="va">medianDist_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">distMin_geilo</span><span class="op">)</span>
+<span class="va">meanDist_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">distMin_geilo</span><span class="op">)</span>
+<span class="va">skewDist_geilo</span> <span class="op">&lt;-</span> <span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/skewness.html">skewness</a></span><span class="op">(</span><span class="va">distMin_geilo</span><span class="op">)</span></code></pre></div>
+<p>Get the MAE</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">MAE_tydal_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_tydal</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">4</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+<span class="va">MAE_tydal_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE_tydal_allData</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">MAE_geilo_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_biggest</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+<span class="va">MAE_geilo_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE_geilo_allData</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>Put it into a dataframe</p>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">summaryTable_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>
+  medianDist             <span class="op">=</span> <span class="va">medianDist_tydal</span>,
+  meanDist               <span class="op">=</span> <span class="va">meanDist_tydal</span>,
+  skewness               <span class="op">=</span> <span class="va">skewDist_tydal</span>,
+  n                      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>,
+  estimatedPeatVolume_m3 <span class="op">=</span> <span class="va">est_tydal</span>,
+  MAE                    <span class="op">=</span> <span class="va">MAE_tydal_allData</span>
+<span class="op">)</span>
+
+<span class="va">summaryTable_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>
+  medianDist             <span class="op">=</span> <span class="va">medianDist_geilo</span>,
+  meanDist               <span class="op">=</span> <span class="va">meanDist_geilo</span>,
+  skewness               <span class="op">=</span> <span class="va">skewDist_geilo</span>,
+  n                      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">distMin_geilo</span><span class="op">)</span>,
+  estimatedPeatVolume_m3 <span class="op">=</span> <span class="va">est_geilo</span>,
+  MAE                    <span class="op">=</span> <span class="va">MAE_geilo_allData</span>
+<span class="op">)</span></code></pre></div>
+<p>Perform a for-loop to gradually remove points based on how close they are to other points. This will hopefully retain most of the systematic design of the points (avoiding clumping of points).</p>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># I will not bother going lower than ten data points</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  
+ <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"run number = "</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  
+ <span class="va">toRemove</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>
+ <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Removing row number "</span>, <span class="va">toRemove</span><span class="op">)</span><span class="op">)</span>
+ 
+ <span class="co"># get some stats distance between neighbours</span>
+ <span class="va">medianDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span><span class="op">)</span>
+ <span class="va">meanDist</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span><span class="op">)</span>
+ <span class="va">skewDist</span>   <span class="op">&lt;-</span> <span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/skewness.html">skewness</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span><span class="op">)</span>
+
+ <span class="va">depths_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">depths_tydal_temp</span><span class="op">[</span><span class="op">-</span><span class="va">toRemove</span>,<span class="op">]</span>
+
+ <span class="co"># perform interpolation on tempDF</span>
+  <span class="va">int</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_tydal_temp</span>, 
+                    newdata<span class="op">=</span><span class="va">grid_Tydal_stars_crop</span>, 
+                    nmax<span class="op">=</span><span class="va">nmax</span>, idp<span class="op">=</span><span class="fl">4</span><span class="op">)</span>
+  
+  <span class="co"># Export some predictions for checks</span>
+  <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">90</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_tydal_i"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">int</span><span class="op">)</span>
+  <span class="op">}</span>
+  
+  
+  <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">int</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+  
+  <span class="co"># get the MAE as well, even though it takes a long time to run</span>
+  <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_tydal_temp</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">4</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+  <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
+  
+ <span class="co"># paste into the summary table</span>
+ <span class="va">summaryTable_tydal</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"medianDist"</span><span class="op">]</span>      <span class="op">&lt;-</span> <span class="va">medianDist</span>
+ <span class="va">summaryTable_tydal</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"meanDist"</span><span class="op">]</span>        <span class="op">&lt;-</span> <span class="va">meanDist</span>
+ <span class="va">summaryTable_tydal</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"skewness"</span><span class="op">]</span>        <span class="op">&lt;-</span> <span class="va">skewDist</span>
+ <span class="va">summaryTable_tydal</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"n"</span><span class="op">]</span>               <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span>
+ <span class="va">summaryTable_tydal</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"estimatedPeatVolume_m3"</span><span class="op">]</span>           <span class="op">&lt;-</span> <span class="va">est</span>
+ <span class="va">summaryTable_tydal</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"MAE"</span><span class="op">]</span>             <span class="op">&lt;-</span> <span class="va">MAE</span>
+
+ 
+  <span class="co"># prepare dataset for next loop</span>
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_tydal_temp</span><span class="op">)</span> 
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">euclidDist</span><span class="op">)</span>
+ <span class="va">euclidDist</span><span class="op">[</span><span class="va">euclidDist</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+ <span class="va">distMin_tydal_temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">euclidDist</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+ 
+<span class="op">}</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">summaryTable_tydal</span>, <span class="st">"Data/Tydal/tydal_cvAnalysisData.rds"</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_tydal_i30</span>, <span class="st">"Output/Tydal/IDW_tydal_i30.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_tydal_i60</span>, <span class="st">"Output/Tydal/IDW_tydal_i60.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_tydal_i90</span>, <span class="st">"Output/Tydal/IDW_tydal_i90.rds"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># I will not bother going lower than ten data points</span>
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  
+ <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"run number = "</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
+  
+ <span class="va">toRemove</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>
+ <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Removing row number "</span>, <span class="va">toRemove</span><span class="op">)</span><span class="op">)</span>
+ 
+ <span class="co"># get some stats distance between neighbours</span>
+ <span class="va">medianDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span><span class="op">)</span>
+ <span class="va">meanDist</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span><span class="op">)</span>
+ <span class="va">skewDist</span>   <span class="op">&lt;-</span> <span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/skewness.html">skewness</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span><span class="op">)</span>
+
+ <span class="va">depths_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">depths_geilo_temp</span><span class="op">[</span><span class="op">-</span><span class="va">toRemove</span>,<span class="op">]</span>
+
+ <span class="co"># perform interpolation on tempDF</span>
+  <span class="va">int</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_temp</span>, 
+                    newdata<span class="op">=</span><span class="va">grid_Geilo_stars_crop_biggest</span>, 
+                    nmax<span class="op">=</span><span class="va">nmax</span>, idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>
+  
+  <span class="co"># Export some predictions for checks</span>
+  <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">240</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"IDW_geilo_i"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">int</span><span class="op">)</span>
+  <span class="op">}</span>
+  
+  
+  <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">int</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+  
+  <span class="co"># get the MAE as well, even though it takes a long time to run</span>
+  <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_temp</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+  <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
+  
+ <span class="co"># paste into the summary table</span>
+ <span class="va">summaryTable_geilo</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"medianDist"</span><span class="op">]</span>      <span class="op">&lt;-</span> <span class="va">medianDist</span>
+ <span class="va">summaryTable_geilo</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"meanDist"</span><span class="op">]</span>        <span class="op">&lt;-</span> <span class="va">meanDist</span>
+ <span class="va">summaryTable_geilo</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"skewness"</span><span class="op">]</span>        <span class="op">&lt;-</span> <span class="va">skewDist</span>
+ <span class="va">summaryTable_geilo</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"n"</span><span class="op">]</span>               <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span>
+ <span class="va">summaryTable_geilo</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"estimatedPeatVolume_m3"</span><span class="op">]</span>           <span class="op">&lt;-</span> <span class="va">est</span>
+ <span class="va">summaryTable_geilo</span><span class="op">[</span><span class="fl">1</span><span class="op">+</span><span class="va">i</span>,<span class="st">"MAE"</span><span class="op">]</span>             <span class="op">&lt;-</span> <span class="va">MAE</span>
+
+ 
+  <span class="co"># prepare dataset for next loop</span>
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_geilo_temp</span><span class="op">)</span> 
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">euclidDist</span><span class="op">)</span>
+ <span class="va">euclidDist</span><span class="op">[</span><span class="va">euclidDist</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+ <span class="va">distMin_geilo_temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">euclidDist</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+ 
+<span class="op">}</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">summaryTable_geilo</span>, <span class="st">"Data/Geilo/geilo_cvAnalysisData.rds"</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i40</span>, <span class="st">"Output/Geilo/IDW_geilo_i40.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i90</span>, <span class="st">"Output/Geilo/IDW_geilo_i90.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i140</span>, <span class="st">"Output/Geilo/IDW_geilo_i140.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i190</span>, <span class="st">"Output/Geilo/IDW_geilo_i190.rds"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i240</span>, <span class="st">"Output/Geilo/IDW_geilo_i240.rds"</span><span class="op">)</span></code></pre></div>
+<p>Import the data back in</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">summaryTable_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Data/Tydal/tydal_cvAnalysisData.rds"</span><span class="op">)</span>
+<span class="va">summaryTable_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Data/Geilo/geilo_cvAnalysisData.rds"</span><span class="op">)</span></code></pre></div>
+<p>A code block just for getting the reduced datasets</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">distMin_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_tydal</span>
+<span class="va">depths_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">depths_tydal</span>
+
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  
+ <span class="co">#print(paste("run number = ", i))</span>
+  
+ <span class="va">toRemove</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">distMin_tydal_temp</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>
+ <span class="co">#print(paste("Removing row number ", toRemove))</span>
+ 
+ <span class="va">depths_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">depths_tydal_temp</span><span class="op">[</span><span class="op">-</span><span class="va">toRemove</span>,<span class="op">]</span>
+
+  <span class="co"># Export some data set for checks</span>
+  <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">90</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"depths_tydal_i"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">depths_tydal_temp</span><span class="op">)</span>
+  <span class="op">}</span>
+
+ 
+  <span class="co"># prepare dataset for next loop</span>
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_tydal_temp</span><span class="op">)</span> 
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">euclidDist</span><span class="op">)</span>
+ <span class="va">euclidDist</span><span class="op">[</span><span class="va">euclidDist</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+ <span class="va">distMin_tydal_temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">euclidDist</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+ 
+<span class="op">}</span>
+
+
+
+<span class="co">#### Geilo</span>
+
+<span class="va">distMin_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_geilo</span>
+<span class="va">depths_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">depths_geilo_biggest</span>
+
+<span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+  
+ <span class="co">#print(paste("run number = ", i))</span>
+  
+ <span class="va">toRemove</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">distMin_geilo_temp</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>
+ <span class="co">#print(paste("Removing row number ", toRemove))</span>
+ 
+ <span class="va">depths_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">depths_geilo_temp</span><span class="op">[</span><span class="op">-</span><span class="va">toRemove</span>,<span class="op">]</span>
+
+  <span class="co"># Export some data set for checks</span>
+  <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
+    <span class="fu"><a href="https://rdrr.io/r/base/assign.html">assign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"depths_geilo_i"</span>, <span class="va">i</span><span class="op">)</span>, <span class="va">depths_geilo_temp</span><span class="op">)</span>
+  <span class="op">}</span>
+
+ 
+  <span class="co"># prepare dataset for next loop</span>
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_geilo_temp</span><span class="op">)</span> 
+ <span class="va">euclidDist</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">euclidDist</span><span class="op">)</span>
+ <span class="va">euclidDist</span><span class="op">[</span><span class="va">euclidDist</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
+ <span class="va">distMin_geilo_temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">euclidDist</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+ 
+<span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"All data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal_i30</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-30 data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal_i60</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-60 data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal_i80</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-80 data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<img src="carbonCalculator_files/figure-html/sampling_reduction-1.png" alt="Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal" width="672"><p class="caption">
+(#fig:sampling_reduction)Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal
+</p>
+</div>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"All data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo_i50</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-50 data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo_i100</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-100 data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span>
+,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo_i200</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
+               shape<span class="op">=</span><span class="fl">4</span>,
+               size <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-200 data points"</span>,
+            inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<img src="carbonCalculator_files/figure-html/sampling_reduction_geilo-1.png" alt="Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo" width="672"><p class="caption">
+(#fig:sampling_reduction_geilo)Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo
+</p>
+</div>
+</div>
+<div id="explore-results" class="section level2" number="4.4">
+<h2>
+<span class="header-section-number">4.4</span> Explore results<a class="anchor" aria-label="anchor" href="#explore-results"><i class="fas fa-link"></i></a>
+</h2>
+<div id="sampling-design" class="section level3" number="4.4.1">
+<h3>
+<span class="header-section-number">4.4.1</span> Sampling design<a class="anchor" aria-label="anchor" href="#sampling-design"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">IDW_tydal_i30</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Tydal/IDW_tydal_i30.rds"</span><span class="op">)</span>
+<span class="va">IDW_tydal_i60</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Tydal/IDW_tydal_i60.rds"</span><span class="op">)</span>
+<span class="va">IDW_tydal_i90</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Tydal/IDW_tydal_i90.rds"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_tydal_i30</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_tydal_i60</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_tydal_i90</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>
+<span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-55"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-55-1.png" alt="IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal" width="672"><p class="caption">
+Figure 4.3: IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal
+</p>
+</div>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">IDW_geilo_i90</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i90.rds"</span><span class="op">)</span>
+<span class="va">IDW_geilo_i140</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i140.rds"</span><span class="op">)</span>
+<span class="va">IDW_geilo_i190</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i190.rds"</span><span class="op">)</span>
+<span class="va">IDW_geilo_i240</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i240.rds"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_geilo_i90</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_geilo_i140</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_geilo_i190</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_geilo_i240</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>
+<span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-57"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-57-1.png" alt="IDW with mean distance between data points fromleft to right: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo" width="672"><p class="caption">
+Figure 4.4: IDW with mean distance between data points fromleft to right: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo
+</p>
+</div>
+</div>
+<div id="distance-to-neighbours" class="section level3" number="4.4.2">
+<h3>
+<span class="header-section-number">4.4.2</span> Distance to neighbours<a class="anchor" aria-label="anchor" href="#distance-to-neighbours"><i class="fas fa-link"></i></a>
+</h3>
+<p>Combine datasets</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">summaryTable_tydal</span><span class="op">$</span><span class="va">site</span> <span class="op">&lt;-</span> <span class="st">"Tydal"</span>
+<span class="va">summaryTable_geilo</span><span class="op">$</span><span class="va">site</span> <span class="op">&lt;-</span> <span class="st">"Geilo"</span>
+<span class="va">summaryTable_twoSites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">summaryTable_tydal</span>,
+                               <span class="va">summaryTable_geilo</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n</span>, y <span class="op">=</span> <span class="va">medianDist</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n</span>, y <span class="op">=</span> <span class="va">meanDist</span><span class="op">)</span>, pch <span class="op">=</span> <span class="fl">21</span>,fill<span class="op">=</span><span class="st">"grey"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Distance to nearest neighbour (m)"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">ylim</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">60</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>,
+             scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-59"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-59-1.png" alt="Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity. " width="672"><p class="caption">
+Figure 4.5: Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity.
+</p>
+</div>
+<p>This figure tells us that the median (black) and the mean (grey) distance to nearest neighbor are very similar, meaning there is little skew, meaning again that the n reduction process has retained the systematic sampling design.</p>
+</div>
+<div id="skewness" class="section level3" number="4.4.3">
+<h3>
+<span class="header-section-number">4.4.3</span> Skewness<a class="anchor" aria-label="anchor" href="#skewness"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n</span>, 
+                    y <span class="op">=</span> <span class="va">skewness</span><span class="op">)</span>, 
+                pch <span class="op">=</span> <span class="fl">21</span>,fill<span class="op">=</span><span class="st">"grey"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Skewness"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>,
+                scales<span class="op">=</span><span class="st">"free_x"</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-60"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-60-1.png" alt="Skewness in the distribution of euclidian distances as a response to varying sapling intensity." width="672"><p class="caption">
+Figure 4.6: Skewness in the distribution of euclidian distances as a response to varying sapling intensity.
+</p>
+</div>
+<p>Contrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then ‘weeded out’ first, and the skew is flipped around to become positive. I will mostly rely on figure @ref(fig:sampling_reduction) and @ref(fig:sampling_reduction_geilo) and say that the reduction in sampling intensity retains the systamatic design.</p>
+</div>
+<div id="peat-volume-estimates" class="section level3" number="4.4.4">
+<h3>
+<span class="header-section-number">4.4.4</span> Peat volume estimates<a class="anchor" aria-label="anchor" href="#peat-volume-estimates"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">gg_volume</span> <span class="op">&lt;-</span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span>,
+          <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">medianDist</span>, 
+              y <span class="op">=</span> <span class="va">estimatedPeatVolume_m3</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>
+                pch<span class="op">=</span><span class="fl">21</span>, 
+                fill<span class="op">=</span><span class="st">"grey"</span>,
+                size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="st">"Est. peat volume (m"</span><span class="op">^</span><span class="fl">3</span><span class="op">*</span><span class="st">")"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Median distance to nearest neighbour (m)"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_trans.html">coord_trans</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"log2"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>,
+                scales<span class="op">=</span><span class="st">"free"</span><span class="op">)</span>
+
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span><span class="st">"Output/plot_distanceAgainstVolume.tiff"</span>, <span class="va">gg_volume</span>,
+       width <span class="op">=</span> <span class="fl">1600</span>, height <span class="op">=</span> <span class="fl">1200</span>, units <span class="op">=</span> <span class="st">"px"</span><span class="op">)</span>
+
+<span class="va">gg_volume</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-61"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-61-1.png" alt="Estimated peat volume as a response of the median distance between sampling points." width="672"><p class="caption">
+Figure 4.7: Estimated peat volume as a response of the median distance between sampling points.
+</p>
+</div>
+<p>For Tydal, the estimated peat volume is quite stable up to around 25 meter between sampling points. For Geilo, the estimated volume increases from zero to 10-12 meters, before stabilizing and finally increasing again with distances above 29 meters. The most correct prediction comes with a median distance between 12-20 meters. The original sampling density was biased towards the edges, resulting in a disproportionate large number of samples from shallow areas (Fig. @ref(fig:sampling_reduction_geilo) ). The IDW does not seem to be able to adequately control for this, and care should be taken to ensure a balanced and systematic sampling design.</p>
+</div>
+<div id="cv" class="section level3" number="4.4.5">
+<h3>
+<span class="header-section-number">4.4.5</span> CV<a class="anchor" aria-label="anchor" href="#cv"><i class="fas fa-link"></i></a>
+</h3>
+<p>In addition to seeing the peat volume estimates becoming biased with increasing distance between sampling points, we also we the variation increasing. Now we will calculate this in terms of the coefficient of variation.</p>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">summaryTable_tydal</span><span class="op">$</span><span class="va">medianDist</span><span class="op">)</span>
+<span class="co">#&gt; [1] 54.87518</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">summaryTable_geilo</span><span class="op">$</span><span class="va">medianDist</span><span class="op">)</span>
+<span class="co">#&gt; [1] 44.49275</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tydal_cv</span> <span class="op">&lt;-</span> <span class="va">summaryTable_tydal</span>
+<span class="va">tydal_cv</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+  <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">10</span>, <span class="st">"&lt;10 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+    <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">15</span>, <span class="st">"10-15 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+     <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">20</span>, <span class="st">"15-20 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+       <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">25</span>, <span class="st">"20-25 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+         <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">30</span>, <span class="st">"25-30 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+           <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">35</span>, <span class="st">"30-35 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+             <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">40</span>, <span class="st">"35-40 m"</span>, <span class="st">"40-55 m"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">tydal_cv</span> <span class="op">&lt;-</span> <span class="va">tydal_cv</span><span class="op">[</span><span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">100</span>,<span class="op">]</span>
+<span class="op">(</span><span class="va">tydal_n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">tydal_cv</span><span class="op">$</span><span class="va">group</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; 15-20 m 20-25 m 25-30 m 30-35 m 35-40 m 40-55 m </span>
+<span class="co">#&gt;      60      13      10       3       3       6</span></code></pre></div>
+<p>There’s quite few data points in the higher categories. Perhaps too few.</p>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">geilo_cv</span> <span class="op">&lt;-</span> <span class="va">summaryTable_geilo</span>
+<span class="va">geilo_cv</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+  <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">10</span>, <span class="st">"&lt;10 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+    <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">15</span>, <span class="st">"10-15 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+     <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">20</span>, <span class="st">"15-20 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+       <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">25</span>, <span class="st">"20-25 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+         <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">30</span>, <span class="st">"25-30 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+           <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">35</span>, <span class="st">"30-35 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
+             <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">40</span>, <span class="st">"35-40 m"</span>, <span class="st">"40-55 m"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">geilo_cv</span> <span class="op">&lt;-</span> <span class="va">geilo_cv</span><span class="op">[</span><span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">100</span>,<span class="op">]</span>
+<span class="op">(</span><span class="va">geilo_n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">geilo_cv</span><span class="op">$</span><span class="va">group</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;   &lt;10 m 10-15 m 15-20 m 20-25 m 25-30 m 30-35 m 35-40 m </span>
+<span class="co">#&gt;     120      56      29      13      15       2       3 </span>
+<span class="co">#&gt; 40-55 m </span>
+<span class="co">#&gt;       4</span></code></pre></div>
+<p>CV function</p>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">cv</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tydal_cv_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">tydal_cv</span><span class="op">$</span><span class="va">estimatedPeatVolume_m3</span>, <span class="va">tydal_cv</span><span class="op">$</span><span class="va">group</span>, <span class="va">cv</span><span class="op">)</span>
+<span class="va">tydal_cv_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cv <span class="op">=</span> <span class="va">tydal_cv_tbl</span>,
+                      label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tydal_cv_tbl</span><span class="op">)</span>,
+                      order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>,<span class="fl">6</span>, <span class="fl">7</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span>
+<span class="va">tydal_cv_tbl</span> <span class="op">&lt;-</span> <span class="va">tydal_cv_tbl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">tydal_cv_tbl</span><span class="op">$</span><span class="va">order</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">tydal_cv_tbl</span><span class="op">$</span><span class="va">n</span> <span class="op">&lt;-</span> <span class="va">tydal_n</span>
+
+<span class="va">geilo_cv_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">geilo_cv</span><span class="op">$</span><span class="va">estimatedPeatVolume_m3</span>, <span class="va">geilo_cv</span><span class="op">$</span><span class="va">group</span>, <span class="va">cv</span><span class="op">)</span>
+<span class="va">geilo_cv_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cv <span class="op">=</span> <span class="va">geilo_cv_tbl</span>,
+                      label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">geilo_cv_tbl</span><span class="op">)</span>,
+                      order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>,<span class="fl">6</span>, <span class="fl">7</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span>
+<span class="va">geilo_cv_tbl</span> <span class="op">&lt;-</span> <span class="va">geilo_cv_tbl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">geilo_cv_tbl</span><span class="op">$</span><span class="va">order</span><span class="op">)</span>,<span class="op">]</span>
+<span class="va">geilo_cv_tbl</span><span class="op">$</span><span class="va">n</span> <span class="op">&lt;-</span> <span class="va">geilo_n</span></code></pre></div>
+<p>Join tables</p>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tydal_cv_tbl</span><span class="op">$</span><span class="va">site</span> <span class="op">=</span> <span class="st">"Tydal"</span>
+<span class="va">geilo_cv_tbl</span><span class="op">$</span><span class="va">site</span> <span class="op">=</span> <span class="st">"Geilo"</span>
+<span class="va">cvTab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">tydal_cv_tbl</span>,
+               <span class="va">geilo_cv_tbl</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">gg_cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cvTab</span>, 
+                 <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">order</span>, y <span class="op">=</span> <span class="va">cv</span>,
+                     fill<span class="op">=</span><span class="va">site</span>,
+                     shape<span class="op">=</span><span class="va">site</span>
+                     <span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_shape_manual</a></span><span class="op">(</span>values<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">21</span>,<span class="fl">24</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>
+             size<span class="op">=</span><span class="fl">3</span>, 
+             stroke<span class="op">=</span><span class="fl">1.5</span>,
+             position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html">position_dodge</a></span><span class="op">(</span>width<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="va">cvTab</span><span class="op">$</span><span class="va">order</span>,
+                     labels <span class="op">=</span> <span class="va">cvTab</span><span class="op">$</span><span class="va">label</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span><span class="st">"Output/plot_distanceAgainstCV.tiff"</span>, <span class="va">gg_cv</span>,
+       width <span class="op">=</span> <span class="fl">1600</span>, height <span class="op">=</span> <span class="fl">1200</span>, units <span class="op">=</span> <span class="st">"px"</span><span class="op">)</span>
+
+<span class="va">gg_cv</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-69"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-69-1.png" alt="Coefficient of variation in peat volume estimates as a response to median distance between sampling points" width="672"><p class="caption">
+Figure 4.8: Coefficient of variation in peat volume estimates as a response to median distance between sampling points
+</p>
+</div>
+</div>
+</div>
+<div id="mae" class="section level2" number="4.5">
+<h2>
+<span class="header-section-number">4.5</span> MAE<a class="anchor" aria-label="anchor" href="#mae"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">gg_mae</span> <span class="op">&lt;-</span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span>,
+          <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">medianDist</span>, 
+              y <span class="op">=</span> <span class="va">MAE</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>
+                pch<span class="op">=</span><span class="fl">21</span>, 
+                fill<span class="op">=</span><span class="st">"grey"</span>,
+                size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Mean absolute error (m)"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">"Median distance to nearest neighbour (m)"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_trans.html">coord_trans</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"log2"</span><span class="op">)</span><span class="op">+</span>
+     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>,
+                scales<span class="op">=</span><span class="st">"free"</span><span class="op">)</span>
+
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span><span class="st">"Output/plot_distanceAgainstMAE.tiff"</span>, <span class="va">gg_mae</span>,
+       width <span class="op">=</span> <span class="fl">1600</span>, height <span class="op">=</span> <span class="fl">1200</span>, units <span class="op">=</span> <span class="st">"px"</span><span class="op">)</span>
+
+<span class="va">gg_mae</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-70"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-70-1.png" alt="MAE in IDW predictions as a response of median distance between sampling points." width="672"><p class="caption">
+Figure 4.9: MAE in IDW predictions as a response of median distance between sampling points.
+</p>
+</div>
+<p>This figure I think also support that sampling distances aboev about 25 m is a bad idea.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="find-best-model.html"><span class="header-section-number">3</span> Find best model</a></div>
+<div class="next"><a href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#optimise-sampling-intensity"><span class="header-section-number">4</span> Optimise sampling intensity</a></li>
+<li><a class="nav-link" href="#subset-geilo-data"><span class="header-section-number">4.1</span> Subset Geilo data</a></li>
+<li><a class="nav-link" href="#repeat-the-best-idw"><span class="header-section-number">4.2</span> Repeat the best IDW</a></li>
+<li><a class="nav-link" href="#reduce-n"><span class="header-section-number">4.3</span> Reduce N</a></li>
+<li>
+<a class="nav-link" href="#explore-results"><span class="header-section-number">4.4</span> Explore results</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sampling-design"><span class="header-section-number">4.4.1</span> Sampling design</a></li>
+<li><a class="nav-link" href="#distance-to-neighbours"><span class="header-section-number">4.4.2</span> Distance to neighbours</a></li>
+<li><a class="nav-link" href="#skewness"><span class="header-section-number">4.4.3</span> Skewness</a></li>
+<li><a class="nav-link" href="#peat-volume-estimates"><span class="header-section-number">4.4.4</span> Peat volume estimates</a></li>
+<li><a class="nav-link" href="#cv"><span class="header-section-number">4.4.5</span> CV</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#mae"><span class="header-section-number">4.5</span> MAE</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/anders-kolstad/carbonCalculator/blob/master/03-samplingIntensity.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/anders-kolstad/carbonCalculator/edit/master/03-samplingIntensity.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>
