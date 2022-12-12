@@ -45,7 +45,7 @@ SHP_modalen$myArea <- sf::st_area(SHP_modalen)
 sum(SHP_modalen$myArea)
 ```
 
-And the area of the project deliniation
+And the area of the project delineation
 ```{r}
 SHP_modalen_project$myArea <- sf::st_area(SHP_modalen_project)
 SHP_modalen_project$myArea
@@ -89,7 +89,8 @@ Predict peat depth
 ```{r}
 ccalc_optimumPower(nmax=nrow(depths_modalen_reduced),
                    peatDepths = depths_modalen_reduced,
-                   title="Modalen")
+                   title="Modalen",
+                   peatlandDelimination = SHP_modalen)
 ```
 
 Unsurprising, when we have so few data points, the optimum power is very low. I will predict using power 1 though 3 to compare, just because I don't trus power 1 is the best choice. 
@@ -190,16 +191,15 @@ ccalc_cStocks(volume_modalen, peatData = df)
 
 
 ## Opelandsmarka
-
+Import shape file
 ```{r import shape files, message=F, warning=F}
 SHP_opelandsmarka <- sf::read_sf("Data/Opelandsmarka/Opelandsmarka Voss.shp")
 #st_crs(SHP_opedalsmarka) #32632 UTM 32
-
 ```
 
-
-```{r, eval=F}
-depths_opelandsmarka <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr1.csv", 
+The depth measurements are in three different files.
+```{r, message=F, warning=F}
+depths_opelandsmarka1 <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr1.csv", 
     delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
     trim_ws = TRUE)
 depths_opelandsmarka2 <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr2.csv", 
@@ -208,15 +208,22 @@ depths_opelandsmarka2 <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka
 depths_opelandsmarka3 <- read_delim("Data/Opelandsmarka/Torvdybder_Opelandsmarka_myr3.csv", 
     delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
     trim_ws = TRUE)
+# The last one is missing a column
+
+depths_opelandsmarka <- bind_rows(depths_opelandsmarka1,
+                                  depths_opelandsmarka2,
+                                  depths_opelandsmarka3)
 
 
-depths_opelandsmarka <- sf::st_as_sf(depths_opelandsmarka3,
+depths_opelandsmarka <- sf::st_as_sf(depths_opelandsmarka,
                                      coords = c("UTM_N_ZONE32N", "UTM_E_ZONE32N"),
                                      crs = 32632)
 ```
-Not clear which one to use here. I will focus on just the middle peatland.
 
-```{r}
+
+
+
+```{r, fig.cap="Test site: Opelandsmarka. Crosses are peat depth measurements."}
 tm_shape(SHP_opelandsmarka)+
   tm_polygons()+
   tm_shape(depths_opelandsmarka)+
@@ -225,5 +232,419 @@ tm_shape(SHP_opelandsmarka)+
              shape=4)
 ```
 
+I think we can ignore that top mire as it was not sampled nearly as intensive as the other two.
+```{r}
+SHP_opelandsmarka_twoMires <- SHP_opelandsmarka[-1,]
+```
 
+It could be a good idea sometimes to include depth measurements outside the mire polygons (with a depth of 0). Here it is easier for me to just exclude all points outide any polygon.
+```{r}
+depths_opelandsmarka <- st_intersection(depths_opelandsmarka, SHP_opelandsmarka_twoMires)
+```
+```{r, fig.cap="Opelandsmarka with two out of three mires. Crosses are peat depth measurements."}
+tm_shape(SHP_opelandsmarka_twoMires)+
+  tm_polygons()+
+  tm_shape(depths_opelandsmarka)+
+  tm_symbols(col="black",
+             size=.5,
+             shape=4)
+```
+
+
+```{r}
+ccalc_optimumPower(peatDepths = depths_opelandsmarka, title = "Opelandsmarka")
+```
+
+There is one NA in the depth data which we have to remove
+```{r}
+depths_opelandsmarka <- depths_opelandsmarka[!is.na(depths_opelandsmarka$Dybde),]
+```
+
+Try again:
+
+```{r, fig.cap="Determening the optimal power for the Opelandsmarka test site."}
+ccalc_optimumPower(peatDepths = depths_opelandsmarka, 
+                   title = "Opelandsmarka",
+                   peatlandDelimination = SHP_opelandsmarka_twoMires)
+```
+
+Again the lowest MAE is obtained from a power of 1, but as we have seen, the power should probably be set higher. The predicted peat volume for example is quite unstable at low power settings.
+
+Create a raster grid for the predictions
+```{r}
+grid_Opelandsmarka_stars_crop <- starsExtra::make_grid(SHP_opelandsmarka_twoMires, 1) %>%
+  sf::st_crop(SHP_opelandsmarka_twoMires)
+```
+
+The depths are recorded as cm not meters. Converting to m. 
+```{r}
+depths_opelandsmarka$Dybde <- depths_opelandsmarka$Dybde/100
+```
+
+
+```{r}
+IDW_opelandsmarka_1 <- gstat::idw(Dybde ~ 1, depths_opelandsmarka, 
+                    newdata=grid_Opelandsmarka_stars_crop, 
+                    nmax=nmax, 
+                    idp=1)
+
+IDW_opelandsmarka_2 <- gstat::idw(Dybde ~ 1, depths_opelandsmarka, 
+                    newdata=grid_Opelandsmarka_stars_crop, 
+                    nmax=nmax, 
+                    idp=2)
+
+IDW_opelandsmarka_3 <- gstat::idw(Dybde ~ 1, depths_opelandsmarka, 
+                    newdata=grid_Opelandsmarka_stars_crop, 
+                    nmax=nmax, 
+                    idp=3)
+```
+
+```{r}
+myBreaks <- seq(0,3,.5)
+myPos <- c("left", "bottom")
+
+tmap_arrange(
+tm_shape(IDW_opelandsmarka_1)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 1\nInterpolated peat\ndepth (m)",
+            breaks = myBreaks)+
+  tm_compass(type="8star", position = myPos, size = 2) +
+  tm_scale_bar(position = myPos, width = 0.3)+
+  tm_shape(depths_opelandsmarka)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+,
+tm_shape(IDW_opelandsmarka_2)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 2\nInterpolated peat\ndepth (m)",
+            breaks = myBreaks)+
+  tm_compass(type="8star", position = myPos, size = 2) +
+  tm_scale_bar(position = myPos, width = 0.3)+
+  tm_shape(depths_opelandsmarka)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+,
+tm_shape(IDW_opelandsmarka_3)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 3\nInterpolated peat\ndepth (m)",
+            breaks = myBreaks)+
+  tm_compass(type="8star", position = myPos, size = 2) +
+  tm_scale_bar(position = myPos, width = 0.3)+
+  tm_shape(depths_opelandsmarka)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T),
+ncol = 2
+
+)
+```
+
+With power set to 1 the model is too flat, and the deep areas are not identified correctly. Power 2 or 3 makes less of a difference. Becaus ethe MAE and volume estimates are so similar, I will chose the modet local model (power = 3)
+
+Getting the total peatland area
+```{r}
+SHP_opelandsmarka_twoMires$myArea <- sf::st_area(SHP_opelandsmarka_twoMires)
+sum(SHP_opelandsmarka_twoMires$myArea)
+```
+
+Getting the mean peat depth (after excluding points outside the polygons)
+```{r}
+mean(depths_opelandsmarka$Dybde)
+```
+
+Rough volume
+```{r}
+mean(depths_opelandsmarka$Dybde) * sum(SHP_opelandsmarka_twoMires$myArea)
+```
+
+Number of peat depth measurements
+```{r}
+nrow(depths_opelandsmarka)
+```
+
+Depth measurement density (points per 100 m-2)
+```{r}
+nrow(depths_opelandsmarka)/(sum(SHP_opelandsmarka_twoMires$myArea)/100)
+```
+
+Interpolated peat volume (best model)
+```{r}
+(vol_temp <- sum(IDW_opelandsmarka_3$var1.pred, na.rm=T))
+```
+
+Estimated C stocks
+```{r}
+ccalc_cStocks(volume = vol_temp,
+              peatData = df)
+```
+
+## Kinn 1
+
+```{r}
+# import peatland delineation
+SHP_kinn1 <- sf::st_read("Data/Kinn/rikmyr_avgrensing.shp")
+
+# import peat deth data
+depths_kinn1 <- read_delim("Data/Kinn/data_rikmyr_torvdybder.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
+    trim_ws = TRUE)
+```
+
+The peat depth data doesn't contain coordinated. Importing those now.
+```{r}
+depths_kinn1_spatial <- sf::st_read("Data/Kinn/rikmyr_punkter.shp")
+
+```
+
+The column `name` is shared between the two datasets so I can use this to merge them. First I need to remove leading zeros.
+```{r}
+depths_kinn1_spatial$name <- as.numeric(depths_kinn1_spatial$name)
+```
+
+
+```{r}
+depths_kinn1_spatial$Dybde <- depths_kinn1$Dybde[match(depths_kinn1_spatial$name, depths_kinn1$name)]
+rm(depths_kinn1)
+```
+
+There is still one NA to remove
+```{r}
+depths_kinn1_spatial <- depths_kinn1_spatial[!is.na(depths_kinn1_spatial$Dybde),]
+```
+
+
+
+Check CRS
+```{r}
+#st_crs(depths_kinn1_spatial) # lat long
+#st_crs(SHP_kinn1) # also lat long
+
+depths_kinn1_spatial <- sf::st_transform(depths_kinn1_spatial, 25833)
+SHP_kinn1 <- sf::st_transform(SHP_kinn1, 25833)
+```
+
+```{r, fig.cap="Test site Kinn1."}
+tm_shape(SHP_kinn1)+
+  tm_polygons()+
+  tm_shape(depths_kinn1_spatial)+
+  tm_symbols(col="black",
+             size=.5,
+             shape=4)
+```
+
+This is a nice example data set. I notice however, there are few points near the edges.
+
+Getting the rough volume
+```{r}
+SHP_kinn1$myArea <- sf::st_area(SHP_kinn1)
+SHP_kinn1$myArea
+```
+
+Mean depth
+```{r}
+mean(depths_kinn1_spatial$Dybde, na.rm=T)
+```
+
+The depths are in cm. Converting to m.
+```{r}
+depths_kinn1_spatial$Dybde <- depths_kinn1_spatial$Dybde/100
+```
+
+Number of depth measurements
+```{r}
+nrow(depths_kinn1_spatial)
+```
+
+Point density (100 m-2)
+```{r}
+nrow(depths_kinn1_spatial) / (SHP_kinn1$myArea )*100
+
+```
+
+Finding optimum power
+```{r, fig.cap="Finding the best power setting for the Kinn1 test site."}
+ccalc_optimumPower(peatDepths = depths_kinn1_spatial,
+                   peatlandDelimination = SHP_kinn1,
+                   title = "Kinn1")
+```
+
+The optimal power is 5.
+
+Create a raster grid for the predictions
+```{r}
+grid_kinn1_stars_crop <- starsExtra::make_grid(SHP_kinn1, 1) %>%
+  sf::st_crop(SHP_kinn1)
+```
+
+```{r}
+IDW_kinn1_5 <- gstat::idw(Dybde ~ 1, depths_kinn1_spatial, 
+                    newdata=grid_kinn1_stars_crop, 
+                    nmax=nmax, 
+                    idp=5)
+```
+
+Max peat depth
+```{r}
+max(depths_kinn1_spatial$Dybde)
+```
+
+
+```{r, fig.cap="Best model for test site Kinn1"}
+myBreaks <- seq(0,5,1)
+myPos <- c("right", "bottom")
+
+tm_shape(IDW_kinn1_5)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 5\nInterpolated peat\ndepth (m)",
+            breaks = myBreaks)+
+  tm_compass(type="8star", position = myPos, size = 2) +
+  tm_scale_bar(position = myPos, width = 0.3)+
+  tm_shape(depths_kinn1_spatial)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+```
+
+Predicted peat volume
+```{r}
+(vol_temp <- sum(IDW_kinn1_5$var1.pred, na.rm=T))
+```
+
+Carbon stocks
+```{r}
+ccalc_cStocks(volume = vol_temp,
+              peatData = df)
+```
+
+## Kinn2
+
+```{r}
+SHP_kinn2 <- sf::st_read("Data/Kinn/maroy_avgrensing.shp")
+```
+
+
+```{r}
+depths_kinn2 <- read_delim("Data/Kinn/data_maroy_torvdybder.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
+    trim_ws = TRUE)
+```
+
+As before, the depths have no coordinates.
+```{r}
+depths_kinn2_spatial <- sf::st_read("Data/Kinn/maroy_punkter.shp")
+```
+
+```{r}
+depths_kinn2_spatial$name <- as.numeric(depths_kinn2_spatial$name)
+depths_kinn2_spatial$Dybde <- depths_kinn2$Dybde[match(depths_kinn2_spatial$name, depths_kinn2$name)]
+rm(depths_kinn2)
+```
+
+
+Transform to UTF33
+```{r}
+depths_kinn2_spatial <- sf::st_transform(depths_kinn2_spatial, 25833)
+SHP_kinn2 <- sf::st_transform(SHP_kinn2, 25833)
+```
+
+
+
+```{r, fig.cap="Test site Kinn2."}
+tm_shape(SHP_kinn2)+
+  tm_polygons()+
+  tm_shape(depths_kinn2_spatial)+
+  tm_symbols(col="black",
+             size=.5,
+             shape=4)
+```
+
+The mean  depth
+```{r}
+summary(depths_kinn2_spatial$Dybde, na.rm=T)
+```
+
+Converting from cm to m
+```{r}
+depths_kinn2_spatial$Dybde <- depths_kinn2_spatial$Dybde/100
+```
+
+
+Area
+```{r}
+SHP_kinn2$myArea <- st_area(SHP_kinn2)
+nrow(depths_kinn2_spatial)
+```
+
+Number of peat depth measurements
+```{r}
+nrow(depths_kinn2_spatial)
+```
+
+Density of points (100 m-2)
+```{r}
+nrow(depths_kinn2_spatial)/SHP_kinn2$myArea*100
+```
+
+Find optimal power
+```{r, fig.cap="Finding the best power setting for the Kinn1 test site."}
+ccalc_optimumPower(peatDepths = depths_kinn2_spatial,
+                   peatlandDelimination = SHP_kinn2,
+                   title = "Kinn2")
+```
+
+Power = 4 is best.
+
+Create a raster grid for the predictions
+```{r}
+grid_kinn2_stars_crop <- starsExtra::make_grid(SHP_kinn2, 1) %>%
+  sf::st_crop(SHP_kinn2)
+```
+
+Interpreted peat volume
+```{r}
+IDW_kinn2_4 <- gstat::idw(Dybde ~ 1, depths_kinn2_spatial, 
+                    newdata=grid_kinn2_stars_crop, 
+                    nmax=nmax, 
+                    idp=4)
+
+```
+
+```{r, fig.cap="Best model for test site Kinn1"}
+myBreaks <- seq(0,3,.5)
+myPos <- c("right", "bottom")
+
+tm_shape(IDW_kinn2_4)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Power = 4\nInterpolated peat\ndepth (m)",
+            breaks = myBreaks)+
+  tm_compass(type="8star", position = myPos, size = 2) +
+  tm_scale_bar(position = myPos, width = 0.3)+
+  tm_shape(depths_kinn2_spatial)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_layout(legend.outside = T)
+```
+
+And the volume is
+```{r}
+(vol_temp <- sum(IDW_kinn2_4$var1.pred, na.rm=T))
+```
+
+And the C stock
+```{r}
+ccalc_cStocks(volume = vol_temp,
+              peatData = df)
+```
 

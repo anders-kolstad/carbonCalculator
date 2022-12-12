@@ -30,18 +30,40 @@ Then we determine the optimal power setting.
 ccalc_optimumPower <- function(powerRange = 1:6,
                                nmax = 20,
                                peatDepths,
+                               peatlandDelimination,
                                title
                                ){
   
   temp <- data.frame(power = powerRange,
                      MAE = as.numeric(NA))
   
+  vol <- NULL
+  
+  myGrid <- starsExtra::make_grid(peatlandDelimination, 1)
+  myGrid <- sf::st_crop(myGrid, peatlandDelimination)
+  
   for(i in powerRange){
+    
+    # Get the MAE
     temp2 <- krige.cv(Dybde ~ 1, peatDepths, set = list(idp=i), nmax = nmax)
     temp$MAE[temp$power==i] <- mean(abs(temp2$residual))
+    
+    #  Get the volume
+    vol_temp <- gstat::idw(Dybde ~ 1, peatDepths, 
+                    newdata=myGrid, 
+                    nmax=nmax, 
+                    idp=i)
+    
+    vol <- c(vol, sum(vol_temp$var1.pred, na.rm=T))
 }
-   temp$best <- ifelse(temp$MAE==min(temp$MAE), "best", "not-best")
+  
+  
+  ifelse(temp$power[which.min(temp$MAE)]<2,
+  temp$best <- ifelse(temp$power==2, "best", "not-best"),
+  temp$best <- ifelse(temp$MAE==min(temp$MAE), "best", "not-best")
+  )
 
+  # Plot MAE
   gg_out <- ggplot(temp, aes(x = power, y = MAE,
                       colour = best,
                       shape = best))+
@@ -53,14 +75,32 @@ ccalc_optimumPower <- function(powerRange = 1:6,
   scale_color_manual(values = c("darkgreen","grey"))+
   scale_shape_manual(values = c(18, 19))+
   ggtitle(title)
+  
+  # Plot volume
+  vol_df <- data.frame("volume" = vol,
+                              "power" = powerRange)
+  vol_df$relative_volume <- vol_df$volume/mean(vol_df$volume)*100
 
-  gg_out
+  
+  gg_out_vol <- 
+    ggplot(vol_df, aes(x = factor(power), y = relative_volume))+
+       geom_point(size=8)+
+       xlab("power")+
+       ylab("Peat volume as a percentage of\nmean predicted peat volume")+
+       theme_bw(base_size = 12)
+  
+  ggpubr::ggarrange(gg_out,
+                    gg_out_vol)
 }
+
+
+
 ```
 
 ```{r}
 ccalc_optimumPower(peatDepths = depths_tydal_i60,
-                   title = "Tydal")
+                   title = "Tydal",
+                   peatlandDelimination = SHP_tydal)
 ```
 
 That's good. The optimum power is the same as when we had all the data points.

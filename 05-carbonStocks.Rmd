@@ -72,7 +72,7 @@ c(quantile(c_stock_tydal_uninformed, c(.05, .5, .95)),
 ```
 
 We can put this stuff into a more generic function.
-```{r}
+```{r ccalc_cStocks}
 ccalc_cStocks <- function(volume,
                           peatlandType = c("fen", "bog"),
                           peatData){
