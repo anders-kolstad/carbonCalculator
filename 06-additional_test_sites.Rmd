@@ -179,7 +179,12 @@ Number of depth samples per 100 m2:
 
 Interpolated volume
 ```{r}
-sum(IDW_Modalen_3$var1.pred, na.rm=T)
+(volume_modalen <- sum(IDW_Modalen_3$var1.pred, na.rm=T))
+```
+
+Estimated carbon stocks for the Modalen site:
+```{r}
+ccalc_cStocks(volume_modalen, peatData = df)
 ```
 
 

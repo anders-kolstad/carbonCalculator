@@ -161,4 +161,10 @@ ggplot(cstocks_tydal_compare,
 
 Specifying the peatland type makes no difference!
 
+Let's just get the (non-informed) C stock estimates for Geilo as well
+```{r}
+ccalc_cStocks(volume = 102444.14,
+              peatData = df)
+```
+
 
