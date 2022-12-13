@@ -46,6 +46,7 @@
 <li><a class="active" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
 <li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
 <li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+<li><a class="" href="session-info.html"><span class="header-section-number">8</span> Session Info</a></li>
 </ul>
 
         <div class="book-extra">
@@ -59,7 +60,7 @@
 </h1>
 <p>In chapter 2 we found the optimal power settings for the Tydal and Geilo sites. Now I just want to look at how this might have changed when we have removed <em>superflous</em> data points as in chapter 3.</p>
 <p>Lets say for Tydal that we want to have 20 meters between the sampling points.</p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
 <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal_i60</span><span class="op">)</span><span class="op">+</span>
@@ -70,13 +71,13 @@
           title <span class="op">=</span> <span class="st">"Measured peat depth (m)"</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-72"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-72-1.png" alt="Peat depth measurements in the Tydal test site, after trimming the data poins so that the median distance between them is 20 meters." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-62"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-62-1.png" alt="Peat depth measurements in the Tydal test site, after trimming the data poins so that the median distance between them is 20 meters." width="672"><p class="caption">
 Figure 5.1: Peat depth measurements in the Tydal test site, after trimming the data poins so that the median distance between them is 20 meters.
 </p>
 </div>
 <p>Confirm the median distance is 20 meters</p>
-<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_tydal_i60</span><span class="op">)</span> 
 <span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span>
 <span class="va">temp</span><span class="op">[</span><span class="va">temp</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
@@ -84,7 +85,7 @@ Figure 5.1: Peat depth measurements in the Tydal test site, after trimming the d
 <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span>
 <span class="co">#&gt; [1] 20.18216</span></code></pre></div>
 <p>Then we determine the optimal power setting.</p>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ccalc_optimumPower</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">powerRange</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span>,
                                <span class="va">nmax</span> <span class="op">=</span> <span class="fl">20</span>,
                                <span class="va">peatDepths</span>,
@@ -150,7 +151,7 @@ Figure 5.1: Peat depth measurements in the Tydal test site, after trimming the d
   <span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">gg_out</span>,
                     <span class="va">gg_out_vol</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">ccalc_optimumPower</span><span class="op">(</span>peatDepths <span class="op">=</span> <span class="va">depths_tydal_i60</span>,
                    title <span class="op">=</span> <span class="st">"Tydal"</span>,
                    peatlandDelimination <span class="op">=</span> <span class="va">SHP_tydal</span><span class="op">)</span>
@@ -160,8 +161,44 @@ Figure 5.1: Peat depth measurements in the Tydal test site, after trimming the d
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
-<div class="inline-figure"><img src="carbonCalculator_files/figure-html/unnamed-chunk-75-1.png" width="672"></div>
+<div class="figure">
+<span style="display:block;" id="fig:unnamed-chunk-65"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-65-1.png" alt="Determening the optimal power setting for IDW using a reduced dataset from the Tydal test site." width="672"><p class="caption">
+Figure 5.2: Determening the optimal power setting for IDW using a reduced dataset from the Tydal test site.
+</p>
+</div>
 <p>That’s good. The optimum power is the same as when we had all the data points.</p>
+<p>Let’s plot the IDW predictions for Tydal based on all the data pionts and based on the reduced set of data points.</p>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">IDW_tydal_4_red</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+           locations <span class="op">=</span> <span class="va">depths_tydal_i60</span>, 
+           newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
+           idp<span class="op">=</span><span class="fl">4</span>,
+           nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+<span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tm_tydal_red</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_tydal_4_red</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
+            palette <span class="op">=</span> <span class="st">"-viridis"</span>,
+            title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_tydal_i60</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>shape<span class="op">=</span><span class="fl">4</span>,
+             col<span class="op">=</span><span class="st">"black"</span>,
+             size<span class="op">=</span><span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_compass.html">tm_compass</a></span><span class="op">(</span>type<span class="op">=</span><span class="st">"8star"</span>, position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"right"</span>, <span class="st">"bottom"</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.05</span>, <span class="fl">0</span>, <span class="fl">0.05</span><span class="op">)</span>,
+            legend.outside <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span><span class="va">tm_tydal</span>,
+             <span class="va">tm_tydal_red</span><span class="op">)</span></code></pre></div>
+<div class="figure">
+<span style="display:block;" id="fig:tydal-compare-sampling-intensity"></span>
+<img src="carbonCalculator_files/figure-html/tydal-compare-sampling-intensity-1.png" alt="Comparing IDW prediction using all data points (left) and a reduced set of data points with median distance between point set to 20 meters." width="672"><p class="caption">
+Figure 5.3: Comparing IDW prediction using all data points (left) and a reduced set of data points with median distance between point set to 20 meters.
+</p>
+</div>
+<p>The two maps in Fig. <a href="validate-using-reduced-sampling-data.html#fig:tydal-compare-sampling-intensity">5.3</a> are qualitatively similar.</p>
 
 </div>
   <div class="chapter-nav">
@@ -186,7 +223,7 @@ Figure 5.1: Peat depth measurements in the Tydal test site, after trimming the d
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

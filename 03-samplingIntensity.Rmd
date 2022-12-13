@@ -1,7 +1,6 @@
 # Optimise sampling intensity
 
-Now I want to resample and reduce the dataset, but try to keep the original sampling design. 
-For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is obvious that a peat depth measurement from a neighboring mire cannot replace data collection on the actuall mire.
+Now I want to resample and reduce the dataset, but try to keep the original sampling design. For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is obvious that a peat depth measurement from a neighboring mire cannot replace data collection on the actual mire.
 
 ## Subset Geilo data
 
@@ -15,13 +14,13 @@ depths_geilo_biggest <- sf::st_intersection(depths_geilo, SHP_geilo_biggest)
 #Crop the raster grid
 grid_Geilo_stars_crop_biggest <- sf::st_crop(grid_Geilo_stars, SHP_geilo_biggest)
 ```
-```{r, fig.cap="Peat depth measurements for the biggest of the Geilo mires."}
+
+```{r depth-distribution-geilo, fig.cap="Peat depth measurements for the biggest of the Geilo mires."}
 plot(depths_geilo_biggest$Dybde[order(depths_geilo_biggest$Dybde)],
      ylab="Peat depth (m)")
 ```
 
-Looking at the depth measurements in the figure above, we are reminded that the data contains zeros (measurements taken near the edge) and a truncated above 3 (because that was the length of the peat depth probe).
-
+Looking at the depth measurements in Fig. \@ref(fig:depth-distribution-geilo), we are reminded that the data contains zeros (measurements taken near the edge) and are truncated above 3 (because that was the length of the peat depth probe).
 
 ```{r, fig.cap="One mire polygon from the Geilo test site used in the assessment of minimum sampling."}
 tm_shape(SHP_geilo_biggest)+
@@ -33,7 +32,9 @@ tm_shape(SHP_geilo_biggest)+
 ```
 
 ## Repeat the best IDW
+
 Here I simply recalculate the best models, as described in the previous chapter
+
 ```{r}
 IDW_tydal_4 <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
@@ -41,16 +42,16 @@ IDW_tydal_4 <- gstat::idw(formula = Dybde ~ 1,
            idp=4,
            nmax = nmax)
 
-IDW_geilo_2 <- gstat::idw(formula = Dybde ~ 1, 
+IDW_geilo_3 <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_geilo_biggest, 
            newdata = grid_Geilo_stars_crop_biggest, 
-           idp=2,
+           idp=3,
            nmax = nmax)
 ```
 
-
 ## Reduce N
-by gradually removing the closest point.
+
+*- by gradually removing the closest point.*
 
 First we need to set up some temporary files for the for-loop.
 
@@ -66,8 +67,8 @@ distMatrix_geilo[distMatrix_geilo == 0] <- NA
 distMin_geilo <- matrixStats::rowMins(distMatrix_geilo, na.rm=T)
 ```
 
-
 Create temporary working files
+
 ```{r}
 distMin_tydal_temp <- distMin_tydal
 depths_tydal_temp <- depths_tydal
@@ -76,14 +77,15 @@ distMin_geilo_temp <- distMin_geilo
 depths_geilo_temp <- depths_geilo_biggest
 ```
 
-
 Get the summed volume
+
 ```{r}
 est_tydal <- sum(IDW_tydal_4$var1.pred, na.rm=T)
-est_geilo <- sum(IDW_geilo_2$var1.pred, na.rm=T)
+est_geilo <- sum(IDW_geilo_3$var1.pred, na.rm=T)
 ```
 
 Get the median, mean and skewness of the distances to the closest neighbor
+
 ```{r}
 medianDist_tydal <- median(distMin_tydal)
 meanDist_tydal <- mean(distMin_tydal)
@@ -95,6 +97,7 @@ skewDist_geilo <- e1071::skewness(distMin_geilo)
 ```
 
 Get the MAE
+
 ```{r}
 MAE_tydal_allData <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=4), nmax = nmax)
 MAE_tydal_allData <- mean(abs(MAE_tydal_allData$residual))
@@ -103,8 +106,8 @@ MAE_geilo_allData <- krige.cv(Dybde ~ 1, depths_geilo_biggest, set = list(idp=2)
 MAE_geilo_allData <- mean(abs(MAE_geilo_allData$residual))
 ```
 
-
 Put it into a dataframe
+
 ```{r}
 summaryTable_tydal <- data.frame(
   medianDist             = medianDist_tydal,
@@ -184,7 +187,7 @@ saveRDS(IDW_tydal_i90, "Output/Tydal/IDW_tydal_i90.rds")
 ```
 
 ```{r, eval=F}
-# I will not bother going lower than ten data points
+# now doing the same for the Geilo test site
 for(i in 1:c(nrow(depths_geilo_biggest)-10)){
   
  print(paste("run number = ", i))
@@ -202,7 +205,7 @@ for(i in 1:c(nrow(depths_geilo_biggest)-10)){
  # perform interpolation on tempDF
   int <- gstat::idw(Dybde ~ 1, depths_geilo_temp, 
                     newdata=grid_Geilo_stars_crop_biggest, 
-                    nmax=nmax, idp=2)
+                    nmax=nmax, idp=3)
   
   # Export some predictions for checks
   if(i %in% seq(40, 240, 50)){
@@ -213,7 +216,7 @@ for(i in 1:c(nrow(depths_geilo_biggest)-10)){
   est <- sum(int$var1.pred, na.rm=T)
   
   # get the MAE as well, even though it takes a long time to run
-  MAE <- krige.cv(Dybde ~ 1, depths_geilo_temp, set = list(idp=2), nmax = nmax)
+  MAE <- krige.cv(Dybde ~ 1, depths_geilo_temp, set = list(idp=3), nmax = nmax)
   MAE <- mean(abs(MAE$residual))
   
  # paste into the summary table
@@ -243,12 +246,14 @@ saveRDS(IDW_geilo_i240, "Output/Geilo/IDW_geilo_i240.rds")
 ```
 
 Import the data back in
+
 ```{r}
 summaryTable_tydal <- readRDS("Data/Tydal/tydal_cvAnalysisData.rds")
 summaryTable_geilo <- readRDS("Data/Geilo/geilo_cvAnalysisData.rds")
 ```
 
-A code block just for getting the reduced datasets 
+A code block just for getting the reduced datasets
+
 ```{r, message=F}
 distMin_tydal_temp <- distMin_tydal
 depths_tydal_temp <- depths_tydal
@@ -307,7 +312,7 @@ for(i in 1:c(nrow(depths_geilo_biggest)-10)){
 }
 ```
 
-```{r sampling_reduction, fig.cap="Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal"}
+```{r sampling-reduction, fig.cap="Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal"}
 tmap_arrange(
 tm_shape(SHP_tydal)+
   tm_polygons()+
@@ -346,7 +351,7 @@ tm_shape(SHP_tydal)+
             inner.margins = c(.1,.02,.1,.02)))
 ```
 
-```{r sampling_reduction_geilo, fig.cap="Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo"}
+```{r sampling-reduction-geilo, fig.cap="Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo"}
 tmap_arrange(
 tm_shape(SHP_geilo_biggest)+
   tm_polygons()+
@@ -385,10 +390,10 @@ tm_shape(SHP_geilo_biggest)+
             inner.margins = c(.1,.02,.1,.02)))
 ```
 
-
 ## Explore results
 
 ### Sampling design
+
 ```{r}
 IDW_tydal_i30 <- readRDS("Output/Tydal/IDW_tydal_i30.rds")
 IDW_tydal_i60 <- readRDS("Output/Tydal/IDW_tydal_i60.rds")
@@ -419,8 +424,7 @@ IDW_geilo_i190 <- readRDS("Output/Geilo/IDW_geilo_i190.rds")
 IDW_geilo_i240 <- readRDS("Output/Geilo/IDW_geilo_i240.rds")
 ```
 
-
-```{r, fig.cap="IDW with mean distance between data points fromleft to right: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo"}
+```{r, fig.cap="IDW with mean distance between data points from left to right, row by row: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo"}
 tmap_arrange(
 tm_shape(IDW_geilo_i90)+
   tm_raster(col="var1.pred",
@@ -441,9 +445,10 @@ tm_shape(IDW_geilo_i240)+
 )
 ```
 
-### Distance to neighbours 
+### Distance to neighbors
 
 Combine datasets
+
 ```{r}
 summaryTable_tydal$site <- "Tydal"
 summaryTable_geilo$site <- "Geilo"
@@ -479,7 +484,7 @@ This figure tells us that the median (black) and the mean (grey) distance to nea
                 scales="free_x")
 ```
 
-Contrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then 'weeded out' first, and the skew is flipped around to become positive. I will mostly rely on figure \@ref(fig:sampling_reduction) and \@ref(fig:sampling_reduction_geilo) and say that the reduction in sampling intensity retains the systamatic design.
+Contrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then 'weeded out' first, and the skew is flipped around to become positive. I will mostly rely on figure \@ref(fig:sampling-reduction) and \@ref(fig:sampling-reduction-geilo) and say that the reduction in sampling intensity retains the systematic design.
 
 ### Peat volume estimates
 
@@ -506,15 +511,16 @@ ggsave("Output/plot_distanceAgainstVolume.tiff", gg_volume,
 gg_volume
 ```
 
-For Tydal, the estimated peat volume is quite stable up to around 25 meter between sampling points. For Geilo, the estimated volume increases from zero to 10-12 meters, before stabilizing and finally increasing again with distances above 29 meters. The most correct prediction comes with a median distance between 12-20 meters. The original sampling density was biased towards the edges, resulting in a disproportionate large number of samples from shallow areas (Fig. \@ref(fig:sampling_reduction_geilo) ). The IDW does not seem to be able to adequately control for this, and care should be taken to ensure a balanced and systematic sampling design. 
-
+For Tydal, the estimated peat volume is quite stable up to around 25 meter between sampling points. For Geilo, the estimated volume increases from zero to 10-12 meters, before stabilizing and finally increasing again with distances above 29 meters. The most correct prediction comes with a median distance between 12-20 meters. The original sampling density was biased towards the edges, resulting in a disproportionate large number of samples from shallow areas (Fig. \@ref(fig:sampling-reduction-geilo) ). The IDW does not seem to be able to adequately control for this, and care should be taken to ensure a balanced and systematic sampling design.
 
 ### CV
-In addition to seeing the peat volume estimates becoming biased with increasing distance between sampling points, we also we the variation increasing. Now we will calculate this in terms of the coefficient of variation. 
+
+In addition to seeing the peat volume estimates becoming biased with increasing distance between sampling points, we also we the variation increasing. Now we will calculate this in terms of the coefficient of variation.
 
 ```{r}
 max(summaryTable_tydal$medianDist)
 ```
+
 ```{r}
 max(summaryTable_geilo$medianDist)
 ```
@@ -533,6 +539,7 @@ tydal_cv <- tydal_cv[tydal_cv$medianDist<100,]
 (tydal_n <- table(tydal_cv$group))
 
 ```
+
 There's quite few data points in the higher categories. Perhaps too few.
 
 ```{r}
@@ -550,10 +557,10 @@ geilo_cv <- geilo_cv[geilo_cv$medianDist<100,]
 ```
 
 CV function
+
 ```{r}
 cv <- function(x){sd(x)/mean(x)}
 ```
-
 
 ```{r}
 tydal_cv_tbl <- tapply(tydal_cv$estimatedPeatVolume_m3, tydal_cv$group, cv)
@@ -572,6 +579,7 @@ geilo_cv_tbl$n <- geilo_n
 ```
 
 Join tables
+
 ```{r}
 tydal_cv_tbl$site = "Tydal"
 geilo_cv_tbl$site = "Geilo"

@@ -1,4 +1,4 @@
---- 
+---
 title: "Analyses of peatland carbon stocks"
 author: "Marte Fandre, Anders L. Kolstad"
 date: "`r Sys.Date()`"
@@ -8,21 +8,16 @@ documentclass: book
 # cover-image: path to the social sharing image like images/cover.jpg
 description: |
   Analyses of peat volume and carbon stock in Norwegian mires
-
 ---
 
 # Analyses of peatland carbon stocks
 
-This webpage describes the data and analyses behind a manuscript (Fandrem et al. in prep).
+This webpage describes the data and analyses behind a manuscript (Fandrem et al. in prep). There is also a static pdf version of the webpage (<https://anders-kolstad.github.io/carbonCalculator/>) from the time of the original publication of the article.
 
+This web page or pdf was build
 
-This web page was build
 ```{r, echo=F}
 Sys.time()
 ```
 
-in this session:
-```{r, echo=F}
-sessionInfo()
-```
-
+![The analyses described in this book makes it possible, with minimal effort, to estimate the carbon content of peatlands such as this one.. Photo: Anders L. Kolstad.](Data/illustration.JPG){width="599"}

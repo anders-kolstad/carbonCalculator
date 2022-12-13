@@ -46,6 +46,7 @@
 <li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
 <li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
 <li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+<li><a class="" href="session-info.html"><span class="header-section-number">8</span> Session Info</a></li>
 </ul>
 
         <div class="book-extra">
@@ -57,13 +58,12 @@
 <h1>
 <span class="header-section-number">4</span> Optimise sampling intensity<a class="anchor" aria-label="anchor" href="#optimise-sampling-intensity"><i class="fas fa-link"></i></a>
 </h1>
-<p>Now I want to resample and reduce the dataset, but try to keep the original sampling design.
-For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is obvious that a peat depth measurement from a neighboring mire cannot replace data collection on the actuall mire.</p>
+<p>Now I want to resample and reduce the dataset, but try to keep the original sampling design. For the Geilo dataset I want to limit this part of the analyses to only consider one polygon. It is obvious that a peat depth measurement from a neighboring mire cannot replace data collection on the actual mire.</p>
 <div id="subset-geilo-data" class="section level2" number="4.1">
 <h2>
 <span class="header-section-number">4.1</span> Subset Geilo data<a class="anchor" aria-label="anchor" href="#subset-geilo-data"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># select a single mire polygon</span>
 <span class="va">SHP_geilo_biggest</span> <span class="op">&lt;-</span> <span class="va">SHP_geilo</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="va">SHP_geilo</span><span class="op">$</span><span class="va">AREAL</span><span class="op">)</span>,<span class="op">]</span>
 
@@ -72,25 +72,25 @@ For the Geilo dataset I want to limit this part of the analyses to only consider
 
 <span class="co">#Crop the raster grid</span>
 <span class="va">grid_Geilo_stars_crop_biggest</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crop.html">st_crop</a></span><span class="op">(</span><span class="va">grid_Geilo_stars</span>, <span class="va">SHP_geilo_biggest</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html">plot</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">$</span><span class="va">Dybde</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">$</span><span class="va">Dybde</span><span class="op">)</span><span class="op">]</span>,
      ylab<span class="op">=</span><span class="st">"Peat depth (m)"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-41"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-41-1.png" alt="Peat depth measurements for the biggest of the Geilo mires." width="672"><p class="caption">
+<span style="display:block;" id="fig:depth-distribution-geilo"></span>
+<img src="carbonCalculator_files/figure-html/depth-distribution-geilo-1.png" alt="Peat depth measurements for the biggest of the Geilo mires." width="672"><p class="caption">
 Figure 4.1: Peat depth measurements for the biggest of the Geilo mires.
 </p>
 </div>
-<p>Looking at the depth measurements in the figure above, we are reminded that the data contains zeros (measurements taken near the edge) and a truncated above 3 (because that was the length of the peat depth probe).</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<p>Looking at the depth measurements in Fig. <a href="optimise-sampling-intensity.html#fig:depth-distribution-geilo">4.1</a>, we are reminded that the data contains zeros (measurements taken near the edge) and are truncated above 3 (because that was the length of the peat depth probe).</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_symbols.html">tm_symbols</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"black"</span>,
              shape<span class="op">=</span><span class="fl">4</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-42"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-42-1.png" alt="One mire polygon from the Geilo test site used in the assessment of minimum sampling." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-32"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-32-1.png" alt="One mire polygon from the Geilo test site used in the assessment of minimum sampling." width="672"><p class="caption">
 Figure 4.2: One mire polygon from the Geilo test site used in the assessment of minimum sampling.
 </p>
 </div>
@@ -100,7 +100,7 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <span class="header-section-number">4.2</span> Repeat the best IDW<a class="anchor" aria-label="anchor" href="#repeat-the-best-idw"><i class="fas fa-link"></i></a>
 </h2>
 <p>Here I simply recalculate the best models, as described in the previous chapter</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">IDW_tydal_4</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
            locations <span class="op">=</span> <span class="va">depths_tydal</span>, 
            newdata <span class="op">=</span> <span class="va">grid_Tydal_stars_crop</span>, 
@@ -108,10 +108,10 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
            nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 
-<span class="va">IDW_geilo_2</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
+<span class="va">IDW_geilo_3</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
            locations <span class="op">=</span> <span class="va">depths_geilo_biggest</span>, 
            newdata <span class="op">=</span> <span class="va">grid_Geilo_stars_crop_biggest</span>, 
-           idp<span class="op">=</span><span class="fl">2</span>,
+           idp<span class="op">=</span><span class="fl">3</span>,
            nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
 </div>
@@ -119,9 +119,9 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <h2>
 <span class="header-section-number">4.3</span> Reduce N<a class="anchor" aria-label="anchor" href="#reduce-n"><i class="fas fa-link"></i></a>
 </h2>
-<p>by gradually removing the closest point.</p>
+<p><em>- by gradually removing the closest point.</em></p>
 <p>First we need to set up some temporary files for the for-loop.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">distMatrix_tydal</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_distance</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span> 
 <span class="va">distMatrix_tydal</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/drop_units.html">drop_units</a></span><span class="op">(</span><span class="va">distMatrix_tydal</span><span class="op">)</span>
 <span class="va">distMatrix_tydal</span><span class="op">[</span><span class="va">distMatrix_tydal</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
@@ -132,18 +132,18 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <span class="va">distMatrix_geilo</span><span class="op">[</span><span class="va">distMatrix_geilo</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>
 <span class="va">distMin_geilo</span> <span class="op">&lt;-</span> <span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">distMatrix_geilo</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span></code></pre></div>
 <p>Create temporary working files</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">distMin_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_tydal</span>
 <span class="va">depths_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">depths_tydal</span>
 
 <span class="va">distMin_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_geilo</span>
 <span class="va">depths_geilo_temp</span> <span class="op">&lt;-</span> <span class="va">depths_geilo_biggest</span></code></pre></div>
 <p>Get the summed volume</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">est_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_tydal_4</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
-<span class="va">est_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_geilo_2</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span></code></pre></div>
+<span class="va">est_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">IDW_geilo_3</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span></code></pre></div>
 <p>Get the median, mean and skewness of the distances to the closest neighbor</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">medianDist_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>
 <span class="va">meanDist_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>
 <span class="va">skewDist_tydal</span> <span class="op">&lt;-</span> <span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/skewness.html">skewness</a></span><span class="op">(</span><span class="va">distMin_tydal</span><span class="op">)</span>
@@ -152,14 +152,14 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <span class="va">meanDist_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">distMin_geilo</span><span class="op">)</span>
 <span class="va">skewDist_geilo</span> <span class="op">&lt;-</span> <span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/skewness.html">skewness</a></span><span class="op">(</span><span class="va">distMin_geilo</span><span class="op">)</span></code></pre></div>
 <p>Get the MAE</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">MAE_tydal_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_tydal</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">4</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
 <span class="va">MAE_tydal_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE_tydal_allData</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">MAE_geilo_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_biggest</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
 <span class="va">MAE_geilo_allData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE_geilo_allData</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>Put it into a dataframe</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">summaryTable_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>
   medianDist             <span class="op">=</span> <span class="va">medianDist_tydal</span>,
   meanDist               <span class="op">=</span> <span class="va">meanDist_tydal</span>,
@@ -178,7 +178,7 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
   MAE                    <span class="op">=</span> <span class="va">MAE_geilo_allData</span>
 <span class="op">)</span></code></pre></div>
 <p>Perform a for-loop to gradually remove points based on how close they are to other points. This will hopefully retain most of the systematic design of the points (avoiding clumping of points).</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># I will not bother going lower than ten data points</span>
 <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_tydal</span><span class="op">)</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   
@@ -232,8 +232,8 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_tydal_i30</span>, <span class="st">"Output/Tydal/IDW_tydal_i30.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_tydal_i60</span>, <span class="st">"Output/Tydal/IDW_tydal_i60.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_tydal_i90</span>, <span class="st">"Output/Tydal/IDW_tydal_i90.rds"</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># I will not bother going lower than ten data points</span>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># now doing the same for the Geilo test site</span>
 <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">depths_geilo_biggest</span><span class="op">)</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
   
  <span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"run number = "</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span>
@@ -251,7 +251,7 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
  <span class="co"># perform interpolation on tempDF</span>
   <span class="va">int</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_temp</span>, 
                     newdata<span class="op">=</span><span class="va">grid_Geilo_stars_crop_biggest</span>, 
-                    nmax<span class="op">=</span><span class="va">nmax</span>, idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>
+                    nmax<span class="op">=</span><span class="va">nmax</span>, idp<span class="op">=</span><span class="fl">3</span><span class="op">)</span>
   
   <span class="co"># Export some predictions for checks</span>
   <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">240</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
@@ -262,7 +262,7 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
   <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">int</span><span class="op">$</span><span class="va">var1.pred</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
   
   <span class="co"># get the MAE as well, even though it takes a long time to run</span>
-  <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_temp</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">2</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
+  <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.cv.html">krige.cv</a></span><span class="op">(</span><span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">depths_geilo_temp</span>, set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>idp<span class="op">=</span><span class="fl">3</span><span class="op">)</span>, nmax <span class="op">=</span> <span class="va">nmax</span><span class="op">)</span>
   <span class="va">MAE</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">MAE</span><span class="op">$</span><span class="va">residual</span><span class="op">)</span><span class="op">)</span>
   
  <span class="co"># paste into the summary table</span>
@@ -289,11 +289,11 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i190</span>, <span class="st">"Output/Geilo/IDW_geilo_i190.rds"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">IDW_geilo_i240</span>, <span class="st">"Output/Geilo/IDW_geilo_i240.rds"</span><span class="op">)</span></code></pre></div>
 <p>Import the data back in</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">summaryTable_tydal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Data/Tydal/tydal_cvAnalysisData.rds"</span><span class="op">)</span>
 <span class="va">summaryTable_geilo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Data/Geilo/geilo_cvAnalysisData.rds"</span><span class="op">)</span></code></pre></div>
 <p>A code block just for getting the reduced datasets</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">distMin_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">distMin_tydal</span>
 <span class="va">depths_tydal_temp</span> <span class="op">&lt;-</span> <span class="va">depths_tydal</span>
 
@@ -349,7 +349,7 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
  <span class="va">distMin_geilo_temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowRanges.html">rowMins</a></span><span class="op">(</span><span class="va">euclidDist</span>, na.rm<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
  
 <span class="op">}</span></code></pre></div>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
 <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_tydal</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
@@ -387,11 +387,12 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-80 data points"</span>,
             inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<img src="carbonCalculator_files/figure-html/sampling_reduction-1.png" alt="Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal" width="672"><p class="caption">
-(#fig:sampling_reduction)Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal
+<span style="display:block;" id="fig:sampling-reduction"></span>
+<img src="carbonCalculator_files/figure-html/sampling-reduction-1.png" alt="Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal" width="672"><p class="caption">
+Figure 4.3: Demonstrating the gradual reduction in sampling points. after removing 80 data points, the median distance between the points is 28 meters. Test site: Tydal
 </p>
 </div>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
 <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">SHP_geilo_biggest</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span>
@@ -429,8 +430,9 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"-200 data points"</span>,
             inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.02</span>,<span class="fl">.1</span>,<span class="fl">.02</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<img src="carbonCalculator_files/figure-html/sampling_reduction_geilo-1.png" alt="Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo" width="672"><p class="caption">
-(#fig:sampling_reduction_geilo)Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo
+<span style="display:block;" id="fig:sampling-reduction-geilo"></span>
+<img src="carbonCalculator_files/figure-html/sampling-reduction-geilo-1.png" alt="Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo" width="672"><p class="caption">
+Figure 4.4: Demonstrating the gradual reduction in sampling points. after removinf 200 data poins, the median distance between points is 19 meters. Test site: Geilo
 </p>
 </div>
 </div>
@@ -442,11 +444,11 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
 <h3>
 <span class="header-section-number">4.4.1</span> Sampling design<a class="anchor" aria-label="anchor" href="#sampling-design"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">IDW_tydal_i30</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Tydal/IDW_tydal_i30.rds"</span><span class="op">)</span>
 <span class="va">IDW_tydal_i60</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Tydal/IDW_tydal_i60.rds"</span><span class="op">)</span>
 <span class="va">IDW_tydal_i90</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Tydal/IDW_tydal_i90.rds"</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
 <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_tydal_i30</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
@@ -462,17 +464,17 @@ Figure 4.2: One mire polygon from the Geilo test site used in the assessment of 
             title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>
 <span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-55"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-55-1.png" alt="IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal" width="672"><p class="caption">
-Figure 4.3: IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal
+<span style="display:block;" id="fig:unnamed-chunk-45"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-45-1.png" alt="IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal" width="672"><p class="caption">
+Figure 4.5: IDW with mean distance between data points fromleft to right: 19.4, 20.2 and 40 m. Test site: Tydal
 </p>
 </div>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">IDW_geilo_i90</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i90.rds"</span><span class="op">)</span>
 <span class="va">IDW_geilo_i140</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i140.rds"</span><span class="op">)</span>
 <span class="va">IDW_geilo_i190</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i190.rds"</span><span class="op">)</span>
 <span class="va">IDW_geilo_i240</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"Output/Geilo/IDW_geilo_i240.rds"</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_arrange.html">tmap_arrange</a></span><span class="op">(</span>
 <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">IDW_geilo_i90</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"var1.pred"</span>,
@@ -492,23 +494,23 @@ Figure 4.3: IDW with mean distance between data points fromleft to right: 19.4, 
             title <span class="op">=</span> <span class="st">"Interpolated peat\ndepth (m)"</span><span class="op">)</span>
 <span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-57"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-57-1.png" alt="IDW with mean distance between data points fromleft to right: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo" width="672"><p class="caption">
-Figure 4.4: IDW with mean distance between data points fromleft to right: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo
+<span style="display:block;" id="fig:unnamed-chunk-47"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-47-1.png" alt="IDW with mean distance between data points from left to right, row by row: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo" width="672"><p class="caption">
+Figure 4.6: IDW with mean distance between data points from left to right, row by row: 9.1, 11.0, 17.3 and 44.5 m. Test site: Geilo
 </p>
 </div>
 </div>
-<div id="distance-to-neighbours" class="section level3" number="4.4.2">
+<div id="distance-to-neighbors" class="section level3" number="4.4.2">
 <h3>
-<span class="header-section-number">4.4.2</span> Distance to neighbours<a class="anchor" aria-label="anchor" href="#distance-to-neighbours"><i class="fas fa-link"></i></a>
+<span class="header-section-number">4.4.2</span> Distance to neighbors<a class="anchor" aria-label="anchor" href="#distance-to-neighbors"><i class="fas fa-link"></i></a>
 </h3>
 <p>Combine datasets</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">summaryTable_tydal</span><span class="op">$</span><span class="va">site</span> <span class="op">&lt;-</span> <span class="st">"Tydal"</span>
 <span class="va">summaryTable_geilo</span><span class="op">$</span><span class="va">site</span> <span class="op">&lt;-</span> <span class="st">"Geilo"</span>
 <span class="va">summaryTable_twoSites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">summaryTable_tydal</span>,
                                <span class="va">summaryTable_geilo</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span><span class="op">)</span><span class="op">+</span>
      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n</span>, y <span class="op">=</span> <span class="va">medianDist</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n</span>, y <span class="op">=</span> <span class="va">meanDist</span><span class="op">)</span>, pch <span class="op">=</span> <span class="fl">21</span>,fill<span class="op">=</span><span class="st">"grey"</span><span class="op">)</span><span class="op">+</span>
@@ -518,9 +520,9 @@ Figure 4.4: IDW with mean distance between data points fromleft to right: 9.1, 1
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>,
              scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-59"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-59-1.png" alt="Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity. " width="672"><p class="caption">
-Figure 4.5: Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity.
+<span style="display:block;" id="fig:unnamed-chunk-49"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-49-1.png" alt="Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity. " width="672"><p class="caption">
+Figure 4.7: Mean (grey) and median (black) distance between peat depth measurements along a gradient of sampling intensity.
 </p>
 </div>
 <p>This figure tells us that the median (black) and the mean (grey) distance to nearest neighbor are very similar, meaning there is little skew, meaning again that the n reduction process has retained the systematic sampling design.</p>
@@ -529,7 +531,7 @@ Figure 4.5: Mean (grey) and median (black) distance between peat depth measureme
 <h3>
 <span class="header-section-number">4.4.3</span> Skewness<a class="anchor" aria-label="anchor" href="#skewness"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span><span class="op">)</span><span class="op">+</span>
      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n</span>, 
                     y <span class="op">=</span> <span class="va">skewness</span><span class="op">)</span>, 
@@ -539,18 +541,18 @@ Figure 4.5: Mean (grey) and median (black) distance between peat depth measureme
      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html">vars</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span>,
                 scales<span class="op">=</span><span class="st">"free_x"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-60"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-60-1.png" alt="Skewness in the distribution of euclidian distances as a response to varying sapling intensity." width="672"><p class="caption">
-Figure 4.6: Skewness in the distribution of euclidian distances as a response to varying sapling intensity.
+<span style="display:block;" id="fig:unnamed-chunk-50"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-50-1.png" alt="Skewness in the distribution of euclidian distances as a response to varying sapling intensity." width="672"><p class="caption">
+Figure 4.8: Skewness in the distribution of euclidian distances as a response to varying sapling intensity.
 </p>
 </div>
-<p>Contrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then ‘weeded out’ first, and the skew is flipped around to become positive. I will mostly rely on figure @ref(fig:sampling_reduction) and @ref(fig:sampling_reduction_geilo) and say that the reduction in sampling intensity retains the systamatic design.</p>
+<p>Contrary to the above, this figure indicates perhaps that the sampling designs is compromised when I reduce n. It starts out with a negative skew due to some points being very close together. There are then ‘weeded out’ first, and the skew is flipped around to become positive. I will mostly rely on figure <a href="optimise-sampling-intensity.html#fig:sampling-reduction">4.3</a> and <a href="optimise-sampling-intensity.html#fig:sampling-reduction-geilo">4.4</a> and say that the reduction in sampling intensity retains the systematic design.</p>
 </div>
 <div id="peat-volume-estimates" class="section level3" number="4.4.4">
 <h3>
 <span class="header-section-number">4.4.4</span> Peat volume estimates<a class="anchor" aria-label="anchor" href="#peat-volume-estimates"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="va">gg_volume</span> <span class="op">&lt;-</span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span>,
           <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">medianDist</span>, 
@@ -572,25 +574,25 @@ Figure 4.6: Skewness in the distribution of euclidian distances as a response to
 
 <span class="va">gg_volume</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-61"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-61-1.png" alt="Estimated peat volume as a response of the median distance between sampling points." width="672"><p class="caption">
-Figure 4.7: Estimated peat volume as a response of the median distance between sampling points.
+<span style="display:block;" id="fig:unnamed-chunk-51"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-51-1.png" alt="Estimated peat volume as a response of the median distance between sampling points." width="672"><p class="caption">
+Figure 4.9: Estimated peat volume as a response of the median distance between sampling points.
 </p>
 </div>
-<p>For Tydal, the estimated peat volume is quite stable up to around 25 meter between sampling points. For Geilo, the estimated volume increases from zero to 10-12 meters, before stabilizing and finally increasing again with distances above 29 meters. The most correct prediction comes with a median distance between 12-20 meters. The original sampling density was biased towards the edges, resulting in a disproportionate large number of samples from shallow areas (Fig. @ref(fig:sampling_reduction_geilo) ). The IDW does not seem to be able to adequately control for this, and care should be taken to ensure a balanced and systematic sampling design.</p>
+<p>For Tydal, the estimated peat volume is quite stable up to around 25 meter between sampling points. For Geilo, the estimated volume increases from zero to 10-12 meters, before stabilizing and finally increasing again with distances above 29 meters. The most correct prediction comes with a median distance between 12-20 meters. The original sampling density was biased towards the edges, resulting in a disproportionate large number of samples from shallow areas (Fig. <a href="optimise-sampling-intensity.html#fig:sampling-reduction-geilo">4.4</a> ). The IDW does not seem to be able to adequately control for this, and care should be taken to ensure a balanced and systematic sampling design.</p>
 </div>
 <div id="cv" class="section level3" number="4.4.5">
 <h3>
 <span class="header-section-number">4.4.5</span> CV<a class="anchor" aria-label="anchor" href="#cv"><i class="fas fa-link"></i></a>
 </h3>
 <p>In addition to seeing the peat volume estimates becoming biased with increasing distance between sampling points, we also we the variation increasing. Now we will calculate this in terms of the coefficient of variation.</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">summaryTable_tydal</span><span class="op">$</span><span class="va">medianDist</span><span class="op">)</span>
 <span class="co">#&gt; [1] 54.87518</span></code></pre></div>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">summaryTable_geilo</span><span class="op">$</span><span class="va">medianDist</span><span class="op">)</span>
 <span class="co">#&gt; [1] 44.49275</span></code></pre></div>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">tydal_cv</span> <span class="op">&lt;-</span> <span class="va">summaryTable_tydal</span>
 <span class="va">tydal_cv</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
   <span class="va">tydal_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">10</span>, <span class="st">"&lt;10 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
@@ -606,7 +608,7 @@ Figure 4.7: Estimated peat volume as a response of the median distance between s
 <span class="co">#&gt; 15-20 m 20-25 m 25-30 m 30-35 m 35-40 m 40-55 m </span>
 <span class="co">#&gt;      60      13      10       3       3       6</span></code></pre></div>
 <p>There’s quite few data points in the higher categories. Perhaps too few.</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">geilo_cv</span> <span class="op">&lt;-</span> <span class="va">summaryTable_geilo</span>
 <span class="va">geilo_cv</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
   <span class="va">geilo_cv</span><span class="op">$</span><span class="va">medianDist</span><span class="op">&lt;</span><span class="fl">10</span>, <span class="st">"&lt;10 m"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span>
@@ -624,9 +626,9 @@ Figure 4.7: Estimated peat volume as a response of the median distance between s
 <span class="co">#&gt; 40-55 m </span>
 <span class="co">#&gt;       4</span></code></pre></div>
 <p>CV function</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">cv</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">}</span></code></pre></div>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">tydal_cv_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html">tapply</a></span><span class="op">(</span><span class="va">tydal_cv</span><span class="op">$</span><span class="va">estimatedPeatVolume_m3</span>, <span class="va">tydal_cv</span><span class="op">$</span><span class="va">group</span>, <span class="va">cv</span><span class="op">)</span>
 <span class="va">tydal_cv_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>cv <span class="op">=</span> <span class="va">tydal_cv_tbl</span>,
                       label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tydal_cv_tbl</span><span class="op">)</span>,
@@ -641,12 +643,12 @@ Figure 4.7: Estimated peat volume as a response of the median distance between s
 <span class="va">geilo_cv_tbl</span> <span class="op">&lt;-</span> <span class="va">geilo_cv_tbl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">geilo_cv_tbl</span><span class="op">$</span><span class="va">order</span><span class="op">)</span>,<span class="op">]</span>
 <span class="va">geilo_cv_tbl</span><span class="op">$</span><span class="va">n</span> <span class="op">&lt;-</span> <span class="va">geilo_n</span></code></pre></div>
 <p>Join tables</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">tydal_cv_tbl</span><span class="op">$</span><span class="va">site</span> <span class="op">=</span> <span class="st">"Tydal"</span>
 <span class="va">geilo_cv_tbl</span><span class="op">$</span><span class="va">site</span> <span class="op">=</span> <span class="st">"Geilo"</span>
 <span class="va">cvTab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">tydal_cv_tbl</span>,
                <span class="va">geilo_cv_tbl</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">gg_cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cvTab</span>, 
                  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">order</span>, y <span class="op">=</span> <span class="va">cv</span>,
                      fill<span class="op">=</span><span class="va">site</span>,
@@ -669,9 +671,9 @@ Figure 4.7: Estimated peat volume as a response of the median distance between s
 
 <span class="va">gg_cv</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-69"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-69-1.png" alt="Coefficient of variation in peat volume estimates as a response to median distance between sampling points" width="672"><p class="caption">
-Figure 4.8: Coefficient of variation in peat volume estimates as a response to median distance between sampling points
+<span style="display:block;" id="fig:unnamed-chunk-59"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-59-1.png" alt="Coefficient of variation in peat volume estimates as a response to median distance between sampling points" width="672"><p class="caption">
+Figure 4.10: Coefficient of variation in peat volume estimates as a response to median distance between sampling points
 </p>
 </div>
 </div>
@@ -680,7 +682,7 @@ Figure 4.8: Coefficient of variation in peat volume estimates as a response to m
 <h2>
 <span class="header-section-number">4.5</span> MAE<a class="anchor" aria-label="anchor" href="#mae"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">gg_mae</span> <span class="op">&lt;-</span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">summaryTable_twoSites</span>,
           <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">medianDist</span>, 
               y <span class="op">=</span> <span class="va">MAE</span><span class="op">)</span><span class="op">)</span><span class="op">+</span>
@@ -701,12 +703,12 @@ Figure 4.8: Coefficient of variation in peat volume estimates as a response to m
 
 <span class="va">gg_mae</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-70"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-70-1.png" alt="MAE in IDW predictions as a response of median distance between sampling points." width="672"><p class="caption">
-Figure 4.9: MAE in IDW predictions as a response of median distance between sampling points.
+<span style="display:block;" id="fig:unnamed-chunk-60"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-60-1.png" alt="MAE in IDW predictions as a response of median distance between sampling points." width="672"><p class="caption">
+Figure 4.11: MAE in IDW predictions as a response of median distance between sampling points.
 </p>
 </div>
-<p>This figure I think also support that sampling distances aboev about 25 m is a bad idea.</p>
+<p>This figure I think also support that sampling distances above about 25 m is a bad idea.</p>
 
 </div>
 </div>
@@ -723,7 +725,7 @@ Figure 4.9: MAE in IDW predictions as a response of median distance between samp
 <li>
 <a class="nav-link" href="#explore-results"><span class="header-section-number">4.4</span> Explore results</a><ul class="nav navbar-nav">
 <li><a class="nav-link" href="#sampling-design"><span class="header-section-number">4.4.1</span> Sampling design</a></li>
-<li><a class="nav-link" href="#distance-to-neighbours"><span class="header-section-number">4.4.2</span> Distance to neighbours</a></li>
+<li><a class="nav-link" href="#distance-to-neighbors"><span class="header-section-number">4.4.2</span> Distance to neighbors</a></li>
 <li><a class="nav-link" href="#skewness"><span class="header-section-number">4.4.3</span> Skewness</a></li>
 <li><a class="nav-link" href="#peat-volume-estimates"><span class="header-section-number">4.4.4</span> Peat volume estimates</a></li>
 <li><a class="nav-link" href="#cv"><span class="header-section-number">4.4.5</span> CV</a></li>
@@ -747,7 +749,7 @@ Figure 4.9: MAE in IDW predictions as a response of median distance between samp
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

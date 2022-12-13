@@ -2,8 +2,7 @@
 
 We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles.
 
-*The main task in this chapter is the determination of optimal power for IDW by cross validation*
-
+> The main task in this chapter is the determination of optimal power for IDW by cross validation
 
 ## Raster grid
 
@@ -30,6 +29,7 @@ tm_shape(grid_Tydal_sf)+
 ```
 
 Crop raster grid using the peatland deliniation
+
 ```{r}
 grid_Tydal_stars_crop <- sf::st_crop(grid_Tydal_stars, SHP_tydal)
 grid_Geilo_stars_crop <- sf::st_crop(grid_Geilo_stars, SHP_geilo)
@@ -51,21 +51,21 @@ tm_shape(grid_Tydal_stars_crop)+
 
 ## Inverse distance weighting
 
-We chose to use IDW for the interpolation. This is because we do not want to include a separate step with for example calculating a variogram, and the functions for automatically fitting a variogram seems unstable.
+We chose to use Inverse distance weighting (IDW) for the interpolation instead of for example kriging. This is because we do not want to include a separate step with for example calculating a variogram, and the functions for automatically fitting a variogram seems unstable.
 
-The IDW requires setting the number of neighboring points to consider. We could set this to consider all points in the dataset (the default), but this increases calculation times and it is also not sensible in general. I will use the 9 nearest points, as this would mean all the 8 closest points in a systematic grid around a point is included.
+The IDW requires setting the number of neighboring points to consider. We could set this to consider all points in the dataset (the default), but this increases calculation times and it is also not sensible in general. I will start by considering the 9 nearest points, as this would mean all the 8 closest points in a systematic grid around a point is included.
+
 ```{r}
 nmax <- 9
 ```
 
 IDW also has a power parameter, and this is where we can tune the results by down-weighting data points that are further away. This parameter needs to be optimized for each model. We will fit a model with power varying from 0 to 10 and explore the model fit as a result of the chosen power.
 
-First, lets explore the idw function and what the parameters mean.
-Tydal is `r max(depths_tydal$Dybde)` meters at it's deepest point. Depending on the idw setting, the prediction map will be further of closer to this number. For example, is we only consider the closest neighbor, we are essentially performing a nearest neighbor interpolation. The choice of power then has no effect, and the deepest point in the prediction map equals the deepest point in the measured data. 
+First, lets explore the idw function and what the parameters mean. Tydal is `r max(depths_tydal$Dybde)` meters at it's deepest point. Depending on the idw setting, the prediction map will be further of closer to this number. For example, is we only consider the closest neighbor, we are essentially performing a nearest neighbor interpolation (Fig. \@ref(fig:IDW-test1); left pane). The choice of power then has no effect, and the deepest point in the prediction map equals the deepest point in the measured data.
 
-If we keep the power at zero (ignore distance weighting) and turn up nmax to 9, each raster cell is predicted to be the mean of the nine closest points. The overall predicted depth decreases.
+If we keep the power at zero (ignore distance weighting) and turn up nmax to 9, each raster cell is predicted to be the mean of the nine closest points (Fig. \@ref(fig:IDW-test1); middle pane). The overall predicted depth decreases.
 
-If we then also include distance weighting, e.g. by setting power =2, we get smoothing between the points, and a more local prediction than when we had no power (i.e. the deepest point is again close to its true value).
+If we then also include distance weighting, e.g. by setting power =2, we get smoothing between the points, and a more local prediction than when we had no power (i.e. the deepest point is again close to its true value) (Fig. \@ref(fig:IDW-test1); right pane).
 
 ```{r}
 temp <- gstat::idw(formula = Dybde ~ 1, 
@@ -171,28 +171,29 @@ gg_temp5 <- tm_shape(temp5)+
             title = paste0("Power = 100\nNmax = 9"))
 ```
 
-```{r, fig.cap="IDW with different setting."}
+```{r IDW-test1, fig.cap="IDW with different setting."}
 tmap_arrange(gg_temp,
              gg_temp2,
              gg_temp3,
              ncol = 3)
 ```
 
-```{r, fig.cap="IDW with different setting."}
+```{r IDW-test2, fig.cap="IDW with different setting."}
 tmap_arrange(gg_temp4,
              gg_temp4.1,
              gg_temp5,
              ncol = 3)
 ```
 
-If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9.
+If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9 (Fig. \@ref(fig:IDW-test2); left pane).
 
-If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter.
+If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter (Fig. \@ref(fig:IDW-test2); middle pane). For biger data sets however, the computation time might become an issue.
 
-If we keep nmax at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neighbor interpolation.
+If we keep nmax at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neighbor interpolation (Fig. \@ref(fig:IDW-test2); right pane).
 
 Of all the examples above, power = 2 and nmax = 9 is probably the best. However, I don't like these little dots on the map. They are artefacts of the model, and do not exist for real. Therefore I think I would prefer a model with a slightly more local focus. We can increase the power a bit to achieve this.
-```{r, fig.cap="IDW with relatively local focus." }
+
+```{r IDW-test_power4_nmax9, fig.cap="IDW with relatively local focus." }
 temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
            newdata = grid_Tydal_stars_crop, 
@@ -212,8 +213,9 @@ tm_shape(temp)+
 
 ```
 
-After a bit of trial and error, I noticed that by have nmax as low as 9, the optimum power frequently became <2 (which results in model artefacts and biased predictions as you can read about below). I therefore increase the nmax.
-```{r, fig.cap="IDW with relatively slightlly higher nmax and higher power." }
+After a bit of trial and error, I noticed that by having nmax as low as 9, the optimum power frequently became \<2 (which results in model artefacts and biased predictions as you can read about below, esp Fig. \@ref(fig:residuals-vs-predicted)). I therefore increase the nmax.
+
+```{r test_power4_nmax20, fig.cap="IDW with relatively slightlly higher nmax and higher power." }
 temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
            newdata = grid_Tydal_stars_crop, 
@@ -233,14 +235,13 @@ tm_shape(temp)+
 
 ```
 
-```{r}
+```{r increase-nmax}
 nmax <- 20
 ```
 
+This tuning of the power parameter is where we will focus now. Here I perform IDW for power between 0 and 10 to compare the results.
 
-
-This tuning of the power parameter is where we will focus now.
-```{r, message=F}
+```{r, message=F, results='hide'}
 myPowers <- c(0:10)
 for(i in myPowers){
   temp <- gstat::idw(formula = Dybde ~ 1, 
@@ -262,7 +263,8 @@ for(i in myPowers){
 ```
 
 What do these models look like.
-```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal.", message=F}
+
+```{r tydal-power-range, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal.", message=F}
 for(i in myPowers){
   
   temp <- get(paste0("IDW_tydal_", i))
@@ -294,7 +296,8 @@ ncol = 3)
 ```
 
 When plotting Geilo I cannot include the crosses for the depth measurements because there are just too many and the clutter up the image.
-```{r, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Geilo.", message=F}
+
+```{r geilo-power-range, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Geilo.", message=F}
 for(i in myPowers){
   
   temp <- get(paste0("IDW_geilo_", i))
@@ -323,10 +326,10 @@ ncol = 1)
 
 A low power creates a more flat map where all the depth measurements count equally to any predicted value. With power set to 0 we just predict the average of all the measured peat depths. For both cases, increasing the power beyond 4 has little visual effect.
 
-
-
 ## Original residuals
+
 Let's check the fit with a plot of the residuals.
+
 ```{r}
 # Prepare data frame with the measured data
 resids_tydal <- data.frame(ID = 1:nrow(depths_tydal))
@@ -403,15 +406,16 @@ gg_resids_geilo <-
 
 ```
 
-```{r, fig.cap="Residuals (observed - predicted) stabelize with power greater than 2."}
+```{r residuals-vs-predicted, fig.cap="Residuals (observed - predicted) stabelize with power greater than 2."}
 ggpubr::ggarrange(gg_resids_geilo,
                   gg_resids_tydal)
 ```
 
-With a power of 2 or greater, the residuals are very stable and unbiased (centered on 0). 
+With a power of 2 or greater, the residuals are very stable and unbiased (centered on 0).
 
 ## Estimated volume
-What about the estimated volume - does that change depending on the power setting? Note that because the data are projected in UTM, the mean depth (in meter) of each 1x1 raster cell equals the volumne in m3.
+
+What about the estimated volume - does that change depending on the power setting? Note that because the data are projected in UTM, the mean depth (in meter) of each 1x1 raster cell equals the volume in m3.
 
 ```{r}
 volume_tydal <- NULL
@@ -468,8 +472,8 @@ The values are stabilizing relatively fast, but a power of less than 3 seem like
 
 This relationship probably depends a bit on the number of data points and the density of peat depth measurements. So we should not generalise just yet.
 
-
 ## Model fit LOOCV
+
 Now let's do a proper test of model fit, using leave one out cross validation. I will use the mean absolute deviation as my measure of model fit.
 
 ```{r}
@@ -531,14 +535,13 @@ ggpubr::ggarrange(gg_MAE_geilo,
 
 The mean absolute error is not negligible in any of the two cases. The interpretation is, if you leave out one of the peat depth measurement and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.
 
-The best models have power =  2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (see above). But the map for Geilo is quite *spotted*, and perhaps a higher power would be smart. Or to estimate the peat volume for each polygon separately. 
+The best models have power = 2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (Figs. \@ref(fig:tydal-power-range) and \@ref(fig:geilo-power-range)). But the map for Geilo is quite *spotted*, and perhaps a higher power would be smart. I will therefore change it to 3. This is justified also because of the minimal impact in MAE and the predicted volume. For Geilo, we probably would get better results if we analysed each polygon separately.
 
-A power less than 2 is not recommended as we have seen above. With nmax set to 9, the optimum power for Geilo was actually 1. I therefore went back up in the script and increased nmax to 20.
-
+*Note: A power less than 2 is not recommended as we have seen above. With nmax set to 9, the optimum power for Geilo was actually 1. I therefore went back up in the script and increased nmax to 20.*
 
 ## Best models
 
-Based on a criterion of lowest MAE we have identified the best IDW models for the two test sites:
+Based on a criterion of lowest MAE (but above 2) we have identified the best IDW models for the two test sites:
 
 ```{r, fig.cap="Best model for estimating the peat depth profile for the Tydal test site. Dots indicatore peat depth sampling points. MAE = 0.59 meters. Power = 4."}
 tm_tydal <- tm_shape(IDW_tydal_4)+
@@ -561,17 +564,16 @@ tm_tydal
 ```
 
 ```{r, eval=F}
-IDW_geilo_2 <- gstat::idw(formula = Dybde ~ 1, 
+IDW_geilo_3 <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_geilo, 
            newdata = grid_Geilo_stars_crop, 
            idp=2,
            nmax = nmax)
 ```
 
-
-```{r, fig.cap="Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 2."}
+```{r, fig.cap="Best model for estimating the peat depth profile for the Geilo test site. Dots indicatore peat depth sampling points. MAE = 0.4 meters. Power = 3."}
 tm_geilo <- 
-  tm_shape(IDW_geilo_2)+
+  tm_shape(IDW_geilo_3)+
   tm_raster(col="var1.pred",
             palette = "-viridis",
             title = "Interpolated peat\ndepth (m)")+
@@ -584,24 +586,25 @@ tm_geilo <-
 tm_geilo
 ```
 
-Tydal is `r sum(IDW_tydal_4$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_2$var1.pred, na.rm = T)` m^3^. We can get the residuals from LOOCV.
+Tydal is `r sum(IDW_tydal_4$var1.pred, na.rm = T)` m^3^ and Geilo is `r sum(IDW_geilo_3$var1.pred, na.rm = T)` m^3^. We can get the residuals from LOOCV.
 
 ```{r, warning=F, message=F, fig.cap="Resuduals from LOOCV. Test site: Tydal"}
 SE_tydal <- krige.cv(Dybde ~ 1, depths_tydal, set = list(idp=4), nmax = nmax)
-SE_geilo <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=2), nmax = nmax)
+SE_geilo <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=3), nmax = nmax)
 
 
 ggplot(SE_tydal, aes(x = residual))+
   geom_histogram()
 ```
 
-For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is `r round(mean(abs(SE_tydal$residual)), 2)` meters. There is no clear way how to predict confidence intervals for IDW. The residuals, and the MAE, represnets uncertainty for each grid cell value, and not uncertainty in the sum of all these grid cells. Since the mean of the residuals (not the absolute mean, but the normal mean) is quite close to 0, the uncertainty for each cell cancels out.  
+For any point inside the prediction area, we assume an error equal to the mean residual from LOOCV. For Tydal, this is `r round(mean(abs(SE_tydal$residual)), 2)` meters. There is no clear way how to predict confidence intervals for IDW. The residuals, and the MAE, represents uncertainty for each grid cell value, and not uncertainty in the sum of all these grid cells. Since the mean of the residuals (not the absolute mean, but the normal mean) is quite close to 0, the uncertainty for each cell cancels out.
 
 We can calculate the peat volume based on the best model
+
 ```{r}
 volume <- data.frame(site = c("Tydal", "Geilo"),
                      volume = c(sum(IDW_tydal_4$var1.pred, na.rm = T),
-                                sum(IDW_geilo_2$var1.pred, na.rm = T)))
+                                sum(IDW_geilo_3$var1.pred, na.rm = T)))
 ```
 
 ```{r, fig.cap="Peat volume estimated from IDW."}
@@ -616,14 +619,15 @@ ggplot(volume, aes(x = site, y = volume))+
 ```
 
 The rough volume (no iDW) Tydal and Geilo
+
 ```{r}
 SHP_tydal$myArea <- sf::st_area(SHP_tydal)
 mean(depths_tydal$Dybde)*sum(SHP_tydal$myArea)
 ```
+
 ```{r}
 SHP_geilo$myArea <- sf::st_area(SHP_geilo)
 mean(depths_geilo$Dybde)*sum(SHP_geilo$myArea)
 ```
 
 Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.
-

@@ -15,7 +15,9 @@ tm_shape(depths_tydal_i60)+
           title = "Measured peat depth (m)")+
   tm_layout(legend.outside = T)
 ```
+
 Confirm the median distance is 20 meters
+
 ```{r}
 temp <- sf::st_distance(depths_tydal_i60) 
 temp <- units::drop_units(temp)
@@ -97,10 +99,41 @@ ccalc_optimumPower <- function(powerRange = 1:6,
 
 ```
 
-```{r}
+```{r, fig.cap="Determening the optimal power setting for IDW using a reduced dataset from the Tydal test site."}
 ccalc_optimumPower(peatDepths = depths_tydal_i60,
                    title = "Tydal",
                    peatlandDelimination = SHP_tydal)
 ```
 
 That's good. The optimum power is the same as when we had all the data points.
+
+Let's plot the IDW predictions for Tydal based on all the data pionts and based on the reduced set of data points.
+
+```{r}
+IDW_tydal_4_red <- gstat::idw(formula = Dybde ~ 1, 
+           locations = depths_tydal_i60, 
+           newdata = grid_Tydal_stars_crop, 
+           idp=4,
+           nmax = nmax)
+
+```
+
+```{r tydal-compare-sampling-intensity, fig.cap="Comparing IDW prediction using all data points (left) and a reduced set of data points with median distance between point set to 20 meters."}
+tm_tydal_red <- tm_shape(IDW_tydal_4_red)+
+  tm_raster(col="var1.pred",
+            palette = "-viridis",
+            title = "Interpolated peat\ndepth (m)")+
+  tm_shape(depths_tydal_i60)+
+  tm_symbols(shape=4,
+             col="black",
+             size=.5)+
+  tm_compass(type="8star", position = c("right", "bottom"), size = 2) +
+  tm_scale_bar(position = c("left", "bottom"), width = 0.3)+
+  tm_layout(inner.margins = c(0.15, 0.05, 0, 0.05),
+            legend.outside = T)
+
+tmap_arrange(tm_tydal,
+             tm_tydal_red)
+```
+
+The two maps in Fig. \@ref(fig:tydal-compare-sampling-intensity) are qualitatively similar.

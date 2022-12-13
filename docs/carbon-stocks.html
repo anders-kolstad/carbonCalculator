@@ -46,6 +46,7 @@
 <li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
 <li><a class="active" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
 <li><a class="" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+<li><a class="" href="session-info.html"><span class="header-section-number">8</span> Session Info</a></li>
 </ul>
 
         <div class="book-extra">
@@ -58,39 +59,16 @@
 <span class="header-section-number">6</span> Carbon stocks<a class="anchor" aria-label="anchor" href="#carbon-stocks"><i class="fas fa-link"></i></a>
 </h1>
 <p>Now I want to convert the peat volumes into estimates of carbon stock. This conversion depends on the values of some peat characteristics, such as bulk density and C concentrations. We have a data set with these values.</p>
+<p>Import dataset with peat characteristics.</p>
 <div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">peatCharacteristics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_delim</a></span><span class="op">(</span><span class="st">"Data/peatCharacteristics.csv"</span>, 
     delim <span class="op">=</span> <span class="st">";"</span>, escape_double <span class="op">=</span> <span class="cn">FALSE</span>, locale <span class="op">=</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/locale.html">locale</a></span><span class="op">(</span>encoding <span class="op">=</span> <span class="st">"ISO-8859-1"</span><span class="op">)</span>, 
     trim_ws <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="co">#&gt; Rows: 88 Columns: 30</span>
-<span class="co">#&gt; -- Column specification ------------------------------------</span>
-<span class="co">#&gt; Delimiter: ";"</span>
-<span class="co">#&gt; chr (17): SAMPLE ID2, Location Name, Municipality, Count...</span>
-<span class="co">#&gt; dbl (12): Sample No, ETRS89_UTM32_E, ETRS89_UTM32_N, BD ...</span>
-<span class="co">#&gt; lgl  (1): Condition_notes</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; i Use `spec()` to retrieve the full column specification for this data.</span>
-<span class="co">#&gt; i Specify the column types or set `show_col_types = FALSE` to quiet this message.</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">peatCharacteristics</span><span class="op">)</span>
-<span class="co">#&gt; # A tibble: 6 x 30</span>
-<span class="co">#&gt;   `SAMPLE ID2` `Sample No` `Location Name`      Municipality</span>
-<span class="co">#&gt;   &lt;chr&gt;              &lt;dbl&gt; &lt;chr&gt;                &lt;chr&gt;       </span>
-<span class="co">#&gt; 1 0029                   1 Myr NV for Vesterse~ Namsos      </span>
-<span class="co">#&gt; 2 0029                   2 Myr NV for Vesterse~ Namsos      </span>
-<span class="co">#&gt; 3 0030                   1 Bakkemyr SV for Ves~ Namsos      </span>
-<span class="co">#&gt; 4 0031                   1 Skognbakkmyra        Namsos      </span>
-<span class="co">#&gt; 5 0031                   2 Skognbakkmyra        Namsos      </span>
-<span class="co">#&gt; 6 0031                   3 Skognbakkmyra        Namsos      </span>
-<span class="co">#&gt; # ... with 26 more variables: County &lt;chr&gt;,</span>
-<span class="co">#&gt; #   `General Peatland Type` &lt;chr&gt;,</span>
-<span class="co">#&gt; #   `Specific Peatland Type` &lt;chr&gt;,</span>
-<span class="co">#&gt; #   `Generell myrtype` &lt;chr&gt;, Naturtype &lt;chr&gt;,</span>
-<span class="co">#&gt; #   `Detaljert Naturtype` &lt;chr&gt;, `NiN kode` &lt;chr&gt;,</span>
-<span class="co">#&gt; #   Condition &lt;chr&gt;, Condition_notes &lt;lgl&gt;,</span>
-<span class="co">#&gt; #   Notes_misc &lt;chr&gt;, ETRS89_UTM32_E &lt;dbl&gt;, ...</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">peatCharacteristics</span><span class="op">)</span>
+<span class="co">#&gt; [1] 88 30</span></code></pre></div>
+<p>Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take te mean from each sample core. This part of the analyses can be improved.</p>
 <div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take te mean from each sample core.</span>
-<span class="va">peatCharacteristics_summedDepths</span> <span class="op">&lt;-</span> <span class="va">peatCharacteristics</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+<code class="sourceCode R"><span class="va">peatCharacteristics_summedDepths</span> <span class="op">&lt;-</span> <span class="va">peatCharacteristics</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>perc_SOM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">`% SOM`</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>BD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">`BD (t/m3)`</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
       <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">`SAMPLE ID2`</span>, <span class="va">perc_SOM</span>, <span class="va">BD</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
@@ -115,12 +93,13 @@
 <span class="co">#&gt; 5 0033                  96.6  0.067  fen                    </span>
 <span class="co">#&gt; 6 0034                  99.3  0.066  fen                    </span>
 <span class="co">#&gt; # ... with 1 more variable: `Specific Peatland Type` &lt;chr&gt;</span></code></pre></div>
+<p>We have 12 samples from bogs, and 14 from fens:</p>
 <div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">`General Peatland Type`</span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; bog fen </span>
 <span class="co">#&gt;  12  14</span></code></pre></div>
-<p>We have 12 samples from bogs, and 14 from fens.</p>
+<p>We do not perhaps have enough data points to really compare the different specific peatland types:</p>
 <div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">`Specific Peatland Type`</span><span class="op">)</span>
 <span class="co">#&gt; </span>
@@ -128,13 +107,12 @@
 <span class="co">#&gt;                3                5                2 </span>
 <span class="co">#&gt;         poor fen       raised bog         rich fen </span>
 <span class="co">#&gt;                5                7                4</span></code></pre></div>
-<p>We do not perhaps have enough data points to really compare the different spesific peatland types.</p>
-<p>Lets get the total peat volumes for Tydal (and Geilo, but I will not look at Geilo here).</p>
+<p>Let’s get the total peat volumes for Tydal (and Geilo, but I will not look at Geilo here).</p>
 <div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">volume</span>
 <span class="co">#&gt;    site    volume</span>
 <span class="co">#&gt; 1 Tydal  77336.97</span>
-<span class="co">#&gt; 2 Geilo 102268.39</span></code></pre></div>
+<span class="co">#&gt; 2 Geilo 102469.96</span></code></pre></div>
 <p>Calculating the c stocks (tons C) for the Tydal site without specifying the mire type</p>
 <div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">c_stock_tydal_uninformed</span> <span class="op">&lt;-</span> 
@@ -143,7 +121,7 @@
               <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">BD_mean</span><span class="op">)</span> <span class="op">*</span> <span class="fl">0.5</span> <span class="co">#* 1000 # removing the original conversion from tons to kg</span>
 <span class="va">c_stock_tydal_uninformed</span>
 <span class="co">#&gt; [1] 3519.665</span></code></pre></div>
-<p>I think we also need to estimate the uncertainties around this number. Note that for the peat volume estimation, we did not calculate an uncertainty. But for the peat characteristics we have an uncertainty in therms of variation within and between samples points. I will calculate the uncertainty between points only.</p>
+<p>I think we also need to estimate the uncertainties around this number. Note that for the peat volume estimation, we did not calculate an uncertainty. But for the peat characteristics we have an uncertainty in therms of variation within and between samples points. I will calculate the uncertainty between individual peat cores only.</p>
 <div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">c_stock_tydal_uninformed</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
 <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">)</span><span class="op">{</span>
@@ -156,8 +134,8 @@
 <span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span>, main<span class="op">=</span><span class="st">""</span>,
      xlab<span class="op">=</span><span class="st">"C stock"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-83"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-83-1.png" alt="Estaimted carbon stock in the Tydal peatland" width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-74"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-74-1.png" alt="Estaimted carbon stock in the Tydal peatland" width="672"><p class="caption">
 Figure 6.1: Estaimted carbon stock in the Tydal peatland
 </p>
 </div>
@@ -166,7 +144,7 @@ Figure 6.1: Estaimted carbon stock in the Tydal peatland
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.05</span>, <span class="fl">.5</span>, <span class="fl">.95</span><span class="op">)</span><span class="op">)</span>,
   mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">c_stock_tydal_uninformed</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 2998.6965 3496.7183 4042.6686 3511.7408  308.4893</span></code></pre></div>
+<span class="co">#&gt; 3000.9547 3516.1798 4041.1469 3525.3531  318.0108</span></code></pre></div>
 <p>We can put this stuff into a more generic function.</p>
 <div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ccalc_cStocks</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">volume</span>,
@@ -191,7 +169,7 @@ Figure 6.1: Estaimted carbon stock in the Tydal peatland
   <span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Tydal"</span><span class="op">]</span>,
               peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 3028.5506 3504.3595 4016.4993 3511.9293  305.2949</span></code></pre></div>
+<span class="co">#&gt; 3020.6471 3511.7095 4024.9051 3517.8945  296.8167</span></code></pre></div>
 <p>And using only the <em>bog</em> data.</p>
 <div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">(</span><span class="va">cstocks_tydal_bog</span> <span class="op">&lt;-</span> 
@@ -199,7 +177,7 @@ Figure 6.1: Estaimted carbon stock in the Tydal peatland
               peatData <span class="op">=</span> <span class="va">df</span>,
               peatlandType <span class="op">=</span> <span class="st">"bog"</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 3046.2127 3534.3871 4034.4952 3526.9671  303.6141</span></code></pre></div>
+<span class="co">#&gt; 3051.8776 3534.9283 4038.0290 3533.5651  304.0285</span></code></pre></div>
 <p>And finally, aslo the fen data.</p>
 <div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">(</span><span class="va">cstocks_tydal_fen</span> <span class="op">&lt;-</span> 
@@ -207,7 +185,7 @@ Figure 6.1: Estaimted carbon stock in the Tydal peatland
               peatData <span class="op">=</span> <span class="va">df</span>,
               peatlandType <span class="op">=</span> <span class="st">"fen"</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 3023.6334 3504.1587 4023.3711 3512.9791  301.8405</span></code></pre></div>
+<span class="co">#&gt; 3015.7815 3517.9480 4023.7061 3522.3332  308.3749</span></code></pre></div>
 <div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">cstocks_tydal_unspecified_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">cstocks_tydal_unspecified</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">cstocks_tydal_unspecified_df</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"C stocks"</span>
@@ -247,18 +225,18 @@ Figure 6.1: Estaimted carbon stock in the Tydal peatland
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Peat characteristics"</span>,
        y <span class="op">=</span> <span class="st">"Carbon stocks (tons)"</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-89"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-89-1.png" alt="Mean (+- 95 CI) carbon stock for the Tydal test site." width="672"><p class="caption">
-Figure 6.2: Mean (+- 95 CI) carbon stock for the Tydal test site.
+<span style="display:block;" id="fig:unnamed-chunk-80"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-80-1.png" alt="Mean (± 95 CI) carbon stock for the Tydal test site." width="672"><p class="caption">
+Figure 6.2: Mean (± 95 CI) carbon stock for the Tydal test site.
 </p>
 </div>
 <p>Specifying the peatland type makes no difference!</p>
 <p>Let’s just get the (non-informed) C stock estimates for Geilo as well</p>
 <div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="fl">102444.14</span>,
+<code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">volume</span><span class="op">$</span><span class="va">volume</span><span class="op">[</span><span class="va">volume</span><span class="op">$</span><span class="va">site</span><span class="op">==</span><span class="st">"Geilo"</span><span class="op">]</span>,
               peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
-<span class="co">#&gt;       5%      50%      95%     mean       sd </span>
-<span class="co">#&gt; 3936.979 4616.614 5349.353 4627.271  424.368</span></code></pre></div>
+<span class="co">#&gt;        5%       50%       95%      mean        sd </span>
+<span class="co">#&gt; 3973.4131 4649.1760 5310.6568 4654.4081  402.4272</span></code></pre></div>
 
 </div>
   <div class="chapter-nav">
@@ -283,7 +261,7 @@ Figure 6.2: Mean (+- 95 CI) carbon stock for the Tydal test site.
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

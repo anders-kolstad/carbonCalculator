@@ -1,6 +1,6 @@
 # Additional test sites
 
-We used two contrastong sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additinal three sites to validate the gernerality of these finding.
+We used two contrasting sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additional four sites to validate the generality of these finding.
 
 ## Modalen
 Import shape files with peatland delineations.
@@ -9,7 +9,7 @@ SHP_modalen <- sf::read_sf("Data/Modalen/Modalen_myrareal.shp")
 #st_crs(SHP_modalen) #OK
 ```
 
-Another shape filw with the project area (see below)
+Another shape file with the project area (see below)
 ```{r}
 SHP_modalen_project <- sf::read_sf("Data/Modalen/modalen_shp.shp") 
 #st_crs(SHP_modalen_project) # OK
@@ -37,7 +37,7 @@ tm_shape(SHP_modalen)+
   tm_scale_bar(position = c("left", "bottom"), width = 0.3)+
   tm_layout(inner.margins = c(0.15, 0.05, 0.05, 0.05))
 ```
-The depth measurements are done within a bigger project area, also covering non-peat areas. The depth measurements come from ground boring, rather than from a simple peat probe, and may reflect the depth including some mineral layers at the bottom. We therefore should not use those points in the IDW I think. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two datapoints.   
+The peatland delineation (five peatland insde the project area) is mapped using aerial photos and other base maps. There may be peat also between these polygions, however, there si for sure areas between the polygons that are not peat. The depth measurements are performed systematically inside the project area. I don't think we should include points that are taken from smaller isolated mire fragments that are clearly separated from the main peatlands. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two datapoints.   
 
 Calculating the combined area of the five mires. 
 ```{r}

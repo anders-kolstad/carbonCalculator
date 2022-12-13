@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 7 Additional test sites | Analyses of peatland carbon stocks</title>
 <meta name="author" content="Marte Fandre, Anders L. Kolstad">
-<meta name="description" content="We used two contrastong sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additinal three sites to validate the gernerality of these finding.  7.1 Modalen Import...">
+<meta name="description" content="We used two contrasting sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additional four sites to validate the generality of these finding.  7.1 Modalen Import...">
 <meta name="generator" content="bookdown 0.24 with bs4_book()">
 <meta property="og:title" content="Chapter 7 Additional test sites | Analyses of peatland carbon stocks">
 <meta property="og:type" content="book">
-<meta property="og:description" content="We used two contrastong sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additinal three sites to validate the gernerality of these finding.  7.1 Modalen Import...">
+<meta property="og:description" content="We used two contrasting sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additional four sites to validate the generality of these finding.  7.1 Modalen Import...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 7 Additional test sites | Analyses of peatland carbon stocks">
-<meta name="twitter:description" content="We used two contrastong sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additinal three sites to validate the gernerality of these finding.  7.1 Modalen Import...">
+<meta name="twitter:description" content="We used two contrasting sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additional four sites to validate the generality of these finding.  7.1 Modalen Import...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -46,6 +46,7 @@
 <li><a class="" href="validate-using-reduced-sampling-data.html"><span class="header-section-number">5</span> Validate using reduced sampling data</a></li>
 <li><a class="" href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></li>
 <li><a class="active" href="additional-test-sites.html"><span class="header-section-number">7</span> Additional test sites</a></li>
+<li><a class="" href="session-info.html"><span class="header-section-number">8</span> Session Info</a></li>
 </ul>
 
         <div class="book-extra">
@@ -57,7 +58,7 @@
 <h1>
 <span class="header-section-number">7</span> Additional test sites<a class="anchor" aria-label="anchor" href="#additional-test-sites"><i class="fas fa-link"></i></a>
 </h1>
-<p>We used two contrastong sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additinal three sites to validate the gernerality of these finding.</p>
+<p>We used two contrasting sites, Tydal and Geilo, for the main analyses and testing. Now I will bring in an additional four sites to validate the generality of these finding.</p>
 <div id="modalen" class="section level2" number="7.1">
 <h2>
 <span class="header-section-number">7.1</span> Modalen<a class="anchor" aria-label="anchor" href="#modalen"><i class="fas fa-link"></i></a>
@@ -66,7 +67,7 @@
 <div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">SHP_modalen</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">read_sf</a></span><span class="op">(</span><span class="st">"Data/Modalen/Modalen_myrareal.shp"</span><span class="op">)</span>
 <span class="co">#st_crs(SHP_modalen) #OK</span></code></pre></div>
-<p>Another shape filw with the project area (see below)</p>
+<p>Another shape file with the project area (see below)</p>
 <div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">SHP_modalen_project</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">read_sf</a></span><span class="op">(</span><span class="st">"Data/Modalen/modalen_shp.shp"</span><span class="op">)</span> 
 <span class="co">#st_crs(SHP_modalen_project) # OK</span></code></pre></div>
@@ -87,12 +88,12 @@
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-95"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-95-1.png" alt="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line)." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-86"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-86-1.png" alt="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line)." width="672"><p class="caption">
 Figure 7.1: The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line).
 </p>
 </div>
-<p>The depth measurements are done within a bigger project area, also covering non-peat areas. The depth measurements come from ground boring, rather than from a simple peat probe, and may reflect the depth including some mineral layers at the bottom. We therefore should not use those points in the IDW I think. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two datapoints.</p>
+<p>The peatland delineation (five peatland insde the project area) is mapped using aerial photos and other base maps. There may be peat also between these polygions, however, there si for sure areas between the polygons that are not peat. The depth measurements are performed systematically inside the project area. I don’t think we should include points that are taken from smaller isolated mire fragments that are clearly separated from the main peatlands. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two datapoints.</p>
 <p>Calculating the combined area of the five mires.</p>
 <div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">SHP_modalen</span><span class="op">$</span><span class="va">myArea</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html">st_area</a></span><span class="op">(</span><span class="va">SHP_modalen</span><span class="op">)</span>
@@ -121,8 +122,8 @@ Figure 7.1: The Modalen test site sith peatland delineated as grey polygons. Cro
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_scale_bar.html">tm_scale_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"left"</span>, <span class="st">"bottom"</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>inner.margins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.15</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-99"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-99-1.png" alt="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line). Only depth measurements that intersects the mire polygons are included" width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-90"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-90-1.png" alt="The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line). Only depth measurements that intersects the mire polygons are included" width="672"><p class="caption">
 Figure 7.2: The Modalen test site sith peatland delineated as grey polygons. Crosses are peat depth samples, contained with in the project area (dotted line). Only depth measurements that intersects the mire polygons are included
 </p>
 </div>
@@ -138,8 +139,8 @@ Figure 7.2: The Modalen test site sith peatland delineated as grey polygons. Cro
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="va">grid_Modalen_stars_crop</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_raster.html">tm_raster</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-101"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-101-1.png" alt="Checking that the raster grid for Modalen looks correct." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-92"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-92-1.png" alt="Checking that the raster grid for Modalen looks correct." width="672"><p class="caption">
 Figure 7.3: Checking that the raster grid for Modalen looks correct.
 </p>
 </div>
@@ -155,8 +156,8 @@ Figure 7.3: Checking that the raster grid for Modalen looks correct.
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
-<div class="inline-figure"><img src="carbonCalculator_files/figure-html/unnamed-chunk-102-1.png" width="672"></div>
-<p>Unsurprising, when we have so few data points, the optimum power is very low. I will predict using power 1 though 3 to compare, just because I don’t trus power 1 is the best choice.</p>
+<div class="inline-figure"><img src="carbonCalculator_files/figure-html/unnamed-chunk-93-1.png" width="672"></div>
+<p>Unsurprising, when we have so few data points, the optimum power is very low. I will predict using power 1 through 3 to compare, just because I don’t trust power 1 is the best choice.</p>
 <div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">IDW_Modalen_1</span> <span class="op">&lt;-</span> <span class="fu">gstat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gstat/man/krige.html">idw</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Dybde</span> <span class="op">~</span> <span class="fl">1</span>, 
            locations <span class="op">=</span> <span class="va">depths_modalen_reduced</span>, 
@@ -224,8 +225,8 @@ Figure 7.3: Checking that the raster grid for Modalen looks correct.
 <span class="co">#&gt; Legend labels were too wide. The labels have been resized to 0.46, 0.46, 0.46, 0.46, 0.46, 0.46. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.</span>
 <span class="co">#&gt; Legend labels were too wide. The labels have been resized to 0.46, 0.46, 0.46, 0.46, 0.46, 0.46. Increase legend.width (argument of tm_layout) to make the legend wider and therefore the labels larger.</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-104"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-104-1.png" alt="IDW for peat depth at Modalen test site." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-95"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-95-1.png" alt="IDW for peat depth at Modalen test site." width="672"><p class="caption">
 Figure 7.4: IDW for peat depth at Modalen test site.
 </p>
 </div>
@@ -252,7 +253,7 @@ Figure 7.4: IDW for peat depth at Modalen test site.
 <div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span><span class="va">volume_modalen</span>, peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 653.22600 761.29902 875.01234 765.12104  67.81018</span></code></pre></div>
+<span class="co">#&gt; 659.49512 760.21290 880.30501 764.35245  66.95905</span></code></pre></div>
 </div>
 <div id="opelandsmarka" class="section level2" number="7.2">
 <h2>
@@ -291,8 +292,8 @@ Figure 7.4: IDW for peat depth at Modalen test site.
              size<span class="op">=</span><span class="fl">.5</span>,
              shape<span class="op">=</span><span class="fl">4</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-111"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-111-1.png" alt="Test site: Opelandsmarka. Crosses are peat depth measurements." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-102"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-102-1.png" alt="Test site: Opelandsmarka. Crosses are peat depth measurements." width="672"><p class="caption">
 Figure 7.5: Test site: Opelandsmarka. Crosses are peat depth measurements.
 </p>
 </div>
@@ -312,8 +313,8 @@ Figure 7.5: Test site: Opelandsmarka. Crosses are peat depth measurements.
              size<span class="op">=</span><span class="fl">.5</span>,
              shape<span class="op">=</span><span class="fl">4</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-114"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-114-1.png" alt="Opelandsmarka with two out of three mires. Crosses are peat depth measurements." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-105"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-105-1.png" alt="Opelandsmarka with two out of three mires. Crosses are peat depth measurements." width="672"><p class="caption">
 Figure 7.6: Opelandsmarka with two out of three mires. Crosses are peat depth measurements.
 </p>
 </div>
@@ -332,8 +333,8 @@ Figure 7.6: Opelandsmarka with two out of three mires. Crosses are peat depth me
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-116"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-116-1.png" alt="Determening the optimal power for the Opelandsmarka test site." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-107"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-107-1.png" alt="Determening the optimal power for the Opelandsmarka test site." width="672"><p class="caption">
 Figure 7.7: Determening the optimal power for the Opelandsmarka test site.
 </p>
 </div>
@@ -409,7 +410,7 @@ Figure 7.7: Determening the optimal power for the Opelandsmarka test site.
 ncol <span class="op">=</span> <span class="fl">2</span>
 
 <span class="op">)</span></code></pre></div>
-<div class="inline-figure"><img src="carbonCalculator_files/figure-html/unnamed-chunk-120-1.png" width="672"></div>
+<div class="inline-figure"><img src="carbonCalculator_files/figure-html/unnamed-chunk-111-1.png" width="672"></div>
 <p>With power set to 1 the model is too flat, and the deep areas are not identified correctly. Power 2 or 3 makes less of a difference. Becaus ethe MAE and volume estimates are so similar, I will chose the modet local model (power = 3)</p>
 <p>Getting the total peatland area</p>
 <div class="sourceCode" id="cb120"><pre class="downlit sourceCode r">
@@ -441,7 +442,7 @@ ncol <span class="op">=</span> <span class="fl">2</span>
 <code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">vol_temp</span>,
               peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 362.60768 423.61840 483.41071 422.93686  36.21115</span></code></pre></div>
+<span class="co">#&gt; 358.35438 421.51489 484.45165 422.16075  38.01544</span></code></pre></div>
 </div>
 <div id="kinn-1" class="section level2" number="7.3">
 <h2>
@@ -507,8 +508,8 @@ ncol <span class="op">=</span> <span class="fl">2</span>
              size<span class="op">=</span><span class="fl">.5</span>,
              shape<span class="op">=</span><span class="fl">4</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-134"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-134-1.png" alt="Test site Kinn1." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-125"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-125-1.png" alt="Test site Kinn1." width="672"><p class="caption">
 Figure 7.8: Test site Kinn1.
 </p>
 </div>
@@ -545,8 +546,8 @@ Figure 7.8: Test site Kinn1.
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-140"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-140-1.png" alt="Finding the best power setting for the Kinn1 test site." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-131"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-131-1.png" alt="Finding the best power setting for the Kinn1 test site." width="672"><p class="caption">
 Figure 7.9: Finding the best power setting for the Kinn1 test site.
 </p>
 </div>
@@ -582,8 +583,8 @@ Figure 7.9: Finding the best power setting for the Kinn1 test site.
              size<span class="op">=</span><span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-144"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-144-1.png" alt="Best model for test site Kinn1" width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-135"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-135-1.png" alt="Best model for test site Kinn1" width="672"><p class="caption">
 Figure 7.10: Best model for test site Kinn1
 </p>
 </div>
@@ -595,8 +596,8 @@ Figure 7.10: Best model for test site Kinn1
 <div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">vol_temp</span>,
               peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
-<span class="co">#&gt;       5%      50%      95%     mean       sd </span>
-<span class="co">#&gt; 1284.029 1528.301 1745.019 1527.317  137.476</span></code></pre></div>
+<span class="co">#&gt;        5%       50%       95%      mean        sd </span>
+<span class="co">#&gt; 1307.5055 1533.0524 1740.5413 1526.9631  133.1892</span></code></pre></div>
 </div>
 <div id="kinn2" class="section level2" number="7.4">
 <h2>
@@ -652,8 +653,8 @@ Figure 7.10: Best model for test site Kinn1
              size<span class="op">=</span><span class="fl">.5</span>,
              shape<span class="op">=</span><span class="fl">4</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-152"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-152-1.png" alt="Test site Kinn2." width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-143"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-143-1.png" alt="Test site Kinn2." width="672"><p class="caption">
 Figure 7.11: Test site Kinn2.
 </p>
 </div>
@@ -690,9 +691,9 @@ Figure 7.11: Test site Kinn2.
 <span class="co">#&gt; [inverse distance weighted interpolation]</span>
 <span class="co">#&gt; [inverse distance weighted interpolation]</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-158"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-158-1.png" alt="Finding the best power setting for the Kinn1 test site." width="672"><p class="caption">
-Figure 7.12: Finding the best power setting for the Kinn1 test site.
+<span style="display:block;" id="fig:unnamed-chunk-149"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-149-1.png" alt="Finding the best power setting for the Kinn2 test site." width="672"><p class="caption">
+Figure 7.12: Finding the best power setting for the Kinn2 test site.
 </p>
 </div>
 <p>Power = 4 is best.</p>
@@ -724,8 +725,8 @@ Figure 7.12: Finding the best power setting for the Kinn1 test site.
              size<span class="op">=</span><span class="fl">.5</span><span class="op">)</span><span class="op">+</span>
   <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_layout.html">tm_layout</a></span><span class="op">(</span>legend.outside <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
 <div class="figure">
-<span style="display:block;" id="fig:unnamed-chunk-161"></span>
-<img src="carbonCalculator_files/figure-html/unnamed-chunk-161-1.png" alt="Best model for test site Kinn2" width="672"><p class="caption">
+<span style="display:block;" id="fig:unnamed-chunk-152"></span>
+<img src="carbonCalculator_files/figure-html/unnamed-chunk-152-1.png" alt="Best model for test site Kinn2" width="672"><p class="caption">
 Figure 7.13: Best model for test site Kinn2
 </p>
 </div>
@@ -738,13 +739,13 @@ Figure 7.13: Best model for test site Kinn2
 <code class="sourceCode R"><span class="fu">ccalc_cStocks</span><span class="op">(</span>volume <span class="op">=</span> <span class="va">vol_temp</span>,
               peatData <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
 <span class="co">#&gt;        5%       50%       95%      mean        sd </span>
-<span class="co">#&gt; 1300.0486 1509.6668 1719.2347 1507.1071  128.2847</span></code></pre></div>
+<span class="co">#&gt; 1265.5436 1508.9135 1737.2036 1507.3254  140.6663</span></code></pre></div>
 
 </div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="carbon-stocks.html"><span class="header-section-number">6</span> Carbon stocks</a></div>
-<div class="empty"></div>
+<div class="next"><a href="session-info.html"><span class="header-section-number">8</span> Session Info</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
@@ -770,7 +771,7 @@ Figure 7.13: Best model for test site Kinn2
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-12.</p>
+    <p>"<strong>Analyses of peatland carbon stocks</strong>" was written by Marte Fandre, Anders L. Kolstad. It was last built on 2022-12-13.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

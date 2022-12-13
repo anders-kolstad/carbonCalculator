@@ -2,15 +2,18 @@
 
 Now I want to convert the peat volumes into estimates of carbon stock. This conversion depends on the values of some peat characteristics, such as bulk density and C concentrations. We have a data set with these values.
 
-```{r}
+Import dataset with peat characteristics.
+
+```{r, message=F}
 peatCharacteristics <- read_delim("Data/peatCharacteristics.csv", 
     delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
     trim_ws = TRUE)
-head(peatCharacteristics)
+dim(peatCharacteristics)
 ```
 
+Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take te mean from each sample core. This part of the analyses can be improved.
+
 ```{r}
-# Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take te mean from each sample core.
 peatCharacteristics_summedDepths <- peatCharacteristics %>% 
       mutate(perc_SOM = as.numeric(`% SOM`)) %>% 
       mutate(BD = as.numeric(`BD (t/m3)`)) %>% 
@@ -28,22 +31,26 @@ df = full_join(peatCharacteristics_summedDepths, df_info, by = "SAMPLE ID2") %>%
 head(df)
 ```
 
+We have 12 samples from bogs, and 14 from fens:
+
 ```{r}
 table(df$`General Peatland Type`)
 ```
-We have 12 samples from bogs, and 14 from fens.
+
+We do not perhaps have enough data points to really compare the different specific peatland types:
 
 ```{r}
 table(df$`Specific Peatland Type`)
 ```
-We do not perhaps have enough data points to really compare the different spesific peatland types. 
 
-Lets get the total peat volumes for Tydal (and Geilo, but I will not look at Geilo here).
+Let's get the total peat volumes for Tydal (and Geilo, but I will not look at Geilo here).
+
 ```{r}
 volume
 ```
 
 Calculating the c stocks (tons C) for the Tydal site without specifying the mire type
+
 ```{r}
 c_stock_tydal_uninformed <- 
               volume$volume[volume$site=="Tydal"] * 
@@ -51,7 +58,9 @@ c_stock_tydal_uninformed <-
               mean(df$BD_mean) * 0.5 #* 1000 # removing the original conversion from tons to kg
 c_stock_tydal_uninformed
 ```
-I think we also need to estimate the uncertainties around this number. Note that for the peat volume estimation, we did not calculate an uncertainty. But for the peat characteristics we have an uncertainty in therms of variation within and between samples points. I will calculate the uncertainty between points only.
+
+I think we also need to estimate the uncertainties around this number. Note that for the peat volume estimation, we did not calculate an uncertainty. But for the peat characteristics we have an uncertainty in therms of variation within and between samples points. I will calculate the uncertainty between individual peat cores only.
+
 ```{r, fig.cap="Estaimted carbon stock in the Tydal peatland"}
 c_stock_tydal_uninformed <- NULL
 for(i in 1:1000){
@@ -66,12 +75,14 @@ hist(c_stock_tydal_uninformed, main="",
 ```
 
 This distribution is quite wide. Let's summarize the distribution.
+
 ```{r}
 c(quantile(c_stock_tydal_uninformed, c(.05, .5, .95)),
   mean = mean(c_stock_tydal_uninformed), sd = sd(c_stock_tydal_uninformed))
 ```
 
 We can put this stuff into a more generic function.
+
 ```{r ccalc_cStocks}
 ccalc_cStocks <- function(volume,
                           peatlandType = c("fen", "bog"),
@@ -91,15 +102,16 @@ ccalc_cStocks <- function(volume,
 }
 ```
 
+Calculating summary statistics for the carbon stocks in Tydal, using both general peatland types.
 
-Calculating summary statistics for the carbon stocks in Tydal, using both general peatland types. 
 ```{r}
 (cstocks_tydal_unspecified <- 
   ccalc_cStocks(volume = volume$volume[volume$site=="Tydal"],
               peatData = df))
 ```
 
-And using only  the *bog* data.
+And using only the *bog* data.
+
 ```{r}
 (cstocks_tydal_bog <- 
   ccalc_cStocks(volume = volume$volume[volume$site=="Tydal"],
@@ -108,14 +120,13 @@ And using only  the *bog* data.
 ```
 
 And finally, aslo the fen data.
+
 ```{r}
 (cstocks_tydal_fen <- 
   ccalc_cStocks(volume = volume$volume[volume$site=="Tydal"],
               peatData = df,
               peatlandType = "fen"))
 ```
-
-
 
 ```{r}
 cstocks_tydal_unspecified_df <- as.data.frame(cstocks_tydal_unspecified)
@@ -147,7 +158,7 @@ cstocks_tydal_compare <- pivot_wider(cstocks_tydal_compare,
                                       )
 ```
 
-```{r, fig.cap="Mean (+- 95 CI) carbon stock for the Tydal test site."}
+```{r, fig.cap="Mean (± 95 CI) carbon stock for the Tydal test site."}
 ggplot(cstocks_tydal_compare,
        aes(x = information))+
   geom_point(aes(y = mean), shape=15, size=10) +
@@ -162,9 +173,8 @@ ggplot(cstocks_tydal_compare,
 Specifying the peatland type makes no difference!
 
 Let's just get the (non-informed) C stock estimates for Geilo as well
+
 ```{r}
-ccalc_cStocks(volume = 102444.14,
+ccalc_cStocks(volume = volume$volume[volume$site=="Geilo"],
               peatData = df)
 ```
-
-
