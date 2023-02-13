@@ -2,7 +2,7 @@
 
 We want to interpolate values from the depth measurement on to a raster grid. From this we can estimate the total volume of the peatland, and also visualize the depth profiles.
 
-> The main task in this chapter is the determination of optimal power for IDW by cross validation
+*The main task in this chapter is the determination of optimal power for IDW by cross validation*
 
 ## Raster grid
 
@@ -28,7 +28,7 @@ tm_shape(grid_Tydal_sf)+
               alpha=.5)
 ```
 
-Crop raster grid using the peatland deliniation
+Crop raster grid using the peatland delineation
 
 ```{r}
 grid_Tydal_stars_crop <- sf::st_crop(grid_Tydal_stars, SHP_tydal)
@@ -187,13 +187,13 @@ tmap_arrange(gg_temp4,
 
 If we increase nmax to 20, and retain the distance weighting, we get a slightly flatter (loss local) estimation than with nmax = 9 (Fig. \@ref(fig:IDW-test2); left pane).
 
-If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter (Fig. \@ref(fig:IDW-test2); middle pane). For biger data sets however, the computation time might become an issue.
+If we ramp up the nmax to consider all the points in the dataset, this has little additional effect as long as we have a positive power parameter (Fig. \@ref(fig:IDW-test2); middle pane). For bigger data sets however, the computation time might become an issue.
 
 If we keep nmax at 9, and ramp up the power, we approach what we had at the beginning, that is a nearest neighbor interpolation (Fig. \@ref(fig:IDW-test2); right pane).
 
 Of all the examples above, power = 2 and nmax = 9 is probably the best. However, I don't like these little dots on the map. They are artefacts of the model, and do not exist for real. Therefore I think I would prefer a model with a slightly more local focus. We can increase the power a bit to achieve this.
 
-```{r IDW-test_power4_nmax9, fig.cap="IDW with relatively local focus." }
+```{r IDW-test-power4-nmax9, fig.cap="IDW with relatively local focus." }
 temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
            newdata = grid_Tydal_stars_crop, 
@@ -215,7 +215,7 @@ tm_shape(temp)+
 
 After a bit of trial and error, I noticed that by having nmax as low as 9, the optimum power frequently became \<2 (which results in model artefacts and biased predictions as you can read about below, esp Fig. \@ref(fig:residuals-vs-predicted)). I therefore increase the nmax.
 
-```{r test_power4_nmax20, fig.cap="IDW with relatively slightlly higher nmax and higher power." }
+```{r test-power4-nmax20, fig.cap="IDW with slightly higher nmax and higher power." }
 temp <- gstat::idw(formula = Dybde ~ 1, 
            locations = depths_tydal, 
            newdata = grid_Tydal_stars_crop, 
@@ -314,12 +314,9 @@ for(i in myPowers){
 
 
 tmap_arrange(
-  #tmap_IDW_geilo_power_0,
   tmap_IDW_geilo_power_1,
   tmap_IDW_geilo_power_2,
   tmap_IDW_geilo_power_4,
-  #tmap_IDW_geilo_power_6,
-  #tmap_IDW_geilo_power_8,
 ncol = 1)
 
 ```
@@ -476,7 +473,7 @@ This relationship probably depends a bit on the number of data points and the de
 
 Now let's do a proper test of model fit, using leave one out cross validation. I will use the mean absolute deviation as my measure of model fit.
 
-```{r}
+```{r, message=F}
 MAE_tydal <- data.frame(power = myPowers,
                         MAE = as.numeric(NA))
 for(i in myPowers){
@@ -485,23 +482,27 @@ for(i in myPowers){
 }
 
 MAE_tydal$best <- ifelse(MAE_tydal$MAE==min(MAE_tydal$MAE), "best", "not-best")
-
-
-# For Geilo the calculations take longer, so I will not consider as big a range in power
-# This part still takes 2 min on my computer, so I will run it once and cache it on a local server.
-myPowers2 <- seq(0,5,1)
-#MAE_geilo <- data.frame(power = myPowers2,
-#                        MAE = as.numeric(NA))
-#for(i in myPowers2){
-#  temp <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=i), nmax = nmax)
-#  MAE_geilo$MAE[MAE_geilo$power==i] <- mean(abs(temp$residual))
-#}
-#
-#MAE_geilo$best <- ifelse(MAE_geilo$MAE==min(MAE_geilo$MAE), "best", "not-best")
-#saveRDS(MAE_geilo, "Data/cache/MAE_geilo_cashe.rds")
-MAE_geilo <- readRDS("Data/cache/MAE_geilo_cashe.rds")
-
 ```
+
+For Geilo the calculations take longer, so I will not consider as big a range in power.
+```{r, eval=F}
+myPowers2 <- seq(0,5,1)
+MAE_geilo <- data.frame(power = myPowers2,
+                        MAE = as.numeric(NA))
+for(i in myPowers2){
+  temp <- krige.cv(Dybde ~ 1, depths_geilo, set = list(idp=i), nmax = nmax)
+  MAE_geilo$MAE[MAE_geilo$power==i] <- mean(abs(temp$residual))
+}
+
+MAE_geilo$best <- ifelse(MAE_geilo$MAE==min(MAE_geilo$MAE), "best", "not-best")
+saveRDS(MAE_geilo, "Data/cache/MAE_geilo_cashe.rds")
+```
+
+```{r, include=FALSE}
+#This part still takes 2 min on my computer, so I will run it once and cache it on a local server.
+MAE_geilo <- readRDS("Data/cache/MAE_geilo_cashe.rds")
+```
+
 
 ```{r, fig.cap="Mean absolute error based on leave-one-out cross validation. The optimal power setting is indicated by a green star symbol."}
 gg_MAE_tydal <- ggplot(MAE_tydal, aes(x = power, y = MAE,

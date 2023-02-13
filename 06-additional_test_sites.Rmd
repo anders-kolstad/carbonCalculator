@@ -86,7 +86,7 @@ tm_shape(grid_Modalen_stars_crop)+
 ```
 
 Predict peat depth
-```{r}
+```{r, message=F, fig.cap="Determening the optimal power for the Modelan test site."}
 ccalc_optimumPower(nmax=nrow(depths_modalen_reduced),
                    peatDepths = depths_modalen_reduced,
                    title="Modalen",
@@ -241,6 +241,7 @@ It could be a good idea sometimes to include depth measurements outside the mire
 ```{r}
 depths_opelandsmarka <- st_intersection(depths_opelandsmarka, SHP_opelandsmarka_twoMires)
 ```
+
 ```{r, fig.cap="Opelandsmarka with two out of three mires. Crosses are peat depth measurements."}
 tm_shape(SHP_opelandsmarka_twoMires)+
   tm_polygons()+
@@ -257,7 +258,7 @@ depths_opelandsmarka <- depths_opelandsmarka[!is.na(depths_opelandsmarka$Dybde),
 
 Try again:
 
-```{r, fig.cap="Determening the optimal power for the Opelandsmarka test site."}
+```{r, fig.cap="Determening the optimal power for the Opelandsmarka test site.", message=FALSE}
 ccalc_optimumPower(peatDepths = depths_opelandsmarka, 
                    title = "Opelandsmarka",
                    peatlandDelimination = SHP_opelandsmarka_twoMires)
@@ -294,7 +295,7 @@ IDW_opelandsmarka_3 <- gstat::idw(Dybde ~ 1, depths_opelandsmarka,
                     idp=3)
 ```
 
-```{r}
+```{r, fig.cap="Interpolated peat depth at test site Opelandsmarka."}
 myBreaks <- seq(0,3,.5)
 myPos <- c("left", "bottom")
 
@@ -383,7 +384,7 @@ ccalc_cStocks(volume = vol_temp,
 
 ## Kinn 1
 
-```{r}
+```{r, message=F}
 # import peatland delineation
 SHP_kinn1 <- sf::st_read("Data/Kinn/rikmyr_avgrensing.shp")
 
@@ -465,7 +466,7 @@ nrow(depths_kinn1_spatial) / (SHP_kinn1$myArea )*100
 ```
 
 Finding optimum power
-```{r, fig.cap="Finding the best power setting for the Kinn1 test site."}
+```{r, fig.cap="Finding the best power setting for the Kinn1 test site.", message=F}
 ccalc_optimumPower(peatDepths = depths_kinn1_spatial,
                    peatlandDelimination = SHP_kinn1,
                    title = "Kinn1")
@@ -523,19 +524,19 @@ ccalc_cStocks(volume = vol_temp,
 
 ## Kinn2
 
-```{r}
+```{r, message=FALSE}
 SHP_kinn2 <- sf::st_read("Data/Kinn/maroy_avgrensing.shp")
 ```
 
 
-```{r}
+```{r, message=FALSE}
 depths_kinn2 <- read_delim("Data/Kinn/data_maroy_torvdybder.csv", 
     delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-1"), 
     trim_ws = TRUE)
 ```
 
 As before, the depths have no coordinates.
-```{r}
+```{r, message=FALSE}
 depths_kinn2_spatial <- sf::st_read("Data/Kinn/maroy_punkter.shp")
 ```
 
@@ -574,13 +575,12 @@ depths_kinn2_spatial$Dybde <- depths_kinn2_spatial$Dybde/100
 ```
 
 
-Area
+Calculate area:
 ```{r}
 SHP_kinn2$myArea <- st_area(SHP_kinn2)
-nrow(depths_kinn2_spatial)
 ```
 
-Number of peat depth measurements
+Number of peat depth measurements:
 ```{r}
 nrow(depths_kinn2_spatial)
 ```
@@ -591,7 +591,7 @@ nrow(depths_kinn2_spatial)/SHP_kinn2$myArea*100
 ```
 
 Find optimal power
-```{r, fig.cap="Finding the best power setting for the Kinn2 test site."}
+```{r, fig.cap="Finding the best power setting for the Kinn2 test site.", message=FALSE}
 ccalc_optimumPower(peatDepths = depths_kinn2_spatial,
                    peatlandDelimination = SHP_kinn2,
                    title = "Kinn2")

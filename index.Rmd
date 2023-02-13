@@ -1,23 +1,34 @@
 ---
-title: "Analyses of peatland carbon stocks"
-author: "Marte Fandre, Anders L. Kolstad"
+title: "Supplementary Information: A calculator for peatland volume and carbon stock to support area planners and decision makers (Kyrkjeeide et al.)"
+author: "Anders L. Kolstad, Marte Fandrem"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
+classoption: 
+  - oneside
 documentclass: book
-# url: your book url like https://bookdown.org/yihui/bookdown
-# cover-image: path to the social sharing image like images/cover.jpg
+geometry: margin=2cm
+header-includes:
+  - \renewcommand{\figurename}{Figure S}
+  - \makeatletter
+  - \def\fnum@figure{\figurename\thefigure}
+  - \makeatother
 description: |
   Analyses of peat volume and carbon stock in Norwegian mires
 ---
 
 # Analyses of peatland carbon stocks
 
-This webpage describes the data and analyses behind a manuscript (Fandrem et al. in prep). There is also a static pdf version of the webpage (<https://anders-kolstad.github.io/carbonCalculator/>) from the time of the original publication of the article.
-
-This web page or pdf was build
-
-```{r, echo=F}
-Sys.time()
+```{r, include=F}
+library(formatR)
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 50), tidy = TRUE)
 ```
 
-![The analyses described in this book makes it possible, with minimal effort, to estimate the carbon content of peatlands such as this one.. Photo: Anders L. Kolstad.](Data/illustration.JPG){width="599"}
+
+Here I document the data and analyses behind the manuscript _A calculator for peatland volume and carbon stock to support area planners and decision makers._ (Fandrem et al. in prep). The documentation exists both as a [dynamic web page](https://anders-kolstad.github.io/carbonCalculator/), and as a static pdf that came with the original publication. 
+
+This web page or pdf was build `r Sys.time()`
+
+The analyses here is done by Kolstad based on inital work of Fandrem.
+
+![The analyses described in this book makes it possible, with minimal effort, to estimate the carbon content of peatlands such as this one. Photo: Anders L. Kolstad.](Data/illustration.JPG){width="599"}
