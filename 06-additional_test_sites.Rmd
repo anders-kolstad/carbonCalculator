@@ -37,7 +37,8 @@ tm_shape(SHP_modalen)+
   tm_scale_bar(position = c("left", "bottom"), width = 0.3)+
   tm_layout(inner.margins = c(0.15, 0.05, 0.05, 0.05))
 ```
-The peatland delineation (five peatland insde the project area) is mapped using aerial photos and other base maps. There may be peat also between these polygions, however, there si for sure areas between the polygons that are not peat. The depth measurements are performed systematically inside the project area. I don't think we should include points that are taken from smaller isolated mire fragments that are clearly separated from the main peatlands. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two datapoints.   
+
+The peatland delineation (five peatlands inside the project area) is mapped using aerial photos and other base maps. There may be peat also between these polygons, however, there is for sure areas between the polygons that are not peat. The depth measurements are performed systematically inside the project area. I don't think we should include points that are taken from smaller isolated mire fragments that are clearly separated from the main peatlands. This example illustrates the importance of appropriate sampling. We are now limited to just a few data points. The smaller mires have only one or two data points.   
 
 Calculating the combined area of the five mires. 
 ```{r}
@@ -160,7 +161,7 @@ tm_shape(IDW_Modalen_3)+
   
 ```
 
-I think power 3 looks more accurate because of the way it gives weight to local points. The recommended practice for this case I think would be to analyse each polyong or mire separately because of how the point from neighboring mires affect the depth predictions.
+I think power 3 looks more accurate because of the way it gives weight to local points. The recommended practice for this case I think would be to analyse each polygon or mire separately because of how the point from neighboring mires affect the depth predictions.
 
 Summary stats for the peat depth at Modalen.
 ```{r}

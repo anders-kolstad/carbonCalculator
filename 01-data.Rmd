@@ -2,7 +2,7 @@
 
 ## Peat depth and peatland delineation
 
-To create the methodology for mapping peatland depth profiles, and estimating peat volume, carbon stocks and sensitivity to sampling effort, I will use two contrasting test sites: _Tydal_ and _Geilo._ Later, in chapter \@ref(additional-test-sites) I will validate the generality of this method on an additional four sites. For more details on the justification and the methods used, please the the manuscript.
+To create the methodology for mapping peatland depth profiles, and estimating peat volume, carbon stocks and sensitivity to sampling effort, I will use two contrasting test sites: _Tydal_ and _Geilo._ Later, in chapter \@ref(additional-test-sites) I will validate the generality of this method on an additional four sites. For more details on the justification and the methods used, please the manuscript.
 
 Libraries used:
 ```{r, message=F, warning=F}
@@ -20,7 +20,7 @@ library(tidyverse)
 library(osmplotr)
 ```
 
-Import shape files with peatland delineations and fix the CRS.
+Import shape files with peatland delineations and fix the coordinate reference system (CRS).
 
 ```{r, message=F, warning=F}
 SHP_tydal <- sf::read_sf("Data/Tydal/stasjon_Setermyra.shp")
@@ -154,4 +154,4 @@ tmap_arrange(static_geilo,
              static_tydal)
 ```
 
-These to test cases are very different. Geilo is a set of several unique mire polygons. Usually, in development projects, one would estimate the peat volume and C stock for each of these separately, but we will try now to see if it can be done in one operation. Tydal is a more typical example of a clear peatland delineation. Both cases have dense peat depth measurements taken.
+These two test cases are very different. Geilo is a set of several unique mire polygons. Usually, in development projects, one would estimate the peat volume and C stock for each of these separately, but we will try now to see if it can be done in one operation. Tydal is a more typical example of a clear peatland delineation. Both cases have dense peat depth measurements taken.

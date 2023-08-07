@@ -262,7 +262,7 @@ for(i in myPowers){
 }
 ```
 
-What do these models look like.
+What do these models look like?
 
 ```{r tydal-power-range, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Tydal.", message=F}
 for(i in myPowers){
@@ -295,7 +295,7 @@ ncol = 3)
 
 ```
 
-When plotting Geilo I cannot include the crosses for the depth measurements because there are just too many and the clutter up the image.
+When plotting Geilo I cannot include the crosses for the depth measurements because there are just too many and they clutter up the image.
 
 ```{r geilo-power-range, fig.cap="First view of how IDW models look like depending on the power parameter. Test site: Geilo.", message=F}
 for(i in myPowers){
@@ -465,7 +465,7 @@ ggpubr::ggarrange(
 
 ```
 
-The values are stabilizing relatively fast, but a power of less than 3 seem like a bad idea. In general though, the difference between the worst and best models is just 2-4%.
+The values are stabilizing relatively fast, but a power of less than 3 seems like a bad idea. In general though, the difference between the worst and best models is just 2-4%.
 
 This relationship probably depends a bit on the number of data points and the density of peat depth measurements. So we should not generalise just yet.
 
@@ -534,7 +534,7 @@ ggpubr::ggarrange(gg_MAE_geilo,
 
 ```
 
-The mean absolute error is not negligible in any of the two cases. The interpretation is, if you leave out one of the peat depth measurement and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.
+The mean absolute error is not negligible in any of the two cases. The interpretation is, if you leave out one of the peat depth measurements and predict the peat depth in that point (using just the remaining data points) the models are on average 40-60 cm wrong.
 
 The best models have power = 2 for Geilo and 4 for Tydal. These models also look reasonable in terms of predicted peat volume and the spread of the raw residuals (Figs. \@ref(fig:tydal-power-range) and \@ref(fig:geilo-power-range)). But the map for Geilo is quite *spotted*, and perhaps a higher power would be smart. I will therefore change it to 3. This is justified also because of the minimal impact in MAE and the predicted volume. For Geilo, we probably would get better results if we analysed each polygon separately.
 
@@ -631,4 +631,4 @@ SHP_geilo$myArea <- sf::st_area(SHP_geilo)
 mean(depths_geilo$Dybde)*sum(SHP_geilo$myArea)
 ```
 
-Next I want to try and estimate how many depth measurement I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.
+Next I want to try and estimate how many depth measurements I need to get a stable result, both on therms of peat volume and of visual appearance. Then I will also see if the same choice of the power parameter is still the best after removing some data points.

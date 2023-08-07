@@ -11,7 +11,7 @@ peatCharacteristics <- read_delim("Data/peatCharacteristics.csv",
 dim(peatCharacteristics)
 ```
 
-Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take te mean from each sample core. This part of the analyses can be improved.
+Each sample consists of multiple sub samples from different depths. Here we will ignore the depth aspect, and simply take the mean from each sample core. This part of the analyses can be improved.
 
 ```{r}
 peatCharacteristics_summedDepths <- peatCharacteristics %>% 
