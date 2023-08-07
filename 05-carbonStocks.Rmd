@@ -132,7 +132,7 @@ And finally, aslo the fen data.
 cstocks_tydal_unspecified_df <- as.data.frame(cstocks_tydal_unspecified)
 names(cstocks_tydal_unspecified_df) <- "C stocks"
 cstocks_tydal_unspecified_df$summary <- row.names(cstocks_tydal_unspecified_df)
-cstocks_tydal_unspecified_df$information <- "Unspesified"
+cstocks_tydal_unspecified_df$information <- "Unspecified"
 
 
 cstocks_tydal_bog_df <- as.data.frame(cstocks_tydal_bog)
