@@ -159,7 +159,7 @@ cstocks_tydal_compare <- pivot_wider(cstocks_tydal_compare,
 ```
 
 ```{r, fig.cap="Mean (± 95 CI) carbon stock for the Tydal test site."}
-ggplot(cstocks_tydal_compare,
+(tmp_out <- ggplot(cstocks_tydal_compare,
        aes(x = information))+
   geom_point(aes(y = mean), shape=15, size=10) +
   geom_linerange(aes(ymin=`5%`, 
@@ -167,7 +167,12 @@ ggplot(cstocks_tydal_compare,
                  size=2)+ 
   theme_bw(base_size = 16)+
   labs(x = "Peat characteristics",
-       y = "Carbon stocks (tons)")
+       y = "Carbon stocks (tons)"))
+```
+
+```{r, eval=F, include=FALSE}
+library(svglite)
+ggsave(file="Output/Figure3.svg", width=6, height = 4)
 ```
 
 Specifying the peatland type makes no difference!

@@ -507,6 +507,9 @@ gg_volume <-    ggplot(data = summaryTable_twoSites,
 
 ggsave("Output/plot_distanceAgainstVolume.tiff", gg_volume,
        width = 1600, height = 1200, units = "px")
+library(svglite)
+ggsave("Output/Figure1.svg", gg_volume,
+       width = 7, height = 5)
 
 gg_volume
 ```

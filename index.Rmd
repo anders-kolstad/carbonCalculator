@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Information: A calculator for peatland volume and carbon stock to support area planners and decision makers (Kyrkjeeide et al.)"
+title: "Supplementary Information: A calculator for local peatland volume and carbon stock to support area planners and decision makers (Kyrkjeeide et al.)"
 author: "Anders L. Kolstad, Marte Fandrem"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
@@ -25,10 +25,10 @@ knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 50), tidy = TRUE)
 ```
 
 
-Here I document the data and analyses behind the manuscript _A calculator for peatland volume and carbon stock to support area planners and decision makers._ (Fandrem et al. in prep). The documentation exists both as a [dynamic web page](https://anders-kolstad.github.io/carbonCalculator/), and as a static pdf that came with the original publication. 
+Here I document the data and analyses behind the manuscript _A calculator for peatland volume and carbon stock to support area planners and decision makers._ (Kyrkjeeide et al. in prep). The documentation exists both as a [dynamic web page](https://anders-kolstad.github.io/carbonCalculator/), and as a static pdf that came with the original publication. 
 
 This web page or pdf was build `r Sys.time()`
 
-The analyses here is done by Kolstad based on inital work of Fandrem.
+The analyses here are done by Kolstad based on initial work of Fandrem.
 
 ![The analyses described in this book makes it possible, with minimal effort, to estimate the carbon content of peatlands such as this one. Photo: Anders L. Kolstad.](Data/illustration.JPG){width="599"}

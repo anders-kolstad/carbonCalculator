@@ -505,6 +505,7 @@ MAE_geilo <- readRDS("Data/cache/MAE_geilo_cashe.rds")
 
 
 ```{r, fig.cap="Mean absolute error based on leave-one-out cross validation. The optimal power setting is indicated by a green star symbol."}
+myPowers2 <- seq(0,5,1)
 gg_MAE_tydal <- ggplot(MAE_tydal, aes(x = power, y = MAE,
                       colour = best,
                       shape = best))+
